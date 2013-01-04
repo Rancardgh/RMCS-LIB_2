@@ -1,0 +1,69 @@
+.outerBorder {
+	margin: 0px;
+	padding: 10px 1px 1px 1px;
+	background: #cccccc;
+}
+
+.header {
+	border-top: 10px;
+	height:100px;
+	background-color: #ffffff;
+}
+
+.subheader {
+	clear:both;
+	height:20px;
+	margin: 40px 0px 0px 0px;
+	border-top: 1px solid #000000;
+	border-bottom: 1px solid #000000;
+	background-color: #CCCCCC;
+}
+
+.subheader div {
+  font-size:15px;
+  float:right;
+}
+
+.main {
+	width: 100%;
+	height:auto;
+	margin-top: 5px;
+	background-color: #CCCCCC;
+}
+
+.content {
+	margin: 0 0 0 200px;
+	height: auto;
+	border: 1px none #000000;
+}
+
+.leftSidebar {
+	float: left;
+	width: 180px;
+	height: 250px;
+	border: 0px solid #000000;
+	padding-top: 25px;
+	background-color: #F9F9F9;
+}
+
+.banner {
+	display:table-cell;
+	vertical-align:middle;
+	font-size:35px;
+	margin-top: 0px;
+	margin-right: 0px;
+	margin-bottom: 0px;
+	margin-left: 0px;
+	padding-top: 0px;
+	padding-right: 0px;
+	padding-bottom: 0px;
+	padding-left: 0px;
+ }
+
+.footer {
+  clear:both;
+  margin-top:10px;
+  width:100%;
+  text-align:center;
+  border: 1px solid #000000;
+}

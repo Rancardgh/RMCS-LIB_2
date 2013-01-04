@@ -1,0 +1,115 @@
+td {font-size : 11px;font-family : Arial;color : #333333}
+
+a.nav {font-size : 11px;font-family : Arial;color : #333333;text-decoration: none}
+
+a.sorthead {font-size : 11px;font-family : Arial;color : #333333;text-decoration: none}
+
+a:active.sorthead {font-size : 11px;font-family : Arial;color : #cccccc;text-decoration: none;font-weight: bold;}
+
+a.tabstyle {font-size : 12px;font-family : Arial;text-decoration: none;font-weight: bold;height: 10px;color : #990000;background-color: #CC9999;padding: 3px 5px 3px 5px;border :  1px solid #333333}
+
+a:active.tabstyle {font-size : 12px;font-family : Arial;text-decoration: none;font-weight: bold;height: 10px;color : #FFFFFF;background-color: #990000;padding: 3px 5px 3px 5px;border :  1px solid #333333;border-bottom : 0px}
+
+a.orgtab {font-size : 12px;font-family : Arial;text-decoration: none;font-weight: bold;height: 10px;color : #CFB686;background-color: #996600;padding: 3px 5px 3px 5px;border :  1px solid #333333}
+
+a:active.orgtab {font-size : 12px;font-family : Arial;text-decoration: none;font-weight: bold;height: 10px;color : #FFFFFF;background-color: #996600;padding: 3px 5px 3px 5px;border :  1px solid #333333;border-bottom : 0px}
+
+a.newstab {font-size : 12px;font-family : Arial;text-decoration: none;font-weight: bold;height: 10px;color : #996600;background-color: #CCB380;padding: 3px 5px 3px 5px;border :  1px solid #333333}
+
+a.newstabct {font-size : 12px;font-family : Arial;text-decoration: none;font-weight: bold;height: 10px;color : #996600;background-color: #FFFFFF;padding: 3px 5px 3px 5px;border :  1px solid #333333;border-bottom : 0px}
+
+a.usertab {font-size : 12px;font-family : Arial;text-decoration: none;font-weight: bold;height: 10px;color : #CC9999;background-color: #990000;padding: 3px 5px 3px 5px;border :  1px solid #333333}
+
+a:active.usertab {font-size : 12px;font-family : Arial;text-decoration: none;font-weight: bold;height: 10px;color : #990000;background-color: #FFFFFF;padding: 3px 5px 3px 5px;border :  1px solid #333333;border-bottom : 0px}
+
+a.pagtab {	font-size : 12px;	font-family : Arial;	text-decoration: none;	font-weight: bold;	height: 10px;color : #0066CC;	background-color: #87B7E7;	padding: 3px 5px 3px 5px;	border : 1px solid #333333}
+
+pagtab {	font-size : 12px;	font-family : Arial;	text-decoration: none;	font-weight: bold;	height: 10px;color : #0066CC;	background-color: #87B7E7;	padding: 3px 5px 3px 5px;	border : 1px solid #333333}
+
+a:active.pagtab {font-size : 12px;font-family : Arial;text-decoration: none;font-weight: bold;height: 10px;color : #FFFFFF;background-color: #0066CC;padding: 3px 5px 3px 5px;border :  1px solid #333333;border-bottom : 0px}
+
+a.active_pagtab {font-size : 12px;font-family : Arial;text-decoration: none;font-weight: bold;height: 10px;color : #FFFFFF;background-color: #0066CC;padding: 3px 5px 3px 5px;border :  1px solid #333333;border-bottom : 0px}
+
+active_pagtab {font-size : 12px;font-family : Arial;text-decoration: none;font-weight: bold;height: 10px;color : #FFFFFF;background-color: #0066CC;padding: 3px 5px 3px 5px;border :  1px solid #333333;border-bottom : 0px}
+
+a.contab {font-size : 12px;font-family : Arial;text-decoration: none;font-weight: bold;height: 10px;color : #333333;background-color: #CCCCCC;padding: 3px 5px 3px 5px;border :  1px solid #333333}
+
+a:active.contab {font-size : 12px;font-family : Arial;text-decoration: none;font-weight: bold;height: 10px;color : #333333;background-color: #CCCCCC;padding: 3px 5px 3px 5px;border :  1px solid #333333;border-bottom : 0px}
+
+.white {font-size : 12px;font-family : Arial;color : #FFFFFF}
+
+.dtext {font-size : 11px;font-family : arial;}
+
+.itext {font-size : 11px;font-family : verdana;color : Black;}
+
+.ext {font-size : 22px;font-family : Arial;color : #333333;text-decoration: none}
+
+.tab{border: 1px solid;}
+
+td.line {border: 1px;border-bottom :  1px solid #FFFFFF;border-top : 0px;border-style : solid;border-left : 1px solid #FFFFFF;border-right : 1px solid #FFFFFF}
+
+td.abline {border: 1px;border-bottom :  1px solid #FFFFFF;border-top : 1px solid #FFFFFF;border-style : solid;border-left : 1px solid #FFFFFF;border-right : 1px solid #FFFFFF}
+
+td.userl {border: 1px;border-bottom :  1px solid #000000;border-top : 0px;border-style : solid;border-left : 1px solid #000000;border-right : 1px solid #000000}
+
+td.userline {border: 1px;border-bottom :  0px;border-top : 0px;border-style : solid;border-left : 1px solid #333333;border-right : 1px solid #333333;padding: 0px 0px 0px 5px}
+
+td.userline_se {border: 1px;border-bottom :  0px;border-top : 0px;border-style : solid;border-left : 1px solid #333333;border-right : 0px;padding: 0px 0px 0px 5px}
+
+td.dbline {border: 1px;border-bottom : 1px solid #FFFFFF;border-top : 1px solid #FFFFFF;border-style : solid;border-left : 0px;border-right : 0px;}
+
+td.navline {border: 1px;border-bottom : 1px solid #FFFFFF;border-top : 1px solid #FFFFFF;border-style : solid;border-left : 1px solid #FFFFFF;border-right : 0px;}
+
+td.cline {border: 1px;border-bottom : 1px solid #FFFFFF;border-top : 1px solid #FFFFFF;border-style : solid;border-left : 0px;border-right : 1px solid #FFFFFF}
+
+td.mn_line {border: 1px;border-bottom : 1px solid #819381;border-top : 0px;border-style : solid;border-left : 0px;border-right : 0px;}
+
+.non_li {padding: 0px 0px 0px 5px}
+
+.cellarea {padding: 15px 8px 2px 8px}
+
+.cellareacont {padding: 15px 0px 2px 8px}
+
+#cellarea {padding: 15px 8px 8px 8px}
+
+#usarea {padding: 5px 8px 2px 8px}
+
+.conarea {padding: 20px 8px 8px 20px}
+
+.navarea {padding: 2px 2px 5px 6px}
+
+.tbsrch{border : 1px;border-style : solid;border-color : #666666;font-family : Arial;color : #575757;font-size : 11px;text-decoration : none;background-color : #FFFFFF;height : 19px;width : 160px;}
+
+.txtbox_det{border : 1px;border-style : solid;border-color : #666666;font-family : Arial;color : #333333;font-size : 11px;text-decoration : none;background-color : #FFFFFF;height : 20px;width : 182px;}
+
+.txtarea_det{border : 1px;border-style : solid;border-color : #333333;font-family : Arial;color : #000000;font-size : 11px;text-decoration : none;background-color : #FFFFFF;height : 80px;width : 182px;}
+
+.txtboxsrch{border : 1px;border-style : solid;border-color : #676767;font-family : Arial;color : #575757;font-size : 11px;text-decoration : none;background-color : #FFFFFF;height : 19px;width : 157px;}
+.txtboxsty{border : 1px;border-style : solid;border-color : #CCCCCC;font-family : Arial;color : #000000;font-size : 11px;text-decoration : none;background-color : #FFFFFF;height : 16px;width : 100px;}
+.contxtarea{border : 1px;border-style : solid;	border-color : #333333;	font-family : Arial;color : #000000;font-size : 11px;text-decoration : none;background-color : #FFFFFF;	background : #FFFFFF;height : 350px;width : 670px;}
+.contxtareapop{border : 1px;border-style : solid;	border-color : #333333;	font-family : Arial;color : #000000;font-size : 11px;text-decoration : none;background-color : #FFFFFF;	background : #FFFFFF;height : 200px;width : 450px}
+.selectpop{border : 1px;border-style : solid;border-color : #333333;font-family : Arial;color : #000000;font-size : 11px;text-decoration : none;background-color : #FFFFFF;height : 20px;width : 70px;}
+.txtboxpop{border : 1px;border-style : solid;border-color : #333333;font-family : Arial;color : #000000;font-size : 11px;text-decoration : none;background-color : #FFFFFF;height : 20px;width : 250px;}
+.txtboxpopmail{border : 1px;border-style : solid;border-color : #333333;font-family : Arial;color : #000000;font-size : 11px;text-decoration : none;background-color : #FFFFFF;height : 20px;width : 325px;}
+.txtareapopmail{border : 1px;border-style : solid;border-color : #333333;font-family : Arial;color : #000000;font-size : 11px;text-decoration : none;background-color : #FFFFFF;height : 80px;width : 325px;}
+.tab{	border : 1px;	border-style : solid;	border-left : 1px solid #FFFFFF;	border-top : 0px solid #FFFFFF;	border-bottom : 1px solid #FFFFFF;	border-right: 1px solid #FFFFFF;}
+.tablink{	border : 1px;	border-style : solid;	border-left : 1px solid #333333;	border-top : 1px solid #333333;	border-bottom : 1px solid #333333;	border-right: 1px solid #333333;}
+.selectimage{border : 1px;border-style : solid;border-color : #333333;font-family : Arial;color : #000000;font-size : 11px;text-decoration : none;background-color : #FFFFFF;height : 20px;width : 250px;}
+.txtimglimit{border : 1px;border-style : solid;border-color : #333333;font-family : Arial;color : #000000;font-size : 11px;text-decoration : none;background-color : #FFFFFF;height : 17px;width : 55px;}
+.txtboximgurl{border : 1px;border-style : solid;border-color : #333333;font-family : Arial;color : #000000;font-size : 11px;text-decoration : none;background-color : #FFFFFF;height : 20px;width : 182px;}
+
+.tt{
+	height: 15px;
+	font-weight: bold;
+	margin: 0px;
+}
+
+.scrollstyle {
+	scrollbar-3dlight-color: #999999;
+   scrollbar-arrow-color: #333333;
+   scrollbar-base-color: #999999;
+   scrollbar-darkshadow-color: #999999;
+   scrollbar-face-color: #999999;
+   scrollbar-highlight-color: #CCCCCC;
+   scrollbar-shadow-color: #999999
+}
