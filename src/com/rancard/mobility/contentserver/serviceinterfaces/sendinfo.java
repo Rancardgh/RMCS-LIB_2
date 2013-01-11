@@ -12,10 +12,12 @@ import com.rancard.common.Feedback;
 import com.rancard.mobility.contentserver.CPConnections;
 import com.rancard.mobility.contentserver.CPSite;
 import com.rancard.mobility.infoserver.InfoService;
+import com.rancard.mobility.infoserver.InfoServiceDB;
 import com.rancard.util.payment.PaymentManager;
 import com.rancard.util.payment.PricePoint;
 import com.rancard.mobility.infoserver.common.services.UserServiceTransaction;
 import com.rancard.mobility.infoserver.common.services.ServiceManager;
+import com.rancard.mobility.rendezvous.discovery.viral_marketing.VMServiceManager;
 import com.rancard.util.GsmCharset;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -494,6 +496,12 @@ public class sendinfo extends HttpServlet implements RequestDispatcher {
                             System.out.println ("Request contains X-Kannel-Coding attribute");
                         }
                     }
+                    
+                    try {
+                        compactInfo = VMServiceManager.embedShareLink (provId, kw, compactInfo, msisdn);
+                    } catch (Exception e) {
+                    }
+                    
                     out.println(compactInfo);
                     //request.setAttribute("dfltMsg", info);
                 } else {

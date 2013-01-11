@@ -259,7 +259,8 @@ public class serviceexperiencefilter extends HttpServlet
                 ServiceManager.subscribeToService(msisdn, keywordList, accountId, srvcExpr.getSubscriptionInterval(), 1, 0);
               }
 
-              vmAcceptance(accountId, service_keyword, msisdn, srvc.getServiceName(), shortCode, smsc);
+              //vmAcceptance(accountId, service_keyword, msisdn, srvc.getServiceName(), shortCode, smsc);
+              vmAcceptance (srvc, msisdn, "");
 
               pushMsg = srvcExpr.getWelcomeMsg();
               pushMsgSender = srvcExpr.getWelcomeMsgSender().equals("") ? shortCode : srvcExpr.getWelcomeMsgSender();
@@ -334,6 +335,45 @@ public class serviceexperiencefilter extends HttpServlet
       System.out.println("Exception caught processing viral marketing step 2: acceptance");
     }
   }
+  
+  //function to implement acceptance of viral marketting
+  private void vmAcceptance (UserService srvc, String msisdn, String msisdnNetworkId) throws Exception {
+        //Performing service customizations based on operator/provider
+        com.rancard.mobility.rendezvous.discovery.viral_marketing.VMCampaign campaign =
+                com.rancard.mobility.rendezvous.discovery.viral_marketing.VMServiceManager.viewCampaignByService (srvc.getAccountId (), srvc.getKeyword ());
+
+        try {
+            //Get connections for sending messages
+            CPConnections cnxn = new CPConnections ();
+            cnxn = CPConnections.getConnection (srvc.getAccountId (), msisdn);
+
+            // Update VM profile and transaction log
+            com.rancard.mobility.rendezvous.discovery.viral_marketing. VMTransaction trans =
+                    com.rancard.mobility.rendezvous.discovery.viral_marketing.VMServiceManager.viewMostRecentTransaction (srvc.getAccountId (), srvc.getKeyword (), msisdn);
+            if (trans.getStatus ().equals ("inv_sent")) { // ensures user has never accepted in the past
+                com.rancard.mobility.rendezvous.discovery.viral_marketing.VMServiceManager.updateTransactionStatus (trans.getCampaignId (), msisdn, trans.getRecruiterMsisdn (), "inv_accepted", 10);
+
+                //Send confirmation message to recruiter
+                String recruiter = trans.getRecruiterMsisdn ();
+                VMUser user = VMServiceManager.viewUser (srvc.getKeyword (), srvc.getAccountId (), recruiter);
+                String displayable_number = "0" + trans.getRecipientMsisdn ().substring (4);
+                String confirmation_msg = "You recently invited " + displayable_number + " to use your favourite service. "
+                        + "We're excited to inform you that your invitation was just accepted! You now have " + user.getPoints () + " points.";
+
+                //Push acceptance notification to recruiter after 5 seconds including total points acquired.
+                (new Thread (new ThreadedMessageSender (cnxn, recruiter, campaign.getMessageSender (), confirmation_msg, 5000))).start ();
+
+            }
+
+            if (campaign.getVmHowTo () != null && !campaign.getVmHowTo ().equals ("")) {
+                String howTo = com.rancard.mobility.rendezvous.discovery.viral_marketing.VMServiceManager.createHowToMessage (srvc, campaign, msisdn);
+                // Push additional message showing how to invite more people with delay of 30 seconds
+                (new Thread (new ThreadedMessageSender (cnxn, msisdn, campaign.getMessageSender (), howTo, 30000))).start ();
+            }
+        } catch (Exception exc) {
+            System.out.println ("Exception caught processing viral marketing step 2: acceptance");
+        }
+    }
 
   private void initializeServiceCustomization(String accountId, String keyword, String shortCode)
   {

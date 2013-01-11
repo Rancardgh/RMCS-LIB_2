@@ -340,14 +340,15 @@ public class InfoServiceDB extends com.rancard.mobility.infoserver.common.servic
 
                 // If footer exists, enter new line character before adding footer -- only of content + footer is <= maxContentLength
                 String final_message = header + message;
-                if (new String (final_message + ((footer.equals ("")) ? "" : "\n" + footer)).length () <= maxContentLength) {
+                System.out.println ("Ignoring footer: \"" + footer + "\" from actual message. Stored message: " + final_message);
+                /*if (new String (final_message + ((footer.equals ("")) ? "" : "\n" + footer)).length () <= maxContentLength) {
                     final_message = final_message + ((footer.equals ("")) ? "" : "\n" + footer);
                 } else {
                     System.out.println ("Ignoring footer: \"" + footer + "\" from actual message. Stored message: " + final_message);
-                }
+                }*/
 
                 // Test length of final message
-                if (final_message.length () > maxContentLength) {
+                if (final_message.length () > maxContentLength || final_message.length () < 30) {
                     return 1;
                 }
 
@@ -1472,5 +1473,46 @@ public class InfoServiceDB extends com.rancard.mobility.infoserver.common.servic
         if (con != null) {
             con.close ();
         }
+    }
+    
+    public static String getServiceFooter (String accountId, String keyword)  throws Exception {
+        String footer = "";
+        
+        String SQL;
+        ResultSet rs = null;
+        Connection con = null;
+        PreparedStatement prepstat = null;
+
+        try {
+
+            SQL = "select * from service_labels where account_id = ? and keyword = ?";
+            con = DConnect.getConnection ();
+            prepstat = con.prepareStatement (SQL);
+            prepstat.setString (1, accountId);
+            prepstat.setString (2, keyword);
+            rs = prepstat.executeQuery ();
+
+            while (rs.next ()) {
+                footer = rs.getString ("footer");
+            }
+        } catch (Exception ex) {
+            if (con != null) {
+                con.close ();
+            }
+
+            throw new Exception (ex.getMessage ());
+        } finally {
+            if (prepstat != null) {
+                prepstat.close ();
+            }
+            if (rs != null) {
+                rs.close ();
+            }
+            if (con != null) {
+                con.close ();
+            }
+        }
+        
+        return footer;
     }
 }
