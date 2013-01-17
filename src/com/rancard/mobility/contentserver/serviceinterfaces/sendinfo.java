@@ -44,7 +44,7 @@ public class sendinfo extends HttpServlet implements RequestDispatcher {
             request.setCharacterEncoding ("UTF-8");
         } catch (Exception e) {}
 
-        String fullContextPath = "http://192.168.1.243:81";
+        String fullContextPath = "http://192.168.1.243:81" + request.getContextPath ();
         boolean skipMessagingFromCallBack = false; //used to communicate with handler who implements the callback functionality whether to send notification or not
 
         //get reeponse writer
