@@ -17,8 +17,8 @@ import java.util.Date;
  */
 public class PromoImpressionDB {
 
-    public static void updatePromoViewDate(PromoImpression impression) {
-        String sql = "UPDATE promo_impression_tracker set view_date = ? where account_id = ? and inventory_keyword = ? and msisdn = ?";
+    public static void updatePromoViewDate(PromoImpression impression) throws Exception {
+        String sql = "UPDATE promo_impression_tracker set view_date = ? where hash_code = " + impression.getHashCode();
         ResultSet rs = null;
         Connection con = null;
         PreparedStatement prepstat = null;
@@ -34,39 +34,17 @@ public class PromoImpressionDB {
             prepstat.executeUpdate();
 
         } catch (Exception ex) {
-            if (con != null) {
-                try {
-                    con.close();
-                } catch (SQLException ex1) {
-                    System.out.println(ex1.getMessage());
-                }
-                con = null;
-            }
             System.out.println(new java.util.Date() + ": error creating promo_campaign_hash entry(" + impression.getHashCode() + "): " + ex.getMessage());
+            throw new Exception();
         } finally {
             if (rs != null) {
-                try {
-                    rs.close();
-                } catch (SQLException e) {
-                    ;
-                }
-                rs = null;
+                rs.close();
             }
             if (prepstat != null) {
-                try {
-                    prepstat.close();
-                } catch (SQLException e) {
-                    ;
-                }
-                prepstat = null;
+                prepstat.close();
             }
             if (con != null) {
-                try {
-                    con.close();
-                } catch (SQLException e) {
-                    ;
-                }
-                con = null;
+                con.close();
             }
         }
 
@@ -134,7 +112,7 @@ public class PromoImpressionDB {
     }
 
     public static PromoImpression viewPromoImpression(String msisdn, String keyword, String accountID) throws Exception {
-        System.out.println(new Date()+" :@PromoImpressionDB");
+        System.out.println(new Date() + " :@PromoImpressionDB");
         String SQL;
         ResultSet rs = null;
         Connection con = null;
@@ -145,7 +123,7 @@ public class PromoImpressionDB {
             con = DConnect.getConnection();
 
             SQL = "select * from promo_impression_tracker where msisdn = '" + msisdn + "' and inventory_keyword = '" + keyword + "' and account_id = '" + accountID + "'";
-            System.out.println(new Date()+": Looking for recent promo SQL: "+SQL);
+            System.out.println(new Date() + ": Looking for recent promo SQL: " + SQL);
             prepstat = con.prepareStatement(SQL);
 
             rs = prepstat.executeQuery();
@@ -158,9 +136,9 @@ public class PromoImpressionDB {
                 impression.setViewDate(new java.util.Date(rs.getTimestamp("view_date").getTime()));
                 impression.setInventory_keyword(rs.getString("inventory_keyword"));
             }
-            
-        System.out.println(new Date()+": Result found: MSISDN="+impression.getMsisdn()+" KEYWORD="+impression.getInventory_keyword()+" ACCOUNTID="+impression.getAccountId());
-        } catch (Exception ex) {            
+
+            System.out.println(new Date() + ": Result found: MSISDN=" + impression.getMsisdn() + " KEYWORD=" + impression.getInventory_keyword() + " ACCOUNTID=" + impression.getAccountId());
+        } catch (Exception ex) {
             //error log
             System.out.println(new java.util.Date() + ": error viewing promo_campaign_hash (" + impression.getHashCode() + "): " + ex.getMessage());
 

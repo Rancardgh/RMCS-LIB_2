@@ -183,7 +183,7 @@ public class URLUTF8Encoder {
         malformedString = malformedString.replaceAll ("Âº", "º");
         
         malformedString = malformedString.replaceAll ("Ã¯", "ï");
-        malformedString = malformedString.replaceAll ("Ã\\?", "�?");
+        //malformedString = malformedString.replaceAll ("Ã\\?", "�?");
         
         malformedString = malformedString.replaceAll ("Ã", "à");
         malformedString = malformedString.replaceAll (". Ã", "À");
