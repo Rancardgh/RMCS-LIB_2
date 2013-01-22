@@ -15,10 +15,10 @@ import com.rancard.mobility.infoserver.viralmarketing.PromoImpression;
 import com.rancard.mobility.infoserver.viralmarketing.VMServiceManager;
 import com.rancard.mobility.infoserver.viralmarketing.VMTransaction;
 import com.rancard.mobility.infoserver.viralmarketing.VMUser;
-import com.rancard.util.URLUTF8Encoder;
 import com.rancard.util.payment.PaymentManager;
 import com.rancard.util.payment.PricePoint;
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -439,7 +439,8 @@ public class serviceexperiencefilter extends HttpServlet
         transactionId = uidGen.genUID("OD-", 5);
       }
 
-      String completeTransnxnUrl = fullContextPath + "/sendinfo_push.jsp?msisdn=" + URLUTF8Encoder.encode(msisdn) + "&keyword=" + keyword.toUpperCase() + "&alert_count=" + is.getMsgId() + "&dest=" + URLUTF8Encoder.encode(shortcode) + "&siteId=" + site_id + "&transId=" + transactionId;
+      String completeTransnxnUrl = fullContextPath + "/sendinfo_push.jsp?msisdn=" + URLEncoder.encode(msisdn, "UTF-8") + "&keyword=" + URLEncoder.encode(keyword.toUpperCase(), "UTF-8") 
+              + "&alert_count=" + is.getMsgId() + "&dest=" + URLEncoder.encode(shortcode, "UTF-8") + "&siteId=" + URLEncoder.encode(site_id, "UTF-8") + "&transId=" + URLEncoder.encode(transactionId, "UTF-8");
 
       if (pricePoint.getBillingMech().equals("3")) {
         completeTransnxnUrl = completeTransnxnUrl + "&sender=KEYWORD";

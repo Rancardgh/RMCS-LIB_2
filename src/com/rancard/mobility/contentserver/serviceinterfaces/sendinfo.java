@@ -19,6 +19,7 @@ import com.rancard.mobility.infoserver.common.services.ServiceManager;
 import com.rancard.util.GsmCharset;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.URLEncoder;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -32,10 +33,12 @@ import javax.servlet.*;
 public class sendinfo extends HttpServlet implements RequestDispatcher {
 
     //Initialize global variables
+    @Override
     public void init() throws ServletException {
     }
 
     //Process the HTTP Get request
+    @Override
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         
         try {
@@ -371,9 +374,9 @@ public class sendinfo extends HttpServlet implements RequestDispatcher {
 
                     //-----insert transacton------------
                     //URL used to complete the transaction after billing has been completed
-                    String completeTransnxnUrl = fullContextPath + "/sendinfo_push.jsp?msisdn=" + com.rancard.util.URLUTF8Encoder.encode(msisdn)
-                            + "&keyword=" + kw.toUpperCase() + "&alert_count=" + is.getMsgId() + "&dest=" + com.rancard.util.URLUTF8Encoder.encode(shortcode)
-                            + "&siteId=" + siteId + "&transId=" + transactionId;
+                    String completeTransnxnUrl = fullContextPath + "/sendinfo_push.jsp?msisdn=" + URLEncoder.encode(msisdn, "UTF-8")
+                            + "&keyword=" + URLEncoder.encode(kw.toUpperCase(), "UTF-8")  + "&alert_count=" + is.getMsgId() + "&dest=" + URLEncoder.encode(shortcode, "UTF-8")
+                            + "&siteId=" + URLEncoder.encode(siteId, "UTF-8") + "&transId=" + URLEncoder.encode(transactionId, "UTF-8");
 
                     if (pricePoint.getBillingMech().equals(PaymentManager.OT_BILL)) {
                         completeTransnxnUrl = completeTransnxnUrl + "&sender=KEYWORD";
