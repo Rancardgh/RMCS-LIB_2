@@ -5,6 +5,7 @@
 package com.rancard.mobility.contentserver.serviceinterfaces;
 
 import com.rancard.common.DConnect;
+import com.rancard.mobility.infoserver.common.services.UserService;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -12,12 +13,16 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  *
  * @author rancard
  */
-public class keywordMatcher {
+public class KeywordMatcher {
 
     String SQL, synonym;
     Connection con = null;
@@ -76,93 +81,123 @@ public class keywordMatcher {
     }
 
     //loop through a list containing words that match the keyword a user supplied. 
-    private static String search(String keyword, ArrayList<String> list) {
+    private static Map search(String keyword, List<Map> list, String key) {
         double bestGuess = 0;
-        String synonym = "";
+        Map synonym = null;
         for (int i = 0; i < list.size(); i++) {
-            double result = compareStrings(keyword, list.get(i));
-            if (result > bestGuess && result > 0.4) {
-                bestGuess = result;
-                synonym = list.get(i);
+
+            if (key.equalsIgnoreCase("tags")) {
+                if (list.get(i).get(key) == null || list.get(i).get(key).toString().equals("")) {
+                    continue;
+                }
+
+                for (String tag : list.get(i).get(key).toString().split(",")) {
+                    double result = compareStrings(keyword, tag);
+                    if (result > bestGuess && result > 0.4) {
+                        bestGuess = result;
+                        synonym = list.get(i);
+                    }
+                }
+            } else {
+                double result = compareStrings(keyword, list.get(i).get(key).toString());
+                if (result > bestGuess && result > 0.4) {
+                    bestGuess = result;
+                    synonym = list.get(i);
+                }
             }
         }
         return synonym;
     }
 
     //Returns a keyword if a match is found.
-    public static String wordMatch(String keyword, String smsc) {
-        String query,synonym="";
-        String option1,option2,option3,option4;
-        ArrayList<String> keywords = new ArrayList();
-        ArrayList<String> serviceName = new ArrayList();
-        ArrayList<String> tags = new ArrayList();
-        ArrayList<String> defaultMessage = new ArrayList();
-        ArrayList<String> newTemp = new ArrayList();
+    public static UserService wordMatch(String keyword, String smsc, String shortCode) throws Exception {
+        Map synonym = null;
+        List<Map> services = new ArrayList<Map>();
         Connection conn = null;
         Statement stmt = null;
         ResultSet rs = null;
         try {
             conn = DConnect.getConnection();
-            query = "select keyword,service_name,tags,default_message from service_definition where account_id in (select list_id from cp_connections where conn_id like '" + smsc + "%') and service_type='14'";
+            //select keyword, service_name, tags from service_definition sd 
+            String query = "select * from service_definition sd "
+                    + "INNER JOIN cp_connections cp ON sd.account_id = cp.list_id "
+                    + "where sd.service_type='14' AND cp.conn_id like '" + smsc + "%' "
+                    + "and (sd.allowed_shortcodes='' or  sd.allowed_shortcodes like '%" + shortCode + "%')";
+            System.out.println(new Date() + ": " + KeywordMatcher.class + ": Will run query: " + query);
             stmt = conn.createStatement();
             rs = stmt.executeQuery(query);
             //load the various column results into their various arrayLists
             //for example all results under keyword in the select query will be dumped into the keywords ArrayList
-            while (rs.next()){
-                keywords.add(rs.getString(1));
-                serviceName.add(rs.getString(2));
-                tags.add(rs.getString(3));
-                defaultMessage.add(rs.getString(4));
-            }
-            //some of the tags contain null values. Remove null values so as to avoid exceptions
-            for (int i = 0; i < tags.size(); i++) {
-                String words = tags.get(i);
-                if (words == null || words.isEmpty()) {
-                    continue;
+
+            System.out.println(new Date() + ": " + KeywordMatcher.class + ": Sucessfully run query. Will add result to list");
+            while (rs.next()) {
+                Map map = new HashMap();
+                map.put("keyword", rs.getString("keyword"));
+                map.put("service_type", rs.getString("service_type"));
+                map.put("account_id", rs.getString("account_id"));
+                map.put("service_name", rs.getString("service_name"));
+                map.put("tags", rs.getString("tags"));
+                map.put("default_message", rs.getString("default_message"));
+                map.put("last_updated", rs.getDate("last_updated"));
+                map.put("command", rs.getString("command"));
+                map.put("allowed_shortcodes", rs.getString("allowed_shortcodes"));
+                map.put("allowed_site_types", rs.getString("allowed_site_types"));
+                map.put("pricing", rs.getString("pricing"));
+                map.put("service_response_sender", rs.getString("service_response_sender"));
+
+                if (rs.getInt("is_basic") == 1) {
+                    map.put("is_basic", true);
+                } else {
+                    map.put("is_basic", false);
                 }
-                String[] array = words.split(",");
-                newTemp.addAll(Arrays.asList(array));
-            }
-            
-            /**start search for a keyword match in the keywords ArrayList
-             * if nothing is found move unto the next arraylist that contains words from service_name
-             * and so on..
-             *  if something is found, assign that to synonym variable,
-             */
-            
-            option1 = search(keyword,keywords);
-            if(option1==null || option1.isEmpty()){
-                option2 = search(keyword,serviceName);
-                if(option2==null || option2.isEmpty()){
-                    option3 = search(keyword,newTemp);
-                    if(option3==null || option3.isEmpty()){
-                        option4 = search(keyword,defaultMessage);
-                        if(option4==null || option4.isEmpty()){
-                            synonym = option4;
-                        }else{
-                            synonym = option4;
-                        }
-                    }else{
-                        synonym = option3;
-                    }
-                }else{
-                    synonym = option2;
+
+                if (rs.getInt("is_subscription") == 1 || rs.getString("is_subscription").equalsIgnoreCase("true")) {
+                    map.put("is_subscription", true);
+                } else {
+                    map.put("is_subscription", false);
                 }
-            }else{
-                synonym = option1;
+
+                services.add(map);
             }
+
+            System.out.println(new Date() + ": " + KeywordMatcher.class + ": Will search keywords for match");
+            synonym = search(keyword, services, "keyword");
+
+            if (synonym == null) {
+                System.out.println(new Date() + ": " + KeywordMatcher.class + ": Match not found will now search service name");
+                search(keyword, services, "service_name");
+            }
+
+            if (synonym == null) {
+                System.out.println(new Date() + ": " + KeywordMatcher.class + ": Match not found will now search tags");
+                search(keyword, services, "tags");
+            }
+
         } catch (Exception e) {
             System.out.println(new java.util.Date() + ": [keyMatcher[ERROR]]" + e.getMessage());
-
+            throw new Exception(e.getMessage());
         } finally {
-            try {
+            if (rs != null) {
                 rs.close();
-                stmt.close();
-                conn.close();
-            } catch (SQLException e) {
-                System.out.println(new java.util.Date() + ": [keyMatcher[ERROR]]" + e.getMessage());
             }
+            if (stmt != null) {
+                stmt.close();
+            }
+            if (conn != null) {
+                conn.close();
+            }
+
         }
-        return synonym;
+
+        if (synonym != null) {
+            return new UserService(synonym.get("service_type").toString(), synonym.get("keyword").toString(), synonym.get("account_id").toString(),
+                    synonym.get("service_name").toString(), synonym.get("default_message").toString(), synonym.get("command").toString(),
+                    synonym.get("allowed_shortcodes").toString(), synonym.get("allowed_site_types").toString(), synonym.get("pricing").toString(),
+                    Boolean.getBoolean(synonym.get("is_basic").toString()), Boolean.getBoolean(synonym.get("is_subscription").toString()),
+                    synonym.get("service_response_sender").toString());
+        } else {
+            return null;
+        }
+
     }
 }

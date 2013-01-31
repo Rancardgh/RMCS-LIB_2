@@ -253,8 +253,9 @@ public class serviceexperiencefilter extends HttpServlet
               {
                 ServiceManager.subscribeToService(msisdn, keywordList, accountId);
               }
-              else if ((srvcExpr.getMetaDataMap().get("FREEMIUM") == null) || (((String)srvcExpr.getMetaDataMap().get("FREEMIUM")).equals("NO")))
-                ServiceManager.subscribeToService(msisdn, keywordList, accountId, srvcExpr.getSubscriptionInterval(), 1, 1);
+              else if ((srvcExpr.getMetaDataMap().get("FREEMIUM") == null) || (((String)srvcExpr.getMetaDataMap().get("FREEMIUM")).equals("NO"))) {
+                    ServiceManager.subscribeToService(msisdn, keywordList, accountId, srvcExpr.getSubscriptionInterval(), 1, 1);
+                }
               else {
                 ServiceManager.subscribeToService(msisdn, keywordList, accountId, srvcExpr.getSubscriptionInterval(), 1, 0);
               }
