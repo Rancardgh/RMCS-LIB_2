@@ -148,6 +148,80 @@ public class VMTransactionDB {
 
         return transaction;
     }
+    
+    public static VMTransaction viewTransaction(String campaignId, String recipientMsisdn, String recruiterMsisdn, boolean sendReminderIfExists) throws Exception {
+
+        String SQL;
+        ResultSet rs = null;
+        Connection con = null;
+        PreparedStatement prepstat = null;
+        VMTransaction transaction = new VMTransaction();
+
+        try {
+            con = DConnect.getConnection();
+
+            SQL = "select * from vm_transactions where campaign_id = ? and recipient_msisdn = ? and recruiter_msisdn = ?";
+
+            prepstat = con.prepareStatement(SQL);
+
+            prepstat.setString(1, campaignId);
+            prepstat.setString(2, recipientMsisdn);
+            prepstat.setString(3, recruiterMsisdn);
+
+            rs = prepstat.executeQuery();
+
+            while (rs.next()) {
+                transaction.setCampaignId(rs.getString("campaign_id"));
+                transaction.setRecruiterMsisdn(rs.getString("recruiter_msisdn"));
+                transaction.setRecipientMsisdn(rs.getString("recipient_msisdn"));
+                transaction.setStatus(rs.getString("status"));
+                java.text.SimpleDateFormat df = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                String transactionDate = df.format(new java.util.Date(rs.getTimestamp("trans_date").getTime()));
+                transaction.setTransactionDate(transactionDate);
+            }
+
+        } catch (Exception ex) {
+            if (con != null) {
+                try {
+                    con.close();
+                } catch (SQLException ex1) {
+                    System.out.println(ex1.getMessage());
+                }
+                con = null;
+            }
+
+            //error log
+            System.out.println(new java.util.Date()+ ": error viewing vm_transaction ("+ campaignId +", "+recipientMsisdn + "): " + ex.getMessage() );
+
+        } finally {
+            if (rs != null) {
+                try {
+                    rs.close();
+                } catch (SQLException e) {
+                    ;
+                }
+                rs = null;
+            }
+            if (prepstat != null) {
+                try {
+                    prepstat.close();
+                } catch (SQLException e) {
+                    ;
+                }
+                prepstat = null;
+            }
+            if (con != null) {
+                try {
+                    con.close();
+                } catch (SQLException e) {
+                    ;
+                }
+                con = null;
+            }
+        }
+
+        return transaction;
+    }
 
     public static VMTransaction viewTransaction(String accountId, String keyword, String recipientMsisdn) throws Exception {
 

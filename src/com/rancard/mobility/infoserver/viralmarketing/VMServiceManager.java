@@ -40,6 +40,11 @@ public class VMServiceManager {
             Exception {
         return VMTransactionDB.viewTransaction(campaignId, recipientMsisdn);
     }
+    
+    public static VMTransaction viewTransaction(String campaignId, String recipientMsisdn, String recruiterMsisdn, boolean sendReminderIfExists) throws
+            Exception {
+        return VMTransactionDB.viewTransaction(campaignId, recipientMsisdn, recruiterMsisdn, sendReminderIfExists);
+    }
 
     public static VMTransaction viewTransaction(String accountId, String keyword, String recipientMsisdn) throws
             Exception {
@@ -184,10 +189,9 @@ public class VMServiceManager {
 
                     // Check to make sure subscriber isn't being silly by sending to himself
                     if (!msisdn.equalsIgnoreCase(formattedRecipient)) {
-
-                        if (VMServiceManager.viewTransaction(campaignId, formattedRecipient).isEmptyTransaction()) {
+                        formattedNumbers.add(formattedRecipient);
+                        if (VMServiceManager.viewTransaction(campaignId, formattedRecipient, msisdn).isEmptyTransaction()) {
                             // All checks passed at this point, so add recipient
-                            formattedNumbers.add(formattedRecipient);
                             VMServiceManager.createTransaction(campaignId, msisdn, formattedRecipient, "inv_sent");
                         }
 
