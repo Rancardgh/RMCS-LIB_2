@@ -184,10 +184,9 @@ public class VMServiceManager {
 
                     // Check to make sure subscriber isn't being silly by sending to himself
                     if (!msisdn.equalsIgnoreCase(formattedRecipient)) {
-
+                        formattedNumbers.add(formattedRecipient);
                         if (VMServiceManager.viewTransaction(campaignId, formattedRecipient).isEmptyTransaction()) {
                             // All checks passed at this point, so add recipient
-                            formattedNumbers.add(formattedRecipient);
                             VMServiceManager.createTransaction(campaignId, msisdn, formattedRecipient, "inv_sent");
                         }
 
