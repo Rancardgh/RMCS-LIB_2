@@ -13,11 +13,12 @@ import com.rancard.mobility.contentserver.CPSite;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.util.Map;
 
 
 public class servicelocator extends HttpServlet implements Filter {
     private FilterConfig filterConfig;
-    private HashMap routingTable = new HashMap();
+    private Map routingTable = null;
     private static final String FROM = "RMCS";
     public static final String BY_SHORTCODE = "1";
     public static final String BY_PROVIDER = "2";

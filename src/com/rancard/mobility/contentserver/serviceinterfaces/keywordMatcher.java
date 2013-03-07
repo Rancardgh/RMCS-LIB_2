@@ -7,9 +7,7 @@ package com.rancard.mobility.contentserver.serviceinterfaces;
 import com.rancard.common.DConnect;
 import com.rancard.mobility.infoserver.common.services.UserService;
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -23,12 +21,6 @@ import java.util.Map;
  * @author rancard
  */
 public class KeywordMatcher {
-
-    String SQL, synonym;
-    Connection con = null;
-    PreparedStatement prepstat = null;
-    ArrayList<String> keywords = new ArrayList();
-    double bestGuess = 0;
 
     private static double compareStrings(String str1, String str2) {
         ArrayList pairs1 = wordLetterPairs(str1.toUpperCase());
@@ -93,14 +85,14 @@ public class KeywordMatcher {
 
                 for (String tag : list.get(i).get(key).toString().split(",")) {
                     double result = compareStrings(keyword, tag);
-                    if (result > bestGuess && result > 0.4) {
+                    if (result > bestGuess && result > 0.7) {
                         bestGuess = result;
                         synonym = list.get(i);
                     }
                 }
             } else {
                 double result = compareStrings(keyword, list.get(i).get(key).toString());
-                if (result > bestGuess && result > 0.4) {
+                if (result > bestGuess && result > 0.7) {
                     bestGuess = result;
                     synonym = list.get(i);
                 }
@@ -144,6 +136,7 @@ public class KeywordMatcher {
                 map.put("allowed_site_types", rs.getString("allowed_site_types"));
                 map.put("pricing", rs.getString("pricing"));
                 map.put("service_response_sender", rs.getString("service_response_sender"));
+                map.put("allowed_networks", rs.getString("allowed_networks"));
 
                 if (rs.getInt("is_basic") == 1) {
                     map.put("is_basic", true);
@@ -165,12 +158,12 @@ public class KeywordMatcher {
 
             if (synonym == null) {
                 System.out.println(new Date() + ": " + KeywordMatcher.class + ": Match not found will now search service name");
-                search(keyword, services, "service_name");
+                synonym = search(keyword, services, "service_name");
             }
 
             if (synonym == null) {
                 System.out.println(new Date() + ": " + KeywordMatcher.class + ": Match not found will now search tags");
-                search(keyword, services, "tags");
+                synonym = search(keyword, services, "tags");
             }
 
         } catch (Exception e) {
@@ -192,8 +185,8 @@ public class KeywordMatcher {
         if (synonym != null) {
             return new UserService(synonym.get("service_type").toString(), synonym.get("keyword").toString(), synonym.get("account_id").toString(),
                     synonym.get("service_name").toString(), synonym.get("default_message").toString(), synonym.get("command").toString(),
-                    synonym.get("allowed_shortcodes").toString(), synonym.get("allowed_site_types").toString(), synonym.get("pricing").toString(),
-                    Boolean.getBoolean(synonym.get("is_basic").toString()), Boolean.getBoolean(synonym.get("is_subscription").toString()),
+                    synonym.get("allowed_shortcodes").toString(), synonym.get("allowed_site_types").toString(),  
+                    synonym.get("pricing").toString(), Boolean.getBoolean(synonym.get("is_basic").toString()), Boolean.getBoolean(synonym.get("is_subscription").toString()),
                     synonym.get("service_response_sender").toString());
         } else {
             return null;

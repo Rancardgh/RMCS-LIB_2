@@ -1,276 +1,133 @@
 package com.rancard.mobility.infoserver.common.services;
 
-import java.sql.*;
 import com.rancard.common.DConnect;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Date;
 
 public class UserServiceExperienceDB {
 
     public static void createServiceExperience(UserServiceExperience serviceExperience) throws Exception {
-        String SQL;
-        ResultSet rs = null;
-        Connection con = null;
-        PreparedStatement prepstat = null;
+        Connection conn = null;
 
         try {
-            con = DConnect.getConnection();
-            SQL = "insert into service_experience_config(account_id, site_id, keyword, "
-                    + "promo_id, welcome_msg, already_subscribed_msg, unsubscription_conf_msg, "
-                    + "promo_msg_sender, welcome_msg_sender, already_subscribed_msg_sender, "
-                    + "unsubscription_conf_msg_sender, push_msg_wait_time, subscription_interval, "
-                    + "url, url_timeout, meta_data) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            conn = DConnect.getConnection();
+            String sql = "insert into service_experience_config(account_id, site_id, keyword, promo_id, welcome_msg, "
+                    + "already_subscribed_msg, unsubscription_conf_msg, promo_msg_sender, welcome_msg_sender, "
+                    + "already_subscribed_msg_sender, unsubscription_conf_msg_sender, push_msg_wait_time, subscription_interval, "
+                    + "url, url_timeout, meta_data) values('" + serviceExperience.getAccountId() + "', '" + serviceExperience.getSiteId() + "', "
+                    + "'" + serviceExperience.getKeyword() + "', '" + serviceExperience.getPromoId() + "', '" + serviceExperience.getWelcomeMsg() + "', "
+                    + "'" + serviceExperience.getAlreadySubscribedMsg() + "', '" + serviceExperience.getUnsubscriptionConfirmationMsg() + "', "
+                    + "'" + serviceExperience.getPromoMsgSender() + "', '" + serviceExperience.getWelcomeMsgSender() + "', "
+                    + "'" + serviceExperience.getAlreadySubscribedMsgSender() + "', '" + serviceExperience.getUnsubscriptionConfirmationMsgSender() + "', "
+                    + serviceExperience.getPushMsgWaitTime() + ", " + serviceExperience.getSubscriptionInterval() + ", '" + serviceExperience.getUrl() + "', "
+                    + serviceExperience.getUrlTimeout() + ", '" + serviceExperience.getMetaData() + "')";
 
-            prepstat = con.prepareStatement(SQL);
+            System.out.println(new Date() + ": " + UserServiceExperienceDB.class + " : Inserting new service_experience_config: " + sql);
 
-            prepstat.setString(1, serviceExperience.getAccountId());
-            prepstat.setString(2, serviceExperience.getSiteId());
-            prepstat.setString(3, serviceExperience.getKeyword());
-            prepstat.setString(4, serviceExperience.getPromoId());
-            prepstat.setString(5, serviceExperience.getWelcomeMsg());
-            prepstat.setString(6, serviceExperience.getAlreadySubscribedMsg());
-            prepstat.setString(7, serviceExperience.getUnsubscriptionConfirmationMsg());
-            prepstat.setString(8, serviceExperience.getPromoMsgSender());
-            prepstat.setString(9, serviceExperience.getWelcomeMsgSender());
-            prepstat.setString(10, serviceExperience.getAlreadySubscribedMsgSender());
-            prepstat.setString(11, serviceExperience.getUnsubscriptionConfirmationMsgSender());
-            prepstat.setInt(12, serviceExperience.getPushMsgWaitTime());
-            prepstat.setInt(13, serviceExperience.getSubscriptionInterval());
-            prepstat.setString(14, serviceExperience.getUrl());
-            prepstat.setInt(15, serviceExperience.getUrlTimeout());
-            prepstat.setString(16, serviceExperience.getMetaData());
+            conn.createStatement().executeQuery(sql);
 
-            prepstat.execute();
+            System.out.println(new Date() + ": " + UserServiceExperienceDB.class + " : Inserted service_experience_config");
 
-        } catch (Exception ex) {
-            if (con != null) {
-                try {
-                    con.close();
-                } catch (SQLException ex1) {
-                    System.out.println(ex1.getMessage());
-                }
-                con = null;
-            }
+
+        } catch (SQLException ex) {
+            throw new SQLException(ex.getMessage(), ex.getSQLState());
         } finally {
-            if (rs != null) {
-                try {
-                    rs.close();
-                } catch (SQLException e) {
-                    ;
-                }
-                rs = null;
-            }
-            if (prepstat != null) {
-                try {
-                    prepstat.close();
-                } catch (SQLException e) {
-                    ;
-                }
-                prepstat = null;
-            }
-            if (con != null) {
-                try {
-                    con.close();
-                } catch (SQLException e) {
-                    ;
-                }
-                con = null;
+            if (conn != null) {
+                conn.close();
             }
         }
 
     }
 
     public static UserServiceExperience viewServiceExperience(String accountId, String siteId, String keyword) throws Exception {
-
-        String SQL;
         ResultSet rs = null;
-        Connection con = null;
-        PreparedStatement prepstat = null;
-        UserServiceExperience serviceExperience = new UserServiceExperience();
+        Connection conn = null;
 
         try {
-            con = DConnect.getConnection();
+            conn = DConnect.getConnection();
+            String sql = "select * from service_experience_config sec LEFT OUTER JOIN promotional_campaign pc "
+                    + "ON sec.promo_id = pc.promo_id where sec.account_id = '" + accountId + "' and "
+                    + "sec.site_id = '" + siteId + "' and sec.keyword = '" + keyword + "'";
 
-            SQL = "select * from service_experience_config sec LEFT OUTER JOIN promotional_campaign pc "
-                    + "ON sec.promo_id = pc.promo_id where sec.account_id = ? and sec.site_id = ? and sec.keyword = ? ";
+            System.out.println(new Date() + ": " + UserServiceExperienceDB.class + " : Selecting service_experience_config: " + sql);
 
-            prepstat = con.prepareStatement(SQL);
-
-            prepstat.setString(1, accountId);
-            prepstat.setString(2, siteId);
-            prepstat.setString(3, keyword);
-
-            rs = prepstat.executeQuery();
+            rs = conn.createStatement().executeQuery(sql);
 
             while (rs.next()) {
-                serviceExperience.setAccountId(rs.getString("sec.account_id"));
-                serviceExperience.setSiteId(rs.getString("site_id"));
-                serviceExperience.setKeyword(rs.getString("keyword"));
-                serviceExperience.setPromoId(rs.getString("sec.promo_id"));
-                serviceExperience.setPromoMsg(rs.getString("promo_msg"));
-                serviceExperience.setPromoRespCode(rs.getString("promo_response_code"));
-                serviceExperience.setWelcomeMsg(rs.getString("welcome_msg"));
-                serviceExperience.setAlreadySubscribedMsg(rs.getString("already_subscribed_msg"));
-                serviceExperience.setUnsubscriptionConfirmationMsg(rs.getString("unsubscription_conf_msg"));
-                serviceExperience.setPromoMsgSender(rs.getString("promo_msg_sender"));
-                serviceExperience.setWelcomeMsgSender(rs.getString("welcome_msg_sender"));
-                serviceExperience.setAlreadySubscribedMsgSender(rs.getString("already_subscribed_msg_sender"));
-                serviceExperience.setUnsubscriptionConfirmationMsgSender(rs.getString("unsubscription_conf_msg_sender"));
-                serviceExperience.setPushMsgWaitTime(rs.getInt("push_msg_wait_time"));
-                serviceExperience.setSubscriptionInterval(rs.getInt("subscription_interval"));
-                serviceExperience.setUrl(rs.getString("url"));
-                serviceExperience.setUrlTimeout(rs.getInt("url_timeout"));
-                serviceExperience.setMetaData(rs.getString("meta_data"));
+                System.out.println(new Date() + ": " + UserServiceExperienceDB.class + " : Found service_experience_config: " + sql);
+                return new UserServiceExperience(rs.getString("sec.account_id"), rs.getString("site_id"), rs.getString("keyword"),
+                        rs.getString("sec.promo_id"), rs.getString("promo_msg"), rs.getString("promo_response_code"), rs.getString("welcome_msg"),
+                        rs.getString("already_subscribed_msg"), rs.getString("unsubscription_conf_msg"), rs.getString("promo_msg_sender"),
+                        rs.getString("welcome_msg_sender"), rs.getString("already_subscribed_msg_sender"), rs.getString("unsubscription_conf_msg_sender"),
+                        rs.getInt("push_msg_wait_time"), rs.getInt("subscription_interval"), rs.getString("url"), rs.getInt("url_timeout"),
+                        rs.getString("meta_data"));
+
             }
 
-        } catch (Exception ex) {
-            if (con != null) {
-                try {
-                    con.close();
-                } catch (SQLException ex1) {
-                    System.out.println(ex1.getMessage());
-                }
-                con = null;
-            }
-
+        } catch (SQLException ex) {
+            throw new SQLException(ex.getMessage(), ex.getSQLState());
         } finally {
             if (rs != null) {
-                try {
-                    rs.close();
-                } catch (SQLException e) {
-                    ;
-                }
-                rs = null;
+                rs.close();
             }
-            if (prepstat != null) {
-                try {
-                    prepstat.close();
-                } catch (SQLException e) {
-                    ;
-                }
-                prepstat = null;
-            }
-            if (con != null) {
-                try {
-                    con.close();
-                } catch (SQLException e) {
-                    ;
-                }
-                con = null;
+            if (conn != null) {
+                conn.close();
             }
         }
 
-        return serviceExperience;
+        return null;
     }
 
     public static void deleteServiceExperience(String accountId, String keyword) throws Exception {
-
-        String SQL;
-        ResultSet rs = null;
-        Connection con = null;
-        PreparedStatement prepstat = null;
-        //UserServiceExperience serviceExperience = new UserServiceExperience();
+        Connection conn = null;
 
         try {
-            con = DConnect.getConnection();
+            conn = DConnect.getConnection();
 
-            SQL = "delete from service_experience_config where keyword = ? and account_id = ?";
+            String sql = "delete from service_experience_config where keyword = '" + keyword + "' and account_id = '" + accountId + "'";
+            System.out.println(new Date() + ": " + UserServiceExperienceDB.class + " : Delete service_experience_config: " + sql);
 
-            prepstat = con.prepareStatement(SQL);
+            conn.createStatement().execute(sql);
 
-            prepstat.setString(1, keyword);
-            prepstat.setString(2, accountId);
-
-            prepstat.execute();
+            System.out.println(new Date() + ": " + UserServiceExperienceDB.class + " : Deleted service_experience_config: " + accountId + "-" + keyword);
 
         } catch (Exception ex) {
-            if (con != null) {
-                try {
-                    con.close();
-                } catch (SQLException ex1) {
-                    System.out.println(ex1.getMessage());
-                }
-                con = null;
-            }
+            throw new Exception(ex.getMessage());
 
         } finally {
-            if (rs != null) {
-                try {
-                    rs.close();
-                } catch (SQLException e) {
-                    ;
-                }
-                rs = null;
-            }
-            if (prepstat != null) {
-                try {
-                    prepstat.close();
-                } catch (SQLException e) {
-                    ;
-                }
-                prepstat = null;
-            }
-            if (con != null) {
-                try {
-                    con.close();
-                } catch (SQLException e) {
-                    ;
-                }
-                con = null;
+            if (conn != null) {
+                conn.close();
             }
         }
 
     }
 
     public static void deleteServiceExperience(String accountId, java.util.ArrayList keywords) throws Exception {
-
-        String SQL;
-        ResultSet rs = null;
-        Connection con = null;
-        PreparedStatement prepstat = null;
-
-        String keywordStr = "";
+        Connection conn = null;
+        StringBuilder keywordStr = new StringBuilder();
+        
         for (int i = 0; i < keywords.size(); i++) {
-            keywordStr = keywordStr + "'" + keywords.get(i).toString() + "',";
+            keywordStr.append("'").append(keywords.get(i).toString()).append("',");
         }
-        keywordStr = keywordStr.substring(0, keywordStr.lastIndexOf(","));
+
+        keywordStr.deleteCharAt(keywordStr.toString().lastIndexOf(","));
 
         try {
-            con = DConnect.getConnection();
-            SQL = "delete from service_experience_config where keyword in (" + keywordStr + ") and account_id='" + accountId + "'";
-            prepstat = con.prepareStatement(SQL);
-            prepstat.execute();
+            conn = DConnect.getConnection();
+            String sql = "delete from service_experience_config where keyword in (" + keywordStr.toString() + ") and account_id='" + accountId + "'";
+            System.out.println(new Date() + ": " + UserServiceExperienceDB.class + " : Delete service_experience_config: " + sql);
+
+            conn.createStatement().executeQuery(sql);
+            System.out.println(new Date() + ": " + UserServiceExperienceDB.class + " : Deleted service_experience_config: " + accountId + "-" + keywordStr.toString());
         } catch (Exception ex) {
-            if (con != null) {
-                try {
-                    con.close();
-                } catch (SQLException ex1) {
-                    System.out.println(ex1.getMessage());
-                }
-                con = null;
-            }
+            throw new Exception(ex.getMessage());
         } finally {
-            if (rs != null) {
-                try {
-                    rs.close();
-                } catch (SQLException e) {
-                    ;
-                }
-                rs = null;
-            }
-            if (prepstat != null) {
-                try {
-                    prepstat.close();
-                } catch (SQLException e) {
-                    ;
-                }
-                prepstat = null;
-            }
-            if (con != null) {
-                try {
-                    con.close();
-                } catch (SQLException e) {
-                    ;
-                }
-                con = null;
+
+            if (conn != null) {
+                conn.close();
             }
         }
     }
