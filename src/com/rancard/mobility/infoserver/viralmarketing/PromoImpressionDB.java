@@ -5,10 +5,10 @@
 package com.rancard.mobility.infoserver.viralmarketing;
 
 import com.rancard.common.DConnect;
-import java.sql.ResultSet;
+import com.rancard.util.DateUtil;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.SQLException;
+import java.sql.ResultSet;
 import java.util.Date;
 
 /**
@@ -18,33 +18,25 @@ import java.util.Date;
 public class PromoImpressionDB {
 
     public static void updatePromoViewDate(PromoImpression impression) throws Exception {
-        String sql = "UPDATE promo_impression_tracker set view_date = ? where hash_code = " + impression.getHashCode();
-        ResultSet rs = null;
-        Connection con = null;
-        PreparedStatement prepstat = null;
+        String sql = "UPDATE promo_impression_tracker set view_date = '"
+                + DateUtil.convertToMySQLTimeStamp(impression.getViewDate()) + "' "
+                + "where hash_code = " + impression.getHashCode();
+
+        Connection conn = null;
+
+        System.out.println(new Date() + " " + PromoImpressionDB.class + ": Will update promo view date");
 
         try {
-            con = DConnect.getConnection();
-            prepstat = con.prepareStatement(sql);
-            prepstat.setTimestamp(1, new java.sql.Timestamp(impression.getViewDate().getTime()));
-            prepstat.setString(2, impression.getAccountId());
-            prepstat.setString(3, impression.getKeyword());
-            prepstat.setString(4, impression.getMsisdn());
-
-            prepstat.executeUpdate();
+            conn = DConnect.getConnection();
+            conn.createStatement().executeUpdate(sql);
 
         } catch (Exception ex) {
             System.out.println(new java.util.Date() + ": error creating promo_campaign_hash entry(" + impression.getHashCode() + "): " + ex.getMessage());
-            throw new Exception();
+            throw new Exception(ex.getMessage());
         } finally {
-            if (rs != null) {
-                rs.close();
-            }
-            if (prepstat != null) {
-                prepstat.close();
-            }
-            if (con != null) {
-                con.close();
+
+            if (conn != null) {
+                conn.close();
             }
         }
 
@@ -73,39 +65,17 @@ public class PromoImpressionDB {
             prepstat.execute();
 
         } catch (Exception ex) {
-            if (con != null) {
-                try {
-                    con.close();
-                } catch (SQLException ex1) {
-                    System.out.println(ex1.getMessage());
-                }
-                con = null;
-            }
             System.out.println(new java.util.Date() + ": error creating promo_campaign_hash entry(" + impression.getHashCode() + "): " + ex.getMessage());
+            throw new Exception(ex.getMessage());
         } finally {
             if (rs != null) {
-                try {
-                    rs.close();
-                } catch (SQLException e) {
-                    ;
-                }
-                rs = null;
+                rs.close();
             }
             if (prepstat != null) {
-                try {
-                    prepstat.close();
-                } catch (SQLException e) {
-                    ;
-                }
-                prepstat = null;
+                prepstat.close();
             }
             if (con != null) {
-                try {
-                    con.close();
-                } catch (SQLException e) {
-                    ;
-                }
-                con = null;
+                con.close();
             }
         }
 
@@ -158,23 +128,18 @@ public class PromoImpressionDB {
     }
 
     public static PromoImpression viewPromoImpression(long hashCode) throws Exception {
-
-        String SQL;
         ResultSet rs = null;
         Connection con = null;
-        PreparedStatement prepstat = null;
         PromoImpression impression = new PromoImpression();
 
         try {
             con = DConnect.getConnection();
 
-            SQL = "select * from promo_impression_tracker where hash_code = ?";
+            String SQL = "select * from promo_impression_tracker where hash_code = " + hashCode;
+            System.out.println(new Date() + " " + PromoImpressionDB.class + ": Will check if promo exists: " + SQL);
 
-            prepstat = con.prepareStatement(SQL);
 
-            prepstat.setLong(1, hashCode);
-
-            rs = prepstat.executeQuery();
+            rs = con.createStatement().executeQuery(SQL);
 
             while (rs.next()) {
                 impression.setHashCode(rs.getLong("hash_code"));
@@ -183,45 +148,21 @@ public class PromoImpressionDB {
                 impression.setKeyword(rs.getString("promo_response_code"));
                 impression.setViewDate(new java.util.Date(rs.getTimestamp("view_date").getTime()));
                 impression.setInventory_keyword(rs.getString("inventory_keyword"));
+                System.out.println(new Date() + " " + PromoImpressionDB.class + ": Promo exists");
+                break;
             }
 
         } catch (Exception ex) {
-            if (con != null) {
-                try {
-                    con.close();
-                } catch (SQLException ex1) {
-                    System.out.println(ex1.getMessage());
-                }
-                con = null;
-            }
-
             //error log
             System.out.println(new java.util.Date() + ": error viewing promo_campaign_hash (" + hashCode + "): " + ex.getMessage());
-
+            throw new Exception(ex.getMessage());
         } finally {
             if (rs != null) {
-                try {
-                    rs.close();
-                } catch (SQLException e) {
-                    ;
-                }
-                rs = null;
+                rs.close();
             }
-            if (prepstat != null) {
-                try {
-                    prepstat.close();
-                } catch (SQLException e) {
-                    ;
-                }
-                prepstat = null;
-            }
+
             if (con != null) {
-                try {
-                    con.close();
-                } catch (SQLException e) {
-                    ;
-                }
-                con = null;
+                con.close();
             }
         }
 
@@ -229,78 +170,51 @@ public class PromoImpressionDB {
     }
 
     public static synchronized void updateAdResponseSummary(PromoImpression impression) throws Exception {
-        String SQL;
         ResultSet rs = null;
         Connection con = null;
-        PreparedStatement prepstat = null;
+
 
         java.util.Date dt = new java.util.Date();
         java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd");
         String currDate = sdf.format(dt);
 
+        System.out.println(new java.util.Date() + " " + PromoImpressionDB.class + ": Will update ad_response_summary");
         try {
             con = DConnect.getConnection();
-            SQL = "select promo_hits from ad_response_summary where account_id ='" + impression.getAccountId() + "' and keyword='" + impression.getInventory_keyword() + "'"
+
+            String selectQuery = "select promo_hits from ad_response_summary where account_id ='" + impression.getAccountId() + "' and keyword='" + impression.getInventory_keyword() + "'"
                     + " and promo_keyword = '" + impression.getKeyword() + "' and log_date = '" + currDate + "'";
-            prepstat = con.prepareStatement(SQL);
-            rs = prepstat.executeQuery();
+            System.out.println(new java.util.Date() + " " + PromoImpressionDB.class + ": Will firsh check if ad_response_summary exists: " + selectQuery);
+            rs = con.createStatement().executeQuery(selectQuery);
 
             if (!rs.next()) {
                 //has not registered. Log new entry
-                SQL = "Insert into ad_response_summary (account_id,keyword,promo_hits,log_date,promo_keyword) values(?,?,?,?,?)";
-                prepstat = con.prepareStatement(SQL);
-                prepstat.setString(1, impression.getAccountId());
-                prepstat.setString(2, impression.getInventory_keyword());
-                prepstat.setInt(3, 1);
-                prepstat.setString(4, currDate);
-                prepstat.setString(5, impression.getKeyword());
-                prepstat.execute();
-            } else {
-                int total_promo_hits = rs.getInt("promo_hits") + 1;;
+                String insertStmt = "Insert into ad_response_summary (account_id,keyword,promo_hits,log_date,promo_keyword) "
+                        + "values('" + impression.getAccountId() + "', '" + impression.getInventory_keyword() + "', 1, '"
+                        + currDate + "', '" + impression.getKeyword() + "')";
+                System.out.println(new java.util.Date() + " " + PromoImpressionDB.class + ": ad_response_summary does not exists. Will insert new one: " + insertStmt);
+                con.createStatement().execute(insertStmt);
 
-                SQL = "UPDATE ad_response_summary  SET promo_hits = " + total_promo_hits + " where keyword = ? and account_id = ? and promo_keyword = ? and log_date = ?";
-                prepstat = con.prepareStatement(SQL);
-                prepstat.setString(1, impression.getInventory_keyword());
-                prepstat.setString(2, impression.getAccountId());
-                prepstat.setString(3, impression.getKeyword());
-                prepstat.setString(4, currDate);
-                prepstat.execute();
+            } else {
+                int total_promo_hits = rs.getInt("promo_hits") + 1;
+
+                String updateStmt = "UPDATE ad_response_summary SET promo_hits = " + total_promo_hits + " where "
+                        + "keyword = '" + impression.getInventory_keyword() + "' and account_id = '" + impression.getAccountId() + "' "
+                        + "and promo_keyword = '" + impression.getKeyword() + "' and log_date = '" + currDate + "'";
+                System.out.println(new java.util.Date() + " " + PromoImpressionDB.class + ": ad_response_summary exists. Will update hits: " + updateStmt);
+
+                con.createStatement().executeUpdate(updateStmt);
             }
 
         } catch (Exception ex) {
-            if (con != null) {
-                try {
-                    con.close();
-                } catch (SQLException ex1) {
-                    System.out.println(ex1.getMessage());
-                }
-                con = null;
-            }
-            System.out.println(new java.util.Date() + ": error updating ad_response_summary: " + ex.getMessage());
+            System.out.println(new java.util.Date() + " " + PromoImpressionDB.class + ": error updating ad_response_summary: " + ex.getMessage());
+            throw new Exception(ex.getMessage());
         } finally {
             if (rs != null) {
-                try {
-                    rs.close();
-                } catch (SQLException e) {
-                    ;
-                }
-                rs = null;
-            }
-            if (prepstat != null) {
-                try {
-                    prepstat.close();
-                } catch (SQLException e) {
-                    ;
-                }
-                prepstat = null;
+                rs.close();
             }
             if (con != null) {
-                try {
-                    con.close();
-                } catch (SQLException e) {
-                    ;
-                }
-                con = null;
+                con.close();
             }
         }
 

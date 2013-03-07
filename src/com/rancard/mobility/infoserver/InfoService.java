@@ -216,17 +216,16 @@ public class InfoService extends UserService {
         this.setHeader(bean.getHeader());
         this.setFooter(bean.getFooter());
     }
-    public static InfoService viewInfoService(String keyword,String accountId, String date, int msg_id)throws Exception {
+    public static InfoService viewInfoService(String keyword,String accountId, String date, int msg_id)throws Exception {       
         
-        InfoServiceDB system_sms_queue=new InfoServiceDB();
         java.text.SimpleDateFormat newDF=new java.text.SimpleDateFormat(DATEFORMAT);
         java.util.Date pubDate = newDF.parse(date);
-        return system_sms_queue.viewInfoService(keyword,accountId,pubDate,msg_id);
+        return InfoServiceDB.viewInfoService(keyword,accountId,pubDate,msg_id);
         
     }
     
     public void viewMessages() throws Exception {
-        java.util.ArrayList<InfoService> list = new java.util.ArrayList();
+        
         InfoServiceDB system_sms_queue=new InfoServiceDB();
         java.text.SimpleDateFormat newDF=new java.text.SimpleDateFormat(this.DATEFORMAT);
         java.util.Date pubDate = newDF.parse(this.getPublishDate());

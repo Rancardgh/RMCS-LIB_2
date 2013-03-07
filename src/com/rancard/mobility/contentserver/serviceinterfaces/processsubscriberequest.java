@@ -192,10 +192,10 @@ public class processsubscriberequest extends HttpServlet implements RequestDispa
             if(subsPeriodStr!=null && !"".equals(subsPeriodStr)){// subscribe for a period
                 numOfDays = Integer.parseInt(subsPeriodStr);
                 //register subscriber for specified number of days
-                regId = ServiceManager.subscribeToService (msisdn, keywords, provId, numOfDays);
+                ServiceManager.subscribeToService (msisdn, keywords, provId, numOfDays);
                 
             }else{ //Default Subscription: subscribe indefinitely 
-                regId = ServiceManager.subscribeToService (msisdn, keywords, provId);
+                ServiceManager.subscribeToService (msisdn, keywords, provId, numOfDays);
             }
                 
           

@@ -1,8 +1,11 @@
 package com.rancard.mobility.infoserver.common.services;
 
+import com.rancard.common.AddressBook;
+import com.rancard.common.AddressBookDB;
 import com.rancard.common.DConnect;
 import com.rancard.common.Feedback;
 import com.rancard.common.uidGen;
+import com.rancard.util.DateUtil;
 import com.rancard.util.Page;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -12,370 +15,228 @@ import java.sql.Statement;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
-public abstract class UserServiceDB {
+public class UserServiceDB {
 
     public static void createService(UserService service) throws Exception {
-        String SQL;
-        ResultSet rs = null;
-        Connection con = null;
-        PreparedStatement prepstat = null;
+        Connection conn = null;
 
         try {
-            con = DConnect.getConnection();
-            SQL = "Insert into service_definition(service_type, keyword, account_id, service_name, default_message, command, allowed_shortcodes, allowed_site_types,"
-                    + " is_basic, pricing, is_subscription, service_response_sender) values(?,?,?,?,?,?,?,?,?,?,?,?)";
+            conn = DConnect.getConnection();
 
-            prepstat = con.prepareStatement(SQL);
-
-            prepstat.setString(1, service.getServiceType());
-            prepstat.setString(2, service.getKeyword());
-            prepstat.setString(3, service.getAccountId());
-            prepstat.setString(4, service.getServiceName());
-            prepstat.setString(5, service.getDefaultMessage());
-            prepstat.setString(6, service.getCommand());
-            prepstat.setString(7, service.getAllowedShortcodes());
-            prepstat.setString(8, service.getAllowedSiteTypes());
-            if (service.isBasic()) {
-                prepstat.setInt(9, 1);
-            } else {
-                prepstat.setInt(9, 0);
-            }
-            //prepstat.setString (10, service.getAllowedNetworks ());
-            prepstat.setString(10, service.getPricing());
-            if (service.isSubscription()) {
-                prepstat.setInt(11, 1);
-            } else {
-                prepstat.setInt(11, 0);
-            }
-            prepstat.setString(12, service.getServiceResponseSender());
-
-            prepstat.execute();
-
+            String sql = "Insert into service_definition(service_type, keyword, account_id, service_name, default_message, "
+                    + "command, allowed_shortcodes, allowed_site_types, is_basic, pricing, is_subscription, service_response_sender) "
+                    + "values('" + service.getServiceType() + "', '" + service.getKeyword() + "', '" + service.getAccountId() + "', "
+                    + "'" + service.getServiceName() + "', '" + service.getDefaultMessage() + "', '" + service.getCommand() + "', "
+                    + "'" + service.getAllowedShortcodes() + "', '" + service.getAllowedSiteTypes() + "', " + ((service.isBasic()) ? 1 : 0) + ", "
+                    + "'" + service.getPricing() + "', " + ((service.isSubscription()) ? 1 : 0) + " , '" + service.getServiceResponseSender() + "')";
+            System.out.println(new Date() + ": " + UserServiceDB.class + ":DEBUG About to create service: " + sql);
+            conn.createStatement().execute(sql);
+            System.out.println(new Date() + ": " + UserServiceDB.class + ":INFO Service created");
         } catch (Exception ex) {
+            System.out.println(new Date() + ": " + UserServiceDB.class + ":ERROR Problem creating service: " + ex.getMessage());
             throw new Exception(ex.getMessage());
         } finally {
-            if (rs != null) {
-                rs.close();
-            }
-            if (prepstat != null) {
-                prepstat.close();
-            }
-            if (con != null) {
-                con.close();
+            if (conn != null) {
+                conn.close();
             }
         }
 
     }
 
     public static void updateService(String serviceType, String defaultMessage, String serviceName, String keyword, String accountId) throws Exception {
-
-        String SQL;
-        ResultSet rs = null;
-        Connection con = null;
-        PreparedStatement prepstat = null;
+        Connection conn = null;
 
         try {
-            con = DConnect.getConnection();
-            SQL =
-                    "UPDATE service_definition SET default_message=?,service_name=? "
-                    + "WHERE keyword=?  and account_id =?";
+            conn = DConnect.getConnection();
+            String sql = "UPDATE service_definition SET default_message = '" + defaultMessage + "', service_name = '" + serviceName + "' , "
+                    + "last_updated = '" + DateUtil.convertToMySQLTimeStamp(new Date()) + "' "
+                    + "WHERE keyword = '" + keyword + "' and account_id = '" + accountId + "'";
 
-            prepstat = con.prepareStatement(SQL);
-
-            prepstat.setString(1, defaultMessage);
-            prepstat.setString(2, serviceName);
-            prepstat.setString(3, serviceType);
-            prepstat.setString(4, keyword);
-            prepstat.setString(5, accountId);
-            prepstat.execute();
-
+            System.out.println(new Date() + ": " + UserServiceDB.class + ":DEBUG About to update service: " + sql);
+            conn.createStatement().executeUpdate(sql);
+            System.out.println(new Date() + ": " + UserServiceDB.class + ":INFO Service updated");
         } catch (Exception ex) {
+            System.out.println(new Date() + ": " + UserServiceDB.class + ":ERROR Problem updating service: " + ex.getMessage());
             throw new Exception(ex.getMessage());
         } finally {
-            if (rs != null) {
-                rs.close();
-            }
-            if (prepstat != null) {
-                prepstat.close();
-            }
-            if (con != null) {
-                con.close();
+            if (conn != null) {
+                conn.close();
             }
         }
 
     }
 
     public static void updateService(String defaultMessage, String keyword, String accountId) throws Exception {
-
-        String SQL;
-        ResultSet rs = null;
-        Connection con = null;
-        PreparedStatement prepstat = null;
+        Connection conn = null;
 
         try {
-            con = DConnect.getConnection();
-            SQL =
-                    "UPDATE service_definition SET default_message=? , last_updated = ? "
-                    + "WHERE keyword=?  and account_id =?";
+            conn = DConnect.getConnection();
+            String sql = "UPDATE service_definition SET default_message = '" + defaultMessage + "', "
+                    + "last_updated = '" + DateUtil.convertToMySQLTimeStamp(new Date()) + "' "
+                    + "WHERE keyword = '" + keyword + "' and account_id = '" + accountId + "'";
 
-            prepstat = con.prepareStatement(SQL);
-
-            prepstat.setString(1, defaultMessage);
-            prepstat.setTimestamp(2, new java.sql.Timestamp(new java.util.Date().getTime()));
-            prepstat.setString(3, keyword);
-            prepstat.setString(4, accountId);
-            prepstat.execute();
-
+            System.out.println(new Date() + ": " + UserServiceDB.class + ":DEBUG About to update service: " + sql);
+            conn.createStatement().executeUpdate(sql);
+            System.out.println(new Date() + ": " + UserServiceDB.class + ":INFO Service updated");
         } catch (Exception ex) {
+            System.out.println(new Date() + ": " + UserServiceDB.class + ":ERROR Problem updating service: " + ex.getMessage());
             throw new Exception(ex.getMessage());
         } finally {
-            if (rs != null) {
-                rs.close();
-            }
-            if (prepstat != null) {
-                prepstat.close();
-            }
-            if (con != null) {
-                con.close();
+            if (conn != null) {
+                conn.close();
             }
         }
-
     }
 
     public static void deleteService(String keyword, String accountId) throws Exception {
-
-        String SQL;
-        ResultSet rs = null;
-        Connection con = null;
-        PreparedStatement prepstat = null;
+        Connection conn = null;
 
         try {
-            con = DConnect.getConnection();
-            SQL =
-                    "delete from service_definition where keyword = ? and account_id=? ";
+            conn = DConnect.getConnection();
+            String sql = "delete from service_definition where keyword = '" + keyword + "' and account_id = '" + accountId + "'";
 
-            prepstat = con.prepareStatement(SQL);
-
-            prepstat.setString(1, keyword);
-            prepstat.setString(2, accountId);
-
-            prepstat.execute();
-
+            System.out.println(new Date() + ": " + UserServiceDB.class + ":DEBUG About to delete service: " + sql);
+            conn.createStatement().execute(sql);
+            System.out.println(new Date() + ": " + UserServiceDB.class + ":INFO Service deleted");
         } catch (Exception ex) {
+            System.out.println(new Date() + ": " + UserServiceDB.class + ":ERROR Problem deleting service: " + ex.getMessage());
             throw new Exception(ex.getMessage());
         } finally {
-            if (rs != null) {
-                rs.close();
-            }
-            if (prepstat != null) {
-                prepstat.close();
-            }
-            if (con != null) {
-                con.close();
+            if (conn != null) {
+                conn.close();
             }
         }
     }
 
-    public static void deleteService(ArrayList keywords, String accountId) throws Exception {
-
-        String SQL;
-        ResultSet rs = null;
-        Connection con = null;
-        PreparedStatement prepstat = null;
-
-        String keywordStr = "";
-        for (int i = 0; i < keywords.size(); i++) {
-            keywordStr = keywordStr + "'" + keywords.get(i).toString() + "',";
+    public static void deleteService(List keywords, String accountId) throws Exception {
+        if (keywords.isEmpty()) {
+            return;
         }
-        keywordStr = keywordStr.substring(0, keywordStr.lastIndexOf(","));
+
+        Connection conn = null;
+
+        StringBuilder keywordStr = new StringBuilder();
+        for (int i = 0; i < keywords.size(); i++) {
+            keywordStr.append("'").append(keywords.get(i).toString()).append("',");
+        }
+        keywordStr.deleteCharAt(keywordStr.toString().lastIndexOf(","));
 
         try {
-            con = DConnect.getConnection();
-            SQL = "delete from service_definition where keyword in (" + keywordStr + ") and account_id='" + accountId + "'";
-            prepstat = con.prepareStatement(SQL);
-            prepstat.execute();
+            conn = DConnect.getConnection();
+            String sql = "delete from service_definition where keyword in (" + keywordStr + ") and account_id = '" + accountId + "'";
+
+            System.out.println(new Date() + ": " + UserServiceDB.class + ":DEBUG About to delete service: " + sql);
+            conn.createStatement().execute(sql);
+            System.out.println(new Date() + ": " + UserServiceDB.class + ":INFO Service deleted");
         } catch (Exception ex) {
+            System.out.println(new Date() + ": " + UserServiceDB.class + ":ERROR Problem deleting service: " + ex.getMessage());
             throw new Exception(ex.getMessage());
         } finally {
-            if (rs != null) {
-
-                rs.close();
-
-            }
-            if (prepstat != null) {
-
-                prepstat.close();
-
-            }
-            if (con != null) {
-
-                con.close();
-
+            if (conn != null) {
+                conn.close();
             }
         }
     }
 
     public static int getLastAccessCount(String msisdn, String accountId, String keyword) throws Exception {
-
-        String SQL;
         ResultSet rs = null;
-        Connection con = null;
-        PreparedStatement prepstat = null;
+        Connection conn = null;
+
         int accessCount = 0;
 
-        //------log Statement
-        System.out.println(new java.util.Date() + ":@com.rancard.mobility.infoserver.common.services.UserServiceDB...");
-        System.out.println(new java.util.Date() + ": retrieving access count for last service (" + accountId + ", " + keyword + ") by " + msisdn + "...");
-
         try {
-            con = DConnect.getConnection();
+            conn = DConnect.getConnection();
 
-            SQL = "select count(*) as 'access_count' from subscriber_request_history where msisdn = ? and account_id = ? and keyword = ? and date(log_time) = CURRENT_DATE order by log_time desc limit 5";
+            String sql = "select count(*) as 'access_count' from subscriber_request_history where msisdn = '" + msisdn + "' "
+                    + "and account_id = '" + accountId + "' and keyword = '" + keyword + "' and date(log_time) = CURRENT_DATE order by log_time desc";
 
-            prepstat = con.prepareStatement(SQL);
-
-            prepstat.setString(1, msisdn);
-            prepstat.setString(2, accountId);
-            prepstat.setString(3, keyword);
-
-            rs = prepstat.executeQuery();
-
+            System.out.println(new Date() + ": " + UserServiceDB.class + ":DEBUG Getting last access count: " + sql);
+            rs = conn.createStatement().executeQuery(sql);
+            System.out.println(new Date() + ": " + UserServiceDB.class + ":INFO Got last access count");
             while (rs.next()) {
+                System.out.println(new java.util.Date() + ": " + UserServiceDB.class + ":INFO access count for last service (" + accountId + ", " + keyword + ") by " + msisdn);
                 accessCount = rs.getInt("access_count");
-
-                //log statement: info
-                System.out.println(new java.util.Date() + ": access count for last service (" + accountId + ", " + keyword + ") by " + msisdn + " is " + accessCount);
+                break;
             }
+            return accessCount;
 
         } catch (Exception ex) {
-
-            //error log
-            System.out.println(new java.util.Date() + ": error retrieving access count for last service (" + accountId + ", " + keyword + ") by " + msisdn + " :: " + ex.getMessage());
+            System.out.println(new java.util.Date() + ": " + UserServiceDB.class + ":ERROR retrieving access count for last service ("
+                    + accountId + ", " + keyword + ") by " + msisdn + " :: " + ex.getMessage());
             throw new Exception(ex.getMessage());
         } finally {
             if (rs != null) {
-
                 rs.close();
-
             }
-            if (prepstat != null) {
-
-                prepstat.close();
-
-            }
-            if (con != null) {
-
-                con.close();
-
+            if (conn != null) {
+                conn.close();
             }
         }
-
-        return accessCount;
-
     }
 
-    public static String viewLastRequestedKeyword(String msisdn, String accountId, String siteId) throws
-            Exception {
-
-        String SQL;
+    public static String viewLastRequestedKeyword(String msisdn, String accountId, String siteId) throws Exception {
         ResultSet rs = null;
-        Connection con = null;
-        PreparedStatement prepstat = null;
-        String lastKeyword = "##BLANK##";
-
-        //------log Statement
-        System.out.println(new java.util.Date() + ":@com.rancard.mobility.infoserver.common.services.UserServiceDB...");
-        System.out.println(new java.util.Date() + ": retrieving last requested keyword for (" + msisdn + ", " + accountId + ", " + siteId + ")...");
+        Connection conn = null;
 
         try {
-            con = DConnect.getConnection();
+            conn = DConnect.getConnection();
 
-            SQL = "select * from subscriber_request_history where msisdn = ? and account_id = ? and site_id = ? order by log_time desc limit 1";
+            String sql = "select * from subscriber_request_history where msisdn = '" + msisdn + "' and account_id = '" + accountId + "' "
+                    + "and site_id = '" + siteId + "' order by log_time desc limit 1";
 
-            prepstat = con.prepareStatement(SQL);
-
-            prepstat.setString(1, msisdn);
-            prepstat.setString(2, accountId);
-            prepstat.setString(3, siteId);
-
-            rs = prepstat.executeQuery();
+            System.out.println(new Date() + ": " + UserServiceDB.class + ":DEBUG Getting last requested keyword: " + sql);
+            rs = conn.createStatement().executeQuery(sql);
 
             while (rs.next()) {
-                lastKeyword = rs.getString("keyword");
-
-                //log statement: info
-                System.out.println(new java.util.Date() + ": last requested keyword (" + msisdn + ", " + accountId + ", " + siteId + ") found!");
-            }
-            //log
-            if (lastKeyword.equals("")) {
-                System.out.println(new java.util.Date() + ": last requested keyword (" + msisdn + ", " + accountId + ", " + siteId + ") not found!");
+                System.out.println(new Date() + ": " + UserServiceDB.class + ":INFO Got last requested keyword");
+                return rs.getString("keyword");
             }
 
+            return null;
         } catch (Exception ex) {
-
-            //error log
-            System.out.println(new java.util.Date() + ": error retrieving last requested keyword (" + msisdn + ", " + accountId + ", " + siteId + "): " + ex.getMessage());
+            System.out.println(new Date() + ": " + UserServiceDB.class + ":ERROR retrieving last requested keyword (" + msisdn + ", " + accountId + ", " + siteId + "): " + ex.getMessage());
             throw new Exception(ex.getMessage());
         } finally {
             if (rs != null) {
                 rs.close();
             }
-            if (prepstat != null) {
 
-                prepstat.close();
-
-            }
-            if (con != null) {
-                con.close();
+            if (conn != null) {
+                conn.close();
             }
         }
-
-        return lastKeyword;
 
     }
 
     //This checks for the most recently subscribed keyword with respect to a giving msisdn
-    public static String viewLastSubscribedKeyword(String msisdn, String accountId) throws
-            Exception {
-
-        String SQL;
+    public static String viewLastSubscribedKeyword(String msisdn, String accountId) throws Exception {
         ResultSet rs = null;
-        Connection con = null;
-        PreparedStatement prepstat = null;
-        String lastKeyword = "##BLANK##";
-
-        //------log Statement
-        System.out.println(new java.util.Date() + ":@com.rancard.mobility.infoserver.common.services.UserServiceDB...");
-        System.out.println(new java.util.Date() + ": retrieving last subscribed keyword for (" + msisdn + ", " + accountId + ")...");
+        Connection conn = null;
 
         try {
-            con = DConnect.getConnection();
+            conn = DConnect.getConnection();
 
-            SQL = "select * from service_subscription where msisdn = ? and account_id = ? order by subscription_date desc limit 1";
+            String sql = "select * from service_subscription where msisdn = '" + msisdn + "' and account_id = '" + accountId + "' "
+                    + "order by subscription_date desc limit 1";
 
-            prepstat = con.prepareStatement(SQL);
-
-            prepstat.setString(1, msisdn);
-            prepstat.setString(2, accountId);
-
-            rs = prepstat.executeQuery();
+            System.out.println(new Date() + ": " + UserServiceDB.class + ":DEBUG retrieving last subscribed keyword for (" + msisdn + ", " + accountId + ")...");
+            rs = conn.createStatement().executeQuery(sql);
 
             while (rs.next()) {
-                lastKeyword = rs.getString("keyword");
-
-                //log statement: info
-                System.out.println(new java.util.Date() + ": last subscribed keyword (" + msisdn + ", " + accountId + ") found!");
-            }
-            //log
-            if (lastKeyword.equals("")) {
-                System.out.println(new java.util.Date() + ": last subscribed keyword (" + msisdn + ", " + accountId + ") not found!");
+                System.out.println(new Date() + ": " + UserServiceDB.class + ":INFO Got last subscribed keyword");
+                return rs.getString("keyword");
             }
 
+            System.out.println(new java.util.Date() + ": " + UserServiceDB.class + "INFO: Keyword not found");
+            return null;
         } catch (Exception ex) {
             //error log
             System.out.println(new java.util.Date() + ": error retrieving last requested keyword (" + msisdn + ", " + accountId + "): " + ex.getMessage());
@@ -384,849 +245,434 @@ public abstract class UserServiceDB {
             if (rs != null) {
                 rs.close();
             }
-            if (prepstat != null) {
-                prepstat.close();
-            }
-            if (con != null) {
-                con.close();
+            if (conn != null) {
+                conn.close();
             }
         }
 
-        return lastKeyword;
+    }
+
+    public static UserService viewLastServiceSubscribedTo(String msisdn) throws Exception {
+        Connection conn = null;
+        ResultSet rs = null;
+
+        try {
+            conn = DConnect.getConnection();
+            String query = "select d.* from service_definition d inner join service_subscription s on d.account_id=s.account_id and d.keyword=s.keyword"
+                    + " where msisdn='" + msisdn + "' order by s.subscription_date desc limit 1;";
+
+            System.out.println(new java.util.Date() + ": " + UserServiceDB.class + "DEBUG: SQL Query for last service subscribed to: " + query);
+            rs = conn.createStatement().executeQuery(query);
+
+            if (rs.next()) {
+                System.out.println(new java.util.Date() + ": " + UserServiceDB.class + "INFO: Service found");
+                return new UserService(rs.getString("service_type"), rs.getString("keyword"), rs.getString("account_id"),
+                        rs.getString("service_name"), rs.getString("default_message"), rs.getString("command"), rs.getString("allowed_shortcodes"),
+                        rs.getString("allowed_site_types"), rs.getString("pricing"), rs.getBoolean("is_basic"), 
+                        rs.getBoolean("is_subscription"), rs.getString("service_response_sender"));
+            }
+
+            System.out.println(new java.util.Date() + ": " + UserServiceDB.class + "INFO: Service not found");
+            return null;
+        } catch (Exception e) {
+            System.out.println(new Date() + ": " + UserServiceDB.class + ": Error retrieving service: " + e.getMessage());
+            throw new Exception(e.getMessage());
+        } finally {
+            if (rs != null) {
+                rs.close();
+            }
+            if (conn != null) {
+                conn.close();
+            }
+        }
 
     }
 
     // Takes in a keyword alias and an accountId and returns the exact keyword for the 
     // specified alias
     public static UserService viewServiceByAlias(String alias, String accountId) throws Exception {
-
-        String SQL;
         ResultSet rs = null;
-        Connection con = null;
-        PreparedStatement prepstat = null;
-        UserService service = new UserService();
-
-        //------log Statement
-        System.out.println(new java.util.Date() + ":@com.rancard.mobility.infoserver.common.services.UserServiceDB...");
-        System.out.println(new java.util.Date() + ": viewing service_definition for alias (" + alias + ", " + accountId + ")...");
+        Connection conn = null;
 
         try {
-            con = DConnect.getConnection();
+            conn = DConnect.getConnection();
 
-            SQL = "select * from keyword_aliases ka inner join service_definition sd on sd.keyword = ka.keyword and sd.account_id = ka.account_id where ka.key_alias = ? and ka.account_id = ?";
-
-            prepstat = con.prepareStatement(SQL);
-
-            prepstat.setString(1, alias);
-            prepstat.setString(2, accountId);
-
-            rs = prepstat.executeQuery();
+            String sql = "select * from keyword_aliases ka inner join service_definition sd on sd.keyword = ka.keyword and sd.account_id = ka.account_id "
+                    + "where ka.key_alias = '" + alias + "' and ka.account_id = '" + accountId + "'";
+            System.out.println(new java.util.Date() + ": " + UserServiceDB.class + "DEBUG: SQL Query to get service by alias: " + sql);
+            rs = conn.createStatement().executeQuery(sql);
 
             while (rs.next()) {
-                service.setKeyword(rs.getString("keyword"));
-                service.setServiceType(rs.getString("service_type"));
-                service.setAccountId(rs.getString("account_id"));
-                service.setServiceName(rs.getString("service_name"));
-                service.setDefaultMessage(rs.getString("default_message"));
-                java.text.SimpleDateFormat df = new java.text.SimpleDateFormat("dd-MMM-yyyy HH.mm.ss");
-                String publishTime = df.format(new java.util.Date(rs.getTimestamp("last_updated").getTime()));
-                service.setLastUpdated(publishTime);
-                service.setCommand(rs.getString("command"));
-                service.setAllowedShortcodes(rs.getString("allowed_shortcodes"));
-                service.setAllowedSiteTypes(rs.getString("allowed_site_types"));
-                //service.setAllowedNetworks (rs.getString ("allowed_networks"));
-                service.setPricing(rs.getString("pricing"));
-                service.setServiceResponseSender(rs.getString("service_response_sender"));
-                if (rs.getInt("is_basic") == 1) {
-                    service.setIsBasic(true);
-                } else {
-                    service.setIsBasic(false);
-                }
-                if (rs.getInt("is_subscription") == 1 || rs.getString("is_subscription").equals("true")) {
-                    service.setIsSubscription(true);
-                } else {
-                    service.setIsSubscription(false);
-                }
-
-                //log statement: info
-                System.out.println(new java.util.Date() + ": service for alias (" + alias + ", " + accountId + ") found!");
-            }
-            //log
-            if (service.getKeyword() == null || "".equals(service.getKeyword())) {
-                System.out.println(new java.util.Date() + ": service for alias (" + alias + ", " + accountId + ") not found!");
+                System.out.println(new java.util.Date() + ": " + UserServiceDB.class + "INFO: Service found");
+                return new UserService(rs.getString("service_type"), rs.getString("keyword"), rs.getString("account_id"),
+                        rs.getString("service_name"), rs.getString("default_message"), rs.getString("command"), rs.getString("allowed_shortcodes"),
+                        rs.getString("allowed_site_types"),rs.getString("pricing"), rs.getBoolean("is_basic"), 
+                        rs.getBoolean("is_subscription"), rs.getString("service_response_sender"));
             }
 
+            System.out.println(new java.util.Date() + ": " + UserServiceDB.class + "INFO: Service not found");
+            return null;
         } catch (Exception ex) {
-
-
-            //error log
-            System.out.println(new java.util.Date() + ": error viewing service for alias (" + alias + ", " + accountId + "): " + ex.getMessage());
+            System.out.println(new Date() + ": " + UserServiceDB.class + ": Error retrieving service: " + ex.getMessage());
             throw new Exception(ex.getMessage());
         } finally {
             if (rs != null) {
                 rs.close();
             }
-            if (prepstat != null) {
-                prepstat.close();
-            }
-            if (con != null) {
-                con.close();
+
+            if (conn != null) {
+                conn.close();
             }
         }
-
-        return service;
     }
 
     public static UserService viewService(String keyword, String accountId) throws Exception {
-
-        String SQL;
         ResultSet rs = null;
-        Connection con = null;
-        PreparedStatement prepstat = null;
-        UserService service = new UserService();
-
-        //------log Statement
-        System.out.println(new java.util.Date() + ":@com.rancard.mobility.infoserver.common.services.UserServiceDB...");
-        System.out.println(new java.util.Date() + ": viewing service_definition for (" + keyword + ", " + accountId + ")...");
+        Connection conn = null;
 
         try {
-            con = DConnect.getConnection();
+            conn = DConnect.getConnection();
 
-            SQL = "select * from service_definition where keyword = ? and account_id = ? ";
+            String sql = "select * from service_definition where keyword = '" + keyword + "' and account_id = '" + accountId + "'";
+            System.out.println(new java.util.Date() + ": " + UserServiceDB.class + "DEBUG: SQL Query to get service: " + sql);
 
-            prepstat = con.prepareStatement(SQL);
 
-            prepstat.setString(1, keyword);
-            prepstat.setString(2, accountId);
-
-            rs = prepstat.executeQuery();
-
+            rs = conn.createStatement().executeQuery(sql);
             while (rs.next()) {
-                service.setKeyword(rs.getString("keyword"));
-                service.setServiceType(rs.getString("service_type"));
-                service.setAccountId(rs.getString("account_id"));
-                service.setServiceName(rs.getString("service_name"));
-                service.setDefaultMessage(rs.getString("default_message"));
-                java.text.SimpleDateFormat df = new java.text.SimpleDateFormat("dd-MMM-yyyy HH.mm.ss");
-                String publishTime = df.format(new java.util.Date(rs.getTimestamp("last_updated").getTime()));
-                service.setLastUpdated(publishTime);
-                service.setCommand(rs.getString("command"));
-                service.setAllowedShortcodes(rs.getString("allowed_shortcodes"));
-                service.setAllowedSiteTypes(rs.getString("allowed_site_types"));
-                //service.setAllowedNetworks (rs.getString ("allowed_networks"));
-                service.setPricing(rs.getString("pricing"));
-                service.setServiceResponseSender(rs.getString("service_response_sender"));
-                if (rs.getInt("is_basic") == 1) {
-                    service.setIsBasic(true);
-                } else {
-                    service.setIsBasic(false);
-                }
-                if (rs.getInt("is_subscription") == 1 || rs.getString("is_subscription").equals("true")) {
-                    service.setIsSubscription(true);
-                } else {
-                    service.setIsSubscription(false);
-                }
+                System.out.println(new java.util.Date() + ": " + UserServiceDB.class + "INFO: Service found");
+                return new UserService(rs.getString("service_type"), rs.getString("keyword"), rs.getString("account_id"),
+                        rs.getString("service_name"), rs.getString("default_message"), rs.getString("command"), rs.getString("allowed_shortcodes"),
+                        rs.getString("allowed_site_types"), rs.getString("pricing"), rs.getBoolean("is_basic"), 
+                        rs.getBoolean("is_subscription"), rs.getString("service_response_sender"));
+            }
 
-                //log statement: info
-                System.out.println(new java.util.Date() + ": service (" + keyword + ", " + accountId + ") found!");
-            }
-            //log
-            if (service.getKeyword() == null || "".equals(service.getKeyword())) {
-                System.out.println(new java.util.Date() + ": service (" + keyword + ", " + accountId + ") not found!");
-            }
+            System.out.println(new java.util.Date() + ": " + UserServiceDB.class + ":INFO: Service not found");
+            return null;
 
         } catch (Exception ex) {
-
-            //error log
-            System.out.println(new java.util.Date() + ": error viewing service (" + keyword + ", " + accountId + "): " + ex.getMessage());
-            throw new Exception();
+            System.out.println(new java.util.Date() + ": " + UserServiceDB.class + ": error viewing service (" + keyword + ", " + accountId + "): " + ex.getMessage());
+            throw new Exception(ex.getMessage());
 
         } finally {
             if (rs != null) {
                 rs.close();
             }
-            if (prepstat != null) {
-                prepstat.close();
-            }
-            if (con != null) {
-                con.close();
+            if (conn != null) {
+                conn.close();
             }
         }
 
-        return service;
     }
 
-    public static ArrayList viewAllServices(String accountId) throws Exception {
-
-        String SQL;
+    public static List<UserService> viewAllServices(String accountId) throws Exception {
         ResultSet rs = null;
-        Connection con = null;
-        PreparedStatement prepstat = null;
+        Connection conn = null;
 
-        java.util.ArrayList serviceList = new java.util.ArrayList();
+        List<UserService> serviceList = new ArrayList<UserService>();
         try {
-            con = DConnect.getConnection();
-            SQL = "select * from service_definition where account_id =?";
-            prepstat = con.prepareStatement(SQL);
-            prepstat.setString(1, accountId);
-            rs = prepstat.executeQuery();
+            conn = DConnect.getConnection();
+            String sql = "select * from service_definition where account_id = '" + accountId + "'";
+            System.out.println(new java.util.Date() + ": " + UserServiceDB.class + "DEBUG: SQL Query to get services: " + sql);
 
+            rs = conn.createStatement().executeQuery(sql);
             while (rs.next()) {
-                UserService service = new UserService();
-
-                service.setKeyword(rs.getString("keyword"));
-                service.setServiceType(rs.getString("service_type"));
-                service.setAccountId(rs.getString("account_id"));
-                service.setServiceName(rs.getString("service_name"));
-                service.setDefaultMessage(rs.getString("default_message"));
-                java.text.SimpleDateFormat df = new java.text.SimpleDateFormat("dd-MMM-yyyy HH.mm.ss");
-                String publishTime = df.format(new java.util.Date(rs.getTimestamp("last_updated").getTime()));
-                service.setLastUpdated(publishTime);
-                service.setCommand(rs.getString("command"));
-                service.setAllowedShortcodes(rs.getString("allowed_shortcodes"));
-                service.setAllowedSiteTypes(rs.getString("allowed_site_types"));
-                //service.setAllowedNetworks (rs.getString ("allowed_networks"));
-                service.setPricing(rs.getString("pricing"));
-                service.setServiceResponseSender(rs.getString("service_response_sender"));
-                if (rs.getInt("is_basic") == 1) {
-                    service.setIsBasic(true);
-                } else {
-                    service.setIsBasic(false);
-                }
-                if (rs.getInt("is_subscription") == 1 || rs.getString("is_subscription").equals("true")) {
-                    service.setIsSubscription(true);
-                } else {
-                    service.setIsSubscription(false);
-                }
-
-                serviceList.add(service);
+                serviceList.add(new UserService(rs.getString("service_type"), rs.getString("keyword"), rs.getString("account_id"),
+                        rs.getString("service_name"), rs.getString("default_message"), rs.getString("command"), rs.getString("allowed_shortcodes"),
+                        rs.getString("allowed_site_types"), rs.getString("pricing"), rs.getBoolean("is_basic"), 
+                        rs.getBoolean("is_subscription"), rs.getString("service_response_sender")));
             }
-
+            return serviceList;
         } catch (Exception ex) {
+            System.out.println(new java.util.Date() + ": " + UserServiceDB.class + ":ERROR viewing service " + accountId + ": " + ex.getMessage());
             throw new Exception(ex.getMessage());
         } finally {
             if (rs != null) {
                 rs.close();
             }
-            if (prepstat != null) {
-                prepstat.close();
-            }
-            if (con != null) {
-                con.close();
+            if (conn != null) {
+                conn.close();
             }
         }
 
-        return serviceList;
     }
 
-    public static ArrayList viewAllServices(String accountId, String serviceType) throws Exception {
-
-        String SQL;
+    public static List<UserService> viewAllServices(String accountId, String serviceType) throws Exception {
         ResultSet rs = null;
-        Connection con = null;
-        PreparedStatement prepstat = null;
+        Connection conn = null;
 
-        java.util.ArrayList serviceList = new java.util.ArrayList();
+        List<UserService> serviceList = new ArrayList<UserService>();
         try {
-            con = DConnect.getConnection();
-            SQL = "select * from service_definition where account_id =? and service_type=?";
-            prepstat = con.prepareStatement(SQL);
-            prepstat.setString(1, accountId);
-            prepstat.setString(2, serviceType);
+            conn = DConnect.getConnection();
+            String sql = "select * from service_definition where account_id ='" + accountId + "' and service_type= '" + serviceType + "'";
 
-            rs = prepstat.executeQuery();
+            System.out.println(new java.util.Date() + ": " + UserServiceDB.class + "DEBUG: SQL Query to get services: " + sql);
+            rs = conn.createStatement().executeQuery(sql);
 
             while (rs.next()) {
-                UserService service = new UserService();
-
-                service.setKeyword(rs.getString("keyword"));
-                service.setServiceType(rs.getString("service_type"));
-                service.setAccountId(rs.getString("account_id"));
-                service.setServiceName(rs.getString("service_name"));
-                service.setDefaultMessage(rs.getString("default_message"));
-                java.text.SimpleDateFormat df = new java.text.SimpleDateFormat("dd-MMM-yyyy HH.mm.ss");
-                String publishTime = df.format(new java.util.Date(rs.getTimestamp("last_updated").getTime()));
-                service.setLastUpdated(publishTime);
-                service.setCommand(rs.getString("command"));
-                service.setAllowedShortcodes(rs.getString("allowed_shortcodes"));
-                service.setAllowedSiteTypes(rs.getString("allowed_site_types"));
-                //service.setAllowedNetworks (rs.getString ("allowed_networks"));
-                service.setPricing(rs.getString("pricing"));
-                service.setServiceResponseSender(rs.getString("service_response_sender"));
-                if (rs.getInt("is_basic") == 1) {
-                    service.setIsBasic(true);
-                } else {
-                    service.setIsBasic(false);
-                }
-                if (rs.getInt("is_subscription") == 1 || rs.getString("is_subscription").equals("true")) {
-                    service.setIsSubscription(true);
-                } else {
-                    service.setIsSubscription(false);
-                }
-
-                serviceList.add(service);
+                serviceList.add(new UserService(rs.getString("service_type"), rs.getString("keyword"), rs.getString("account_id"),
+                        rs.getString("service_name"), rs.getString("default_message"), rs.getString("command"), rs.getString("allowed_shortcodes"),
+                        rs.getString("allowed_site_types"), rs.getString("pricing"), rs.getBoolean("is_basic"), 
+                        rs.getBoolean("is_subscription"), rs.getString("service_response_sender")));
             }
 
+            return serviceList;
         } catch (Exception ex) {
+            System.out.println(new java.util.Date() + ": " + UserServiceDB.class + ":ERROR viewing service " + accountId + "-" + serviceType + ": " + ex.getMessage());
             throw new Exception(ex.getMessage());
         } finally {
             if (rs != null) {
                 rs.close();
             }
-            if (prepstat != null) {
-                prepstat.close();
-            }
-            if (con != null) {
-                con.close();
+            if (conn != null) {
+                conn.close();
             }
         }
 
-        return serviceList;
     }
 
-    public static ArrayList<UserService> viewAllServices(String accountId, String serviceType, String command) throws Exception {
-
-        String SQL;
+    public static List<UserService> viewAllServices(String accountId, String serviceType, String command) throws Exception {
         ResultSet rs = null;
-        Connection con = null;
-        PreparedStatement prepstat = null;
+        Connection conn = null;
 
-        java.util.ArrayList serviceList = new java.util.ArrayList();
+        List<UserService> serviceList = new ArrayList<UserService>();
         try {
-            con = DConnect.getConnection();
-            SQL = "select * from service_definition where account_id =? and service_type=? and command=?";
-            prepstat = con.prepareStatement(SQL);
-            prepstat.setString(1, accountId);
-            prepstat.setString(2, serviceType);
-            prepstat.setString(3, command);
+            conn = DConnect.getConnection();
+            String sql = "select * from service_definition where account_id = '" + accountId + "' and service_type= '" + serviceType + "' and command= '" + command + "'";
+            System.out.println(new java.util.Date() + ": " + UserServiceDB.class + "DEBUG: SQL Query to get services: " + sql);
 
-
-            rs = prepstat.executeQuery();
-
+            rs = conn.createStatement().executeQuery(sql);
             while (rs.next()) {
-                UserService service = new UserService();
-
-                service.setKeyword(rs.getString("keyword"));
-                service.setServiceType(rs.getString("service_type"));
-                service.setAccountId(rs.getString("account_id"));
-                service.setServiceName(rs.getString("service_name"));
-                service.setDefaultMessage(rs.getString("default_message"));
-                java.text.SimpleDateFormat df = new java.text.SimpleDateFormat("dd-MMM-yyyy HH.mm.ss");
-                String publishTime = df.format(new java.util.Date(rs.getTimestamp("last_updated").getTime()));
-                service.setLastUpdated(publishTime);
-                service.setCommand(rs.getString("command"));
-                service.setAllowedShortcodes(rs.getString("allowed_shortcodes"));
-                service.setAllowedSiteTypes(rs.getString("allowed_site_types"));
-                //service.setAllowedNetworks (rs.getString ("allowed_networks"));
-                service.setPricing(rs.getString("pricing"));
-                service.setServiceResponseSender(rs.getString("service_response_sender"));
-                if (rs.getInt("is_basic") == 1) {
-                    service.setIsBasic(true);
-                } else {
-                    service.setIsBasic(false);
-                }
-                if (rs.getInt("is_subscription") == 1 || rs.getString("is_subscription").equals("true")) {
-                    service.setIsSubscription(true);
-                } else {
-                    service.setIsSubscription(false);
-                }
-
-                serviceList.add(service);
+                serviceList.add(new UserService(rs.getString("service_type"), rs.getString("keyword"), rs.getString("account_id"),
+                        rs.getString("service_name"), rs.getString("default_message"), rs.getString("command"), rs.getString("allowed_shortcodes"),
+                        rs.getString("allowed_site_types"), rs.getString("pricing"), rs.getBoolean("is_basic"), 
+                        rs.getBoolean("is_subscription"), rs.getString("service_response_sender")));
             }
-
+            return serviceList;
         } catch (Exception ex) {
-            if (con != null) {
-                try {
-                    con.close();
-                } catch (SQLException ex1) {
-                    System.out.println(ex1.getMessage());
-                }
-                con = null;
-            }
-        } finally {
-            if (rs != null) {
-                try {
-                    rs.close();
-                } catch (SQLException e) {
-                    ;
-                }
-                rs = null;
-            }
-            if (prepstat != null) {
-                try {
-                    prepstat.close();
-                } catch (SQLException e) {
-                    ;
-                }
-                prepstat = null;
-            }
-            if (con != null) {
-                try {
-                    con.close();
-                } catch (SQLException e) {
-                    ;
-                }
-                con = null;
-            }
-        }
-
-        return serviceList;
-    }
-
-    public static ArrayList viewAllServicesOfParentType(String accountId, String parentType) throws Exception {
-
-        String SQL;
-        ResultSet rs = null;
-        Connection con = null;
-        PreparedStatement prepstat = null;
-
-        java.util.ArrayList serviceList = new java.util.ArrayList();
-        try {
-            con = DConnect.getConnection();
-            SQL = "select * from service_definition sd, service_route sr where account_id =?"
-                    + " and sd.service_type=sr.service_type and sr.parent_service_type=? order by sd.service_name;";
-            prepstat = con.prepareStatement(SQL);
-            prepstat.setString(1, accountId);
-            prepstat.setString(2, parentType);
-
-            rs = prepstat.executeQuery();
-
-            while (rs.next()) {
-                UserService service = new UserService();
-
-                service.setKeyword(rs.getString("keyword"));
-                service.setServiceType(rs.getString("service_type"));
-                service.setAccountId(rs.getString("account_id"));
-                service.setServiceName(rs.getString("service_name"));
-                service.setDefaultMessage(rs.getString("default_message"));
-                java.text.SimpleDateFormat df = new java.text.SimpleDateFormat("dd-MMM-yyyy HH.mm.ss");
-                String publishTime = df.format(new java.util.Date(rs.getTimestamp("last_updated").getTime()));
-                service.setLastUpdated(publishTime);
-                service.setCommand(rs.getString("command"));
-                service.setAllowedShortcodes(rs.getString("allowed_shortcodes"));
-                service.setAllowedSiteTypes(rs.getString("allowed_site_types"));
-                //service.setAllowedNetworks (rs.getString ("allowed_networks"));
-                service.setPricing(rs.getString("pricing"));
-                service.setServiceResponseSender(rs.getString("service_response_sender"));
-                if (rs.getInt("is_basic") == 1) {
-                    service.setIsBasic(true);
-                } else {
-                    service.setIsBasic(false);
-                }
-                if (rs.getInt("is_subscription") == 1 || rs.getString("is_subscription").equals("true")) {
-                    service.setIsSubscription(true);
-                } else {
-                    service.setIsSubscription(false);
-                }
-
-                serviceList.add(service);
-            }
-
-        } catch (Exception ex) {
-            if (con != null) {
-                try {
-                    con.close();
-                } catch (SQLException ex1) {
-                    System.out.println(ex1.getMessage());
-                }
-                con = null;
-            }
-        } finally {
-            if (rs != null) {
-                try {
-                    rs.close();
-                } catch (SQLException e) {
-                    ;
-                }
-                rs = null;
-            }
-            if (prepstat != null) {
-                try {
-                    prepstat.close();
-                } catch (SQLException e) {
-                    ;
-                }
-                prepstat = null;
-            }
-            if (con != null) {
-                try {
-                    con.close();
-                } catch (SQLException e) {
-                    ;
-                }
-                con = null;
-            }
-        }
-
-        return serviceList;
-    }
-
-    public static ArrayList viewAllServicesForType(String serviceType) throws Exception {
-
-        String SQL;
-        ResultSet rs = null;
-        Connection con = null;
-        PreparedStatement prepstat = null;
-
-        java.util.ArrayList serviceList = new java.util.ArrayList();
-        try {
-            con = DConnect.getConnection();
-            SQL = "select * from service_definition where service_type=? order by account_id";
-            prepstat = con.prepareStatement(SQL);
-            prepstat.setString(1, serviceType);
-
-            rs = prepstat.executeQuery();
-
-            while (rs.next()) {
-                UserService service = new UserService();
-
-                service.setKeyword(rs.getString("keyword"));
-                service.setServiceType(rs.getString("service_type"));
-                service.setAccountId(rs.getString("account_id"));
-                service.setServiceName(rs.getString("service_name"));
-                service.setDefaultMessage(rs.getString("default_message"));
-                service.setCommand(rs.getString("command"));
-                service.setAllowedShortcodes(rs.getString("allowed_shortcodes"));
-                service.setAllowedSiteTypes(rs.getString("allowed_site_types"));
-                //service.setAllowedNetworks (rs.getString ("allowed_networks"));
-                service.setPricing(rs.getString("pricing"));
-                service.setServiceResponseSender(rs.getString("service_response_sender"));
-                if (rs.getInt("is_basic") == 1) {
-                    service.setIsBasic(true);
-                } else {
-                    service.setIsBasic(false);
-                }
-                if (rs.getInt("is_subscription") == 1 || rs.getString("is_subscription").equals("true")) {
-                    service.setIsSubscription(true);
-                } else {
-                    service.setIsSubscription(false);
-                }
-
-                serviceList.add(service);
-            }
-
-        } catch (Exception ex) {
-            if (con != null) {
-                try {
-                    con.close();
-                } catch (SQLException ex1) {
-                    System.out.println(ex1.getMessage());
-                }
-                con = null;
-            }
-        } finally {
-            if (rs != null) {
-                try {
-                    rs.close();
-                } catch (SQLException e) {
-                    ;
-                }
-                rs = null;
-            }
-            if (prepstat != null) {
-                try {
-                    prepstat.close();
-                } catch (SQLException e) {
-                    ;
-                }
-                prepstat = null;
-            }
-            if (con != null) {
-                try {
-                    con.close();
-                } catch (SQLException e) {
-                    ;
-                }
-                con = null;
-            }
-        }
-
-        return serviceList;
-    }
-
-    public static HashMap populateRoutingTable() throws Exception {
-        HashMap routingTable = new HashMap();
-
-        String SQL;
-        ResultSet rs = null;
-        Connection con = null;
-        PreparedStatement prepstat = null;
-
-        //------log Statement
-        System.out.println(new java.util.Date() + ":@com.rancard.mobility.infoserver.common.services.UserServiceDB!");
-        System.out.println(new java.util.Date() + ": populating routing table (HashMap)...");
-
-        java.util.ArrayList serviceList = new java.util.ArrayList();
-        try {
-            con = DConnect.getConnection();
-            SQL = "select service_type, service_url from service_route";
-            prepstat = con.prepareStatement(SQL);
-
-            rs = prepstat.executeQuery();
-
-            while (rs.next()) {
-                routingTable.put(rs.getString("service_type"),
-                        rs.getString("service_url"));
-
-                //log details
-                System.out.println(new java.util.Date() + ": record added to routing table (HashMap): service_type="
-                        + rs.getString("service_type") + ",  service_url=" + rs.getString("service_url"));
-
-            }
-
-        } catch (Exception ex) {
-            if (con != null) {
-                try {
-                    con.close();
-                } catch (SQLException ex1) {
-                    System.out.println(ex1.getMessage());
-                }
-                con = null;
-            }
-        } finally {
-            if (rs != null) {
-                try {
-                    rs.close();
-                } catch (SQLException e) {
-                    ;
-                }
-                rs = null;
-            }
-            if (prepstat != null) {
-                try {
-                    prepstat.close();
-                } catch (SQLException e) {
-                    ;
-                }
-                prepstat = null;
-            }
-            if (con != null) {
-                try {
-                    con.close();
-                } catch (SQLException e) {
-                    ;
-                }
-                con = null;
-            }
-        }
-
-        return routingTable;
-    }
-
-    public static HashMap getServiceTable() throws Exception {
-        HashMap serviceTable = new HashMap();
-
-        String SQL;
-        ResultSet rs = null;
-        Connection con = null;
-        PreparedStatement prepstat = null;
-
-        java.util.ArrayList serviceList = new java.util.ArrayList();
-        try {
-            con = DConnect.getConnection();
-            SQL = "select service_type, service_name from service_route";
-            prepstat = con.prepareStatement(SQL);
-
-            rs = prepstat.executeQuery();
-
-            while (rs.next()) {
-                serviceTable.put(rs.getString("service_type"),
-                        rs.getString("service_name"));
-            }
-
-        } catch (Exception ex) {
-            if (con != null) {
-                try {
-                    con.close();
-                } catch (SQLException ex1) {
-                    System.out.println(ex1.getMessage());
-                }
-                con = null;
-            }
-        } finally {
-            if (rs != null) {
-                try {
-                    rs.close();
-                } catch (SQLException e) {
-                    ;
-                }
-                rs = null;
-            }
-            if (prepstat != null) {
-                try {
-                    prepstat.close();
-                } catch (SQLException e) {
-                    ;
-                }
-                prepstat = null;
-            }
-            if (con != null) {
-                try {
-                    con.close();
-                } catch (SQLException e) {
-                    ;
-                }
-                con = null;
-            }
-        }
-
-        return serviceTable;
-    }
-
-    public static String[][] getCPsForTypes() throws Exception {
-        String[][] struct = null;
-        String query =
-                "SELECT distinct service_definition.service_type, service_definition."
-                + "account_id, cp_user.name, cp_user.logo_url FROM service_definition, cp_user where "
-                + "cp_user.id=service_definition.account_id order by service_definition.service_type";
-
-        String typeId, account_id, name, logo_url = new String();
-
-        ResultSet rs = null;
-        Connection con = null;
-        PreparedStatement prepstat = null;
-
-        try {
-            con = DConnect.getConnection();
-            prepstat = con.prepareStatement(query);
-            rs = prepstat.executeQuery();
-
-            int rowCount = 0;
-            while (rs.next()) {
-                rowCount++;
-            }
-            struct = new String[rowCount][4];
-            rs.beforeFirst();
-            rowCount = 0;
-
-            while (rs.next()) {
-                typeId = rs.getString("service_type");
-                account_id = rs.getString("account_id");
-                name = rs.getString("name");
-                logo_url = rs.getString("logo_url");
-                struct[rowCount][0] = typeId;
-                struct[rowCount][1] = account_id;
-                struct[rowCount][2] = name;
-                struct[rowCount][3] = logo_url;
-                rowCount++;
-            }
-        } catch (Exception ex) {
-            if (con != null) {
-                con.close();
-            }
+            System.out.println(new java.util.Date() + ": " + UserServiceDB.class + ":ERROR viewing service " + accountId + "-" + serviceType + "-" + command + ": " + ex.getMessage());
             throw new Exception(ex.getMessage());
-        }
-        if (con != null) {
-            con.close();
+        } finally {
+            if (rs != null) {
+                rs.close();
+            }
+            if (conn != null) {
+                conn.close();
+            }
         }
 
-        return struct;
+
     }
 
-    public static String[] getCPIDsForServiceType(String serviceType) throws Exception {
-        String[] struct = null;
-        String query = "SELECT distinct(account_id) from service_definition where service_type='" + serviceType + "'";
-
+    public static List<UserService> viewAllServicesOfParentType(String accountId, String parentType) throws Exception {
         ResultSet rs = null;
-        Connection con = null;
-        PreparedStatement prepstat = null;
+        Connection conn = null;
 
+        List<UserService> serviceList = new ArrayList<UserService>();
         try {
-            con = DConnect.getConnection();
-            prepstat = con.prepareStatement(query);
-            rs = prepstat.executeQuery();
+            conn = DConnect.getConnection();
+            String sql = "select * from service_definition sd, service_route sr where account_id = '" + accountId + "'"
+                    + " and sd.service_type=sr.service_type and sr.parent_service_type= '" + parentType + "' order by sd.service_name;";
+            System.out.println(new java.util.Date() + ": " + UserServiceDB.class + "DEBUG: SQL Query to get services: " + sql);
 
-            int rowCount = 0;
-            while (rs.next()) {
-                rowCount++;
-            }
-            struct = new String[rowCount];
-            rs.beforeFirst();
-            rowCount = 0;
+            rs = conn.createStatement().executeQuery(sql);
 
             while (rs.next()) {
-                struct[rowCount] = rs.getString("account_id");
-                rowCount++;
+                serviceList.add(new UserService(rs.getString("service_type"), rs.getString("keyword"), rs.getString("account_id"),
+                        rs.getString("service_name"), rs.getString("default_message"), rs.getString("command"), rs.getString("allowed_shortcodes"),
+                        rs.getString("allowed_site_types"), rs.getString("pricing"), rs.getBoolean("is_basic"), 
+                        rs.getBoolean("is_subscription"), rs.getString("service_response_sender")));
             }
+            return serviceList;
         } catch (Exception ex) {
-            if (con != null) {
-                con.close();
-            }
+            System.out.println(new java.util.Date() + ": " + UserServiceDB.class + ":ERROR viewing service " + accountId + "-" + parentType + ": " + ex.getMessage());
             throw new Exception(ex.getMessage());
-        }
-        if (con != null) {
-            con.close();
+        } finally {
+            if (rs != null) {
+                rs.close();
+            }
+            if (conn != null) {
+                conn.close();
+            }
         }
 
-        return struct;
+
     }
 
-    public static HashMap<String, String> getCPIDsForServiceType(String serviceType, String command) throws Exception {
-
-        HashMap struct = new HashMap();
-        String accountId = "";
-        String keyword = "";
+    public static List<UserService> viewAllServicesForType(String serviceType) throws Exception {
         ResultSet rs = null;
-        Connection con = null;
-        PreparedStatement prepstat = null;
+        Connection conn = null;
 
-        String query = "SELECT account_id, keyword from service_definition where service_type='" + serviceType + "' "
-                + "and command='" + command + "'";
-        //log statement
-        System.out.println(new java.util.Date() + ":Looking for CPIds for serviceType-command:" + serviceType + ":" + command);
+        List<UserService> serviceList = new ArrayList<UserService>();
+        try {
+            conn = DConnect.getConnection();
+            String sql = "select * from service_definition where service_type = '" + serviceType + "' order by account_id";
+            System.out.println(new java.util.Date() + ": " + UserServiceDB.class + "DEBUG: SQL Query to get services: " + sql);
+
+            rs = conn.createStatement().executeQuery(sql);
+
+            while (rs.next()) {
+                serviceList.add(new UserService(rs.getString("service_type"), rs.getString("keyword"), rs.getString("account_id"),
+                        rs.getString("service_name"), rs.getString("default_message"), rs.getString("command"), rs.getString("allowed_shortcodes"),
+                        rs.getString("allowed_site_types"), rs.getString("pricing"), rs.getBoolean("is_basic"), 
+                        rs.getBoolean("is_subscription"), rs.getString("service_response_sender")));
+            }
+            return serviceList;
+        } catch (Exception ex) {
+            System.out.println(new java.util.Date() + ": " + UserServiceDB.class + ":ERROR viewing service " + serviceType + ": " + ex.getMessage());
+            throw new Exception(ex.getMessage());
+        } finally {
+            if (rs != null) {
+                rs.close();
+            }
+            if (conn != null) {
+                conn.close();
+            }
+        }
+
+    }
+
+    public static Map<String, String> populateRoutingTable() throws Exception {
+        Map<String, String> routingTable = new HashMap<String, String>();
+        ResultSet rs = null;
+        Connection conn = null;
 
         try {
-            con = DConnect.getConnection();
-            prepstat = con.prepareStatement(query);
-            rs = prepstat.executeQuery();
+            conn = DConnect.getConnection();
+            String sql = "select service_type, service_url from service_route";
+            System.out.println(new java.util.Date() + ": " + UserServiceDB.class + "DEBUG: Getting routing table: " + sql);
 
-            //pupulate hashmap
-            int count = 0;
+            rs = conn.createStatement().executeQuery(sql);
             while (rs.next()) {
-                accountId = rs.getString("account_id");
-                keyword = rs.getString("keyword");
-
-                struct.put(accountId, keyword);
-
-                count++;
+                routingTable.put(rs.getString("service_type"), rs.getString("service_url"));
             }
-            System.out.println(new java.util.Date() + ":No. of CPs found:" + count);
+            return routingTable;
         } catch (Exception ex) {
-            if (con != null) {
-                con.close();
-            }
-            System.out.println(new java.util.Date() + ":error looking for CPIds:" + ex.getMessage());
-
+            System.out.println(new java.util.Date() + ": " + UserServiceDB.class + ":ERROR getting routing table: " + ex.getMessage());
             throw new Exception(ex.getMessage());
+        } finally {
+            if (rs != null) {
+                rs.close();
+            }
+            if (conn != null) {
+                conn.close();
+            }
         }
-        if (con != null) {
-            con.close();
+    }
+
+    public static Map<String, String> getServiceTable() throws Exception {
+        Map<String, String> serviceTable = new HashMap<String, String>();
+        ResultSet rs = null;
+        Connection conn = null;
+
+        try {
+            conn = DConnect.getConnection();
+            String sql = "select service_type, service_name from service_route";
+            System.out.println(new java.util.Date() + ": " + UserServiceDB.class + "DEBUG: Getting service table: " + sql);
+            rs = conn.createStatement().executeQuery(sql);
+
+            while (rs.next()) {
+                serviceTable.put(rs.getString("service_type"), rs.getString("service_name"));
+            }
+            return serviceTable;
+        } catch (Exception ex) {
+            System.out.println(new java.util.Date() + ": " + UserServiceDB.class + ":ERROR getting service table: " + ex.getMessage());
+            throw new Exception(ex.getMessage());
+        } finally {
+            if (rs != null) {
+                rs.close();
+            }
+            if (conn != null) {
+                conn.close();
+            }
+
         }
 
-        return struct;
+
+    }
+
+    public static List<String> getCPIDsForServiceType(String serviceType) throws Exception {
+        List<String> struct = new ArrayList<String>();
+        ResultSet rs = null;
+        Connection conn = null;
+
+        try {
+            conn = DConnect.getConnection();
+
+            String query = "SELECT distinct(account_id) from service_definition where service_type='" + serviceType + "'";
+            System.out.println(new java.util.Date() + ": " + UserServiceDB.class + "DEBUG: Getting cp ids for service types: " + query);
+
+            rs = conn.createStatement().executeQuery(query);
+
+            while (rs.next()) {
+                struct.add(rs.getString("account_id"));
+            }
+            return struct;
+        } catch (Exception ex) {
+            System.out.println(new java.util.Date() + ": " + UserServiceDB.class + ":ERROR getting cp ids for service types: " + ex.getMessage());
+            throw new Exception(ex.getMessage());
+        } finally {
+            if (rs != null) {
+                rs.close();
+            }
+            if (conn != null) {
+                conn.close();
+            }
+        }
+
+
+    }
+
+    public static Map<String, String> getCPIDsForServiceType(String serviceType, String command) throws Exception {
+        Map<String, String> struct = new HashMap<String, String>();
+        ResultSet rs = null;
+        Connection conn = null;
+
+
+        String query = "SELECT account_id, keyword from service_definition where service_type='" + serviceType + "' and command = '" + command + "'";
+        System.out.println(new java.util.Date() + ": " + UserServiceDB.class + "DEBUG: Getting cp ids for service types: " + query);
+
+        try {
+            conn = DConnect.getConnection();
+            rs = conn.createStatement().executeQuery(query);
+
+            while (rs.next()) {
+                struct.put(rs.getString("account_id"), rs.getString("keyword"));
+            }
+            return struct;
+        } catch (Exception ex) {
+            System.out.println(new Date() + ": " + UserServiceDB.class + "DEBUG: looking for CPIds: " + ex.getMessage());
+            throw new Exception(ex.getMessage());
+        } finally {
+            if (rs != null) {
+                rs.close();
+            }
+            if (conn != null) {
+                conn.close();
+            }
+        }
     }
 
     public static void updateSubscriberRequestHistory(String msisdn, String keyword, String accountID, String site_id, Date now, int count) throws Exception {
         Connection conn = null;
-        DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        String sql = "UPDATE subscriber_request_history SET count = " + count + " where keyword = '" + keyword + "' and account_id = '" + accountID
-                + "' and msisdn = '" + msisdn + "' and site_id = '" + site_id + "'";
+
         try {
-
-
             conn = DConnect.getConnection();
 
-            System.out.println("Attempt to update subscriber_request_history: " + sql);
+            String sql = "UPDATE subscriber_request_history SET count = " + count + " where keyword = '" + keyword + "' and account_id = '" + accountID
+                    + "' and msisdn = '" + msisdn + "' and site_id = '" + site_id + "'";
+            System.out.println(new Date() + ": " + UserServiceDB.class + "DEBUG: Updating service subscription history: " + sql);
+
             int update = conn.createStatement().executeUpdate(sql);
             if (update == 0) {
-                sql = "INSERT INTO subscriber_request_history values ('" + msisdn + "', '" + keyword + "', '" + accountID + "', '" + site_id + "', '" + df.format(now) + "', 1)";
-                System.out.println("Subscription did not exist in subscriber_request_history. Will insert subscription: " + sql);
+                sql = "INSERT INTO subscriber_request_history values ('" + msisdn + "', '" + keyword + "', '" + accountID + "', '" + site_id + "', '" + DateUtil.convertToMySQLTimeStamp(now) + "', 1)";
+                System.out.println(new Date() + ": " + UserServiceDB.class + "DEBUG: Record did not exist in subscriber_request_history. Will insert new record: " + sql);
                 conn.createStatement().execute(sql);
             } else {
-                System.out.println("updated subscriber_request_history");
+                System.out.println(new Date() + ": " + UserServiceDB.class + "INFO: updated subscriber_request_history");
             }
 
         } catch (Exception e) {
+            System.out.println(new Date() + ": " + UserServiceDB.class + "ERROR: Updating service subscription history: " + e.getMessage());
             throw new Exception(e.getMessage());
         } finally {
             if (conn != null) {
@@ -1239,26 +685,28 @@ public abstract class UserServiceDB {
     public static int getCountOnSubscriberRequestHistory(String msisdn, String keyword, String accountID, String site_id) throws Exception {
         Connection conn = null;
         ResultSet rs = null;
-        String sql = "SELECT count FROM subscriber_request_history where keyword = '" + keyword + "' and account_id = '" + accountID
-                + "' and msisdn = '" + msisdn + "' and site_id = '" + site_id + "'";
+
         try {
 
-
             conn = DConnect.getConnection();
+            String sql = "SELECT count FROM subscriber_request_history where keyword = '" + keyword + "' and account_id = '" + accountID
+                    + "' and msisdn = '" + msisdn + "' and site_id = '" + site_id + "'";
+            System.out.println(new Date() + ": " + UserServiceDB.class + "Getting subscriber request count: " + sql);
 
-
-            System.out.println("Getting subscriber request count: " + sql);
             rs = conn.createStatement().executeQuery(sql);
             if (rs.first()) {
                 return rs.getInt(1);
             } else {
                 return 0;
-
             }
 
         } catch (Exception e) {
+            System.out.println(new Date() + ": " + UserServiceDB.class + "ERROR: Getting subscriber request count: " + e.getMessage());
             throw new Exception(e.getMessage());
         } finally {
+            if (rs != null) {
+                rs.close();
+            }
             if (conn != null) {
                 conn.close();
             }
@@ -1267,12 +715,12 @@ public abstract class UserServiceDB {
 
     public static boolean stoppedB4SubscriptionEnded(String msisdn, String keyword, String accountID, Date now) throws Exception {
         Connection conn = null;
-        DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         ResultSet rs = null;
+
         String sql = "SELECT * FROM service_subscription_deleted where keyword = '" + keyword + "' and account_id = '" + accountID
-                + "' and msisdn = '" + msisdn + "' and subscription_date < '" + df.format(now) + "' and next_subscription_date > '" + df.format(now)
+                + "' and msisdn = '" + msisdn + "' and subscription_date < '" + DateUtil.convertToMySQLTimeStamp(now) + "' and next_subscription_date > '" + DateUtil.convertToMySQLTimeStamp(now)
                 + "' order by unsubscription_date DESC limit 1";
-        System.out.println("Check if user unsubscribed recently: " + sql);
+        System.out.println(new Date() + ": " + UserServiceDB.class + "Check if user unsubscribed recently: " + sql);
         try {
 
             conn = DConnect.getConnection();
@@ -1280,19 +728,20 @@ public abstract class UserServiceDB {
             rs = conn.createStatement().executeQuery(sql);
             if (rs != null) {
                 if (rs.first()) {
-                    System.out.println("Yes they have unsubscribed recently");
+                    System.out.println(new Date() + ": " + UserServiceDB.class + ":INFO Yes they have unsubscribed recently");
                     return true;
 
                 } else {
-                    System.out.println("No they have not unsubscribed recently");
+                    System.out.println(new Date() + ": " + UserServiceDB.class + ":INFO  No they have not unsubscribed recently");
                     return false;
                 }
 
             } else {
-                System.out.println("Yes they have unsubscribed recently");
+                System.out.println(new Date() + ": " + UserServiceDB.class + ":INFO Yes they have unsubscribed recently");
                 return false;
             }
         } catch (Exception e) {
+            System.out.println(new Date() + ": " + UserServiceDB.class + "ERROR: Checking if user unsubscribed recently: " + e.getMessage());
             throw new Exception(e.getMessage());
         } finally {
             if (rs != null) {
@@ -1302,331 +751,137 @@ public abstract class UserServiceDB {
                 conn.close();
             }
         }
-
-
     }
 
     public static void updateSubscriptionStatus(String msisdn, String keyword, String accountId, int status) throws Exception {
-        String SQL;
-        int error = 0;
-        ResultSet rs = null;
-        Connection con = null;
-        PreparedStatement prepstat = null;
-        UserService service = new UserService();
-        try {
-            con = DConnect.getConnection();
-
-            SQL = "select * from service_definition where keyword='" + keyword + "' and account_id='" + accountId + "'";
-            prepstat = con.prepareStatement(SQL);
-            rs = prepstat.executeQuery();
-
-            if (rs.next()) {
-                SQL = "select registration_id from address_book where account_id='" + accountId + "' and msisdn='" + msisdn + "'";
-                prepstat = con.prepareStatement(SQL);
-                rs = prepstat.executeQuery();
-
-                if (rs.next()) {
-                    SQL = "update service_subscription set status=" + status + " where keyword='" + keyword + "' and account_id='" + accountId + "' and msisdn='" + msisdn + "'";
-                    prepstat = con.prepareStatement(SQL);
-                    prepstat.execute();
-                } else {
-                    error = 2; //subscriber has not subscribed;
-                }
-            } else {
-                error = 1; //service does not exist
-            }
-        } catch (Exception ex) {
-            if (con != null) {
-                try {
-                    con.close();
-                } catch (SQLException ex1) {
-                    System.out.println(ex1.getMessage());
-                }
-                con = null;
-            }
-        } finally {
-            if (rs != null) {
-                try {
-                    rs.close();
-                } catch (SQLException e) {
-                }
-                rs = null;
-            }
-            if (prepstat != null) {
-                try {
-                    prepstat.close();
-                } catch (SQLException e) {
-                }
-                prepstat = null;
-            }
-            if (con != null) {
-                try {
-                    con.close();
-                } catch (SQLException e) {
-                }
-                con = null;
-            }
-        }
-        if (error == 1) {
-            throw new Exception(Feedback.NO_SUCH_SERVICE);
-        }
-        if (error == 2) {
-            throw new Exception(Feedback.NOT_REGISTERED);
-        }
-    }
-
-    public static String subscribeToService(String msisdn, String keyword, String accountId) throws Exception {
-        String SQL;
-        String regId = new String();
-        ;
-        int error = 0;
-        ResultSet rs = null;
-        Connection con = null;
-        PreparedStatement prepstat = null;
-        UserService service = new UserService();
-        try {
-            con = DConnect.getConnection();
-
-            SQL = "select * from service_definition where keyword='" + keyword + "' and account_id='" + accountId + "'";
-            prepstat = con.prepareStatement(SQL);
-            rs = prepstat.executeQuery();
-
-            if (rs.next()) {
-                SQL = "select * from service_subscription where keyword='" + keyword + "' and account_id='" + accountId + "' and msisdn='" + msisdn + "'";
-                prepstat = con.prepareStatement(SQL);
-                rs = prepstat.executeQuery();
-
-                if (!rs.next()) {
-                    SQL = "Insert into service_subscription (registration_id,subscription_date,msisdn,keyword,account_id) values(?,?,?,?,?)";
-                    prepstat = con.prepareStatement(SQL);
-                    regId = uidGen.generateNumberID(10);
-                    prepstat.setString(1, regId);
-                    prepstat.setTimestamp(2, new java.sql.Timestamp(java.util.Calendar.getInstance().getTime().getTime()));
-                    prepstat.setString(3, msisdn);
-                    prepstat.setString(4, keyword);
-                    prepstat.setString(5, accountId);
-                    prepstat.execute();
-                } else {
-                    error = 2; //subscriber has already subscribed;
-                }
-            } else {
-                error = 1; //service does not exist
-            }
-        } catch (Exception ex) {
-            if (con != null) {
-                try {
-                    con.close();
-                } catch (SQLException ex1) {
-                    System.out.println(ex1.getMessage());
-                }
-                con = null;
-            }
-        } finally {
-            if (rs != null) {
-                try {
-                    rs.close();
-                } catch (SQLException e) {
-                }
-                rs = null;
-            }
-            if (prepstat != null) {
-                try {
-                    prepstat.close();
-                } catch (SQLException e) {
-                }
-                prepstat = null;
-            }
-            if (con != null) {
-                try {
-                    con.close();
-                } catch (SQLException e) {
-                }
-                con = null;
-            }
-        }
-        if (error == 1) {
-            throw new Exception(Feedback.NO_SUCH_SERVICE);
-        }
-        if (error == 2) {
-            throw new Exception(Feedback.ALREADY_REGISTERED);
-        }
-
-        return regId;
-    }
-
-    public static String[] subscribeToService(String msisdn, ArrayList keywords, String accountId) throws Exception {
-        String SQL;
-        String[] regId = new String[2];
-
-        ResultSet rs = null;
-        Connection con = null;
-        PreparedStatement prepstat = null;
-        boolean failedCheck = false;
+        Connection conn = null;
 
         try {
-            con = DConnect.getConnection();
-            SQL = "select * from address_book where account_id='" + accountId + "' and msisdn='" + msisdn + "'";
-            prepstat = con.prepareStatement(SQL);
-            rs = prepstat.executeQuery();
+            conn = DConnect.getConnection();
 
-            if (!rs.next()) {
-                //has not registered. Register him and continue
-                SQL = "Insert into address_book (account_id,msisdn,registration_id) values(?,?,?)";
-                prepstat = con.prepareStatement(SQL);
-                regId[0] = uidGen.generateNumberID(6);
-                prepstat.setString(1, accountId);
-                prepstat.setString(2, msisdn);
-                prepstat.setString(3, regId[0]);
-                prepstat.execute();
-            } else {
-                regId[0] = rs.getString("registration_id");
-            }
+            System.out.println(new Date() + ": " + UserServiceDB.class + ":INFO Will check that service exists");
+            UserService user = viewService(keyword, accountId);
 
+            if (user != null) {
+                System.out.println(new Date() + ": " + UserServiceDB.class + ":INFO Yes service exists");
+                String sql = "update service_subscription set status = " + status + " where keyword = '" + keyword + "' and account_id = '" + accountId + "' and msisdn = '" + msisdn + "'";
 
-            for (int i = 0; i < keywords.size(); i++) {
-                String keyword = keywords.get(i).toString();
-                SQL = "select * from service_definition where keyword='" + keyword + "' and account_id='" + accountId + "'";
-                prepstat = con.prepareStatement(SQL);
-                rs = prepstat.executeQuery();
+                System.out.println(new Date() + ": " + UserServiceDB.class + ":DEBUG Will update subscription: " + sql);
 
-                if (rs.next()) {
-                    SQL = "select * from service_subscription where keyword='" + keyword + "' and account_id='" + accountId + "' and msisdn='" + msisdn + "'";
-                    prepstat = con.prepareStatement(SQL);
-                    rs = prepstat.executeQuery();
-
-                    if (!rs.next()) {
-                        SQL = "Insert into service_subscription (subscription_date,msisdn,keyword,account_id,status) values(?,?,?,?,?)";
-                        prepstat = con.prepareStatement(SQL);
-                        prepstat.setTimestamp(1, new java.sql.Timestamp(java.util.Calendar.getInstance().getTime().getTime()));
-                        prepstat.setString(2, msisdn);
-                        prepstat.setString(3, keyword);
-                        prepstat.setString(4, accountId);
-                        prepstat.setInt(5, 1);
-                        prepstat.execute();
-                    }
-                } else {
-                    failedCheck = true;
+                int update = conn.createStatement().executeUpdate(sql);
+                if (update < 1) {
+                    System.out.println(new Date() + ": " + UserServiceDB.class + "ERROR: Updating subscription. User not registered");
+                    throw new Exception(Feedback.NOT_REGISTERED);
                 }
+            } else {
+                System.out.println(new Date() + ": " + UserServiceDB.class + "ERROR: Updating subscription. Service does not exist " + accountId + "-" + keyword);
+                throw new Exception(Feedback.NO_SUCH_SERVICE);
             }
         } catch (Exception ex) {
+            System.out.println(new Date() + ": " + UserServiceDB.class + "ERROR: Updating service subscription: " + ex.getMessage());
             throw new Exception(ex.getMessage());
         } finally {
-            if (rs != null) {
-                rs.close();
-            }
-            if (prepstat != null) {
-                prepstat.close();
-            }
-            if (con != null) {
-                con.close();
+            if (conn != null) {
+                conn.close();
             }
         }
-        if (failedCheck == true) {
-            regId[1] = "One or more services were not found.";
-        }
-        return regId;
+
     }
 
-    public static String[] subscribeToService(String msisdn, ArrayList keywords, String accountId, int numOfDays) throws Exception {
-        String SQL;
-        String[] regId = new String[3];
-        int error = 0;
-        ResultSet rs = null;
-        Connection con = null;
+    public static void subscribeToService(String msisdn, List<String> keywords, String accountId) throws Exception {
+        Connection conn = null;
         PreparedStatement prepstat = null;
-        boolean failedCheck = false;
-
-        Calendar c = Calendar.getInstance();
-        c.add(c.DAY_OF_MONTH, numOfDays);
-        String nextSubDate = new java.sql.Date(c.getTimeInMillis()).toString();
 
         try {
-            con = DConnect.getConnection();
-            SQL = "select * from address_book where account_id='" + accountId + "' and msisdn='" + msisdn + "'";
-            prepstat = con.prepareStatement(SQL);
-            rs = prepstat.executeQuery();
+            AddressBook addressBook = AddressBookDB.getAddress(accountId, msisdn);
 
-            if (!rs.next()) {
-                //has not registered. Register him and continue
-                SQL = "Insert into address_book (account_id,msisdn,registration_id) values(?,?,?)";
-                prepstat = con.prepareStatement(SQL);
-                regId[0] = uidGen.generateNumberID(6);
-                prepstat.setString(1, accountId);
-                prepstat.setString(2, msisdn);
-                prepstat.setString(3, regId[0]);
-                prepstat.execute();
-            } else {
-                regId[0] = rs.getString("registration_id");
+            if (addressBook == null) {
+                AddressBookDB.save(new AddressBook(accountId, msisdn, uidGen.generateNumberID(6)));
             }
 
-            String keyword = "";
-            String keywordStr = "";
-            for (int i = 0; i < keywords.size(); i++) {
-                keywordStr = keywordStr + "'" + keywords.get(i).toString() + "',";
-            }
-            keywordStr = keywordStr.substring(0, keywordStr.lastIndexOf(","));
+            conn = DConnect.getConnection();
 
-            SQL = "delete from service_subscription where keyword in (" + keywordStr + ") and account_id='" + accountId + "' and msisdn='" + msisdn + "'";
-            prepstat = con.prepareStatement(SQL);
-            prepstat.execute();
+            String sql = "Insert into service_subscription (subscription_date,msisdn,keyword,account_id,status) values(?,?,?,?,?)";
+            prepstat = conn.prepareStatement(sql);
 
-            for (int i = 0; i < keywords.size(); i++) {
-                keyword = keywords.get(i).toString();
-                SQL = "select * from service_definition where keyword='" + keyword + "' and account_id='" + accountId + "'";
-                prepstat = con.prepareStatement(SQL);
-                rs = prepstat.executeQuery();
-
-                if (rs.next()) {
-                    SQL = "Insert into service_subscription (subscription_date,msisdn,keyword,account_id,status,next_subscription_date) values(?,?,?,?,?,?)";
-                    prepstat = con.prepareStatement(SQL);
-                    prepstat.setTimestamp(1, new java.sql.Timestamp(java.util.Calendar.getInstance().getTime().getTime()));
+            for (String keyword : keywords) {
+                UserService user = viewService(keyword, accountId);
+                if (user != null) {
+                    Date now = new Date();
+                    prepstat.setString(1, DateUtil.convertToMySQLTimeStamp(now));
                     prepstat.setString(2, msisdn);
                     prepstat.setString(3, keyword);
                     prepstat.setString(4, accountId);
                     prepstat.setInt(5, 1);
-                    prepstat.setString(6, nextSubDate);
+
+                    System.out.println(new Date() + ": " + UserServiceDB.class + ":DEBUG Create service: " + prepstat.toString());
                     prepstat.execute();
-                    regId[2] = nextSubDate;
                 } else {
-                    failedCheck = true;
+                    System.out.println(new Date() + ": " + UserServiceDB.class + "ERROR: Creating service. Service does not exist: " + accountId + "-" + keyword);
+                    throw new Exception(Feedback.NO_SUCH_SERVICE);
                 }
             }
-        } catch (Exception ex) {
-            if (con != null) {
-                try {
-                    con.close();
-                } catch (SQLException ex1) {
-                    System.out.println(ex1.getMessage());
-                }
-                con = null;
-            }
+        } catch (Exception e) {
+            System.out.println(new Date() + ": " + UserServiceDB.class + "ERROR: Creating service subscription: " + e.getMessage());
+            throw new Exception(e.getMessage());
         } finally {
-            if (rs != null) {
-                try {
-                    rs.close();
-                } catch (SQLException e) {
-                }
-                rs = null;
-            }
             if (prepstat != null) {
-                try {
-                    prepstat.close();
-                } catch (SQLException e) {
-                }
-                prepstat = null;
+                prepstat.close();
             }
-            if (con != null) {
-                try {
-                    con.close();
-                } catch (SQLException e) {
-                }
-                con = null;
+
+            if (conn != null) {
+                conn.close();
             }
         }
-        if (failedCheck == true) {
-            regId[1] = "One or more services were not found.";
+    }
+
+    public static void subscribeToService(String msisdn, List<String> keywords, String accountId, int numOfDays) throws Exception {
+        Connection conn = null;
+        PreparedStatement prepstat = null;
+
+        try {
+            AddressBook addressBook = AddressBookDB.getAddress(accountId, msisdn);
+
+            if (addressBook == null) {
+                AddressBookDB.save(new AddressBook(accountId, msisdn, uidGen.generateNumberID(6)));
+            }
+
+            conn = DConnect.getConnection();
+
+            String sql = "Insert into service_subscription (subscription_date,msisdn,keyword,account_id,status,next_subscription_date) values(?,?,?,?,?,?)";
+            prepstat = conn.prepareStatement(sql);
+
+            for (String keyword : keywords) {
+                UserService user = viewService(keyword, accountId);
+                if (user != null) {
+                    Date now = new Date();
+                    prepstat.setString(1, DateUtil.convertToMySQLTimeStamp(now));
+                    prepstat.setString(2, msisdn);
+                    prepstat.setString(3, keyword);
+                    prepstat.setString(4, accountId);
+                    prepstat.setInt(5, 1);
+                    prepstat.setString(6, DateUtil.convertToMySQLTimeStamp(DateUtil.addDaysToDate(now, numOfDays)));
+
+                    System.out.println(new Date() + ": " + UserServiceDB.class + ":DEBUG Create service: " + prepstat.toString());
+                    prepstat.execute();
+                } else {
+                    System.out.println(new Date() + ": " + UserServiceDB.class + "ERROR: Creating service. Service does not exist: " + accountId + "-" + keyword);
+                    throw new Exception(Feedback.NO_SUCH_SERVICE);
+                }
+            }
+        } catch (Exception e) {
+            System.out.println(new Date() + ": " + UserServiceDB.class + "ERROR: Creating service subscription: " + e.getMessage());
+            throw new Exception(e.getMessage());
+        } finally {
+            if (prepstat != null) {
+                prepstat.close();
+            }
+
+            if (conn != null) {
+                conn.close();
+            }
         }
-        return regId;
+
     }
 
     public static String[] subscribeToService(String msisdn, ArrayList keywords, String accountId, int numOfDays, int status, int billingType) throws Exception {
@@ -1930,7 +1185,7 @@ public abstract class UserServiceDB {
 
         try {
             con = DConnect.getConnection();
-            SQL = "delete from service_subscription where msisdn='" + msisdn + "' and keyword in (" + keywordStr + ") and account_id='" + accountId + "'";
+            SQL = "delete from service_subscription where msisdn='" + msisdn + "' and keyword in (" + keywordStr.toString() + ") and account_id='" + accountId + "'";
             prepstat = con.prepareStatement(SQL);
             prepstat.execute();
         } catch (Exception ex) {
@@ -4269,623 +3524,149 @@ public abstract class UserServiceDB {
     }
 
     public static void updateServiceLabel(String update_account_id, String update_keyword, String new_account_id, String new_keyword, String new_header, String new_footer) throws Exception {
-
-        String SQL;
-        ResultSet rs = null;
-        Connection con = null;
-        PreparedStatement prepstat = null;
-
-        //Check and set update parameters
-        String account_id = (new_account_id != null && !new_account_id.equals("")) ? "'" + new_account_id + "'" : "account_id";
-        String keyword = (new_keyword != null && !new_keyword.equals("")) ? "'" + new_keyword + "'" : "keyword";
-        String header = (new_header != null && !new_header.equals("")) ? "'" + new_header + "'" : "header";
-        String footer = (new_footer != null && !new_footer.equals("")) ? "'" + new_footer + "'" : "footer";
+        Connection conn = null;
 
         try {
-            con = DConnect.getConnection();
-            SQL = "UPDATE service_labels SET account_id = " + account_id + ", keyword = " + keyword + ", header = " + header + ","
-                    + "footer = " + footer + " WHERE account_id = ? and keyword = ? ";
+            conn = DConnect.getConnection();
+            String sql = "UPDATE service_labels SET account_id = '" + new_account_id + "', keyword = '" + new_keyword + "', header = '" + new_header + "',"
+                    + "footer = '" + new_footer + "' WHERE account_id = '" + new_account_id + "' and keyword = '" + new_keyword + "'";
 
-            prepstat = con.prepareStatement(SQL);
-
-            prepstat.setString(1, update_account_id);
-            prepstat.setString(2, update_keyword);
-
-            prepstat.execute();
+            System.out.println(new Date() + ": " + UserServiceDB.class + ":DEBUG Will update service label: " + sql);
+            conn.createStatement().executeUpdate(sql);
 
         } catch (Exception ex) {
-            if (con != null) {
-                try {
-                    con.close();
-                } catch (SQLException ex1) {
-                    System.out.println(ex1.getMessage());
-                }
-                con = null;
-            }
+            System.out.println(new Date() + ": " + UserServiceDB.class + "ERROR: Updating service label: " + ex.getMessage());
+            throw new Exception(ex.getMessage());
         } finally {
-            if (rs != null) {
-                try {
-                    rs.close();
-                } catch (SQLException e) {
-                    ;
-                }
-                rs = null;
-            }
-            if (prepstat != null) {
-                try {
-                    prepstat.close();
-                } catch (SQLException e) {
-                    ;
-                }
-                prepstat = null;
-            }
-            if (con != null) {
-                try {
-                    con.close();
-                } catch (SQLException e) {
-                    ;
-                }
-                con = null;
+
+            if (conn != null) {
+                conn.close();
             }
         }
     }
 
-    public static void createServiceForwarding(String account_id, String keyword, String url, long timeout, int listen_status) {
-        String SQL;
-        ResultSet rs = null;
-        Connection con = null;
-        PreparedStatement prepstat = null;
+    public static void createServiceForwarding(String account_id, String keyword, String url, long timeout, int listen_status) throws Exception {
+        Connection conn = null;
 
         try {
-            con = DConnect.getConnection();
-            SQL = "insert into service_forwarding (account_id, keyword, url, timeout, listen_status)"
-                    + "values(?, ?, ?, ?, ?)";
+            conn = DConnect.getConnection();
+            String sql = "insert into service_forwarding (account_id, keyword, url, timeout, listen_status) values('" + account_id + "', "
+                    + "'" + keyword + "', '" + url + "', " + timeout + ", " + listen_status + ")";
 
-            prepstat = con.prepareStatement(SQL);
-
-            prepstat.setString(1, account_id);
-            prepstat.setString(2, keyword);
-            prepstat.setString(3, url);
-            prepstat.setLong(4, timeout);
-            prepstat.setInt(5, listen_status);
-
-            prepstat.execute();
-
+            System.out.println(new Date() + ": " + UserServiceDB.class + ":DEBUG Will insert service forwarding: " + sql);
+            conn.createStatement().execute(sql);
         } catch (Exception ex) {
-            if (con != null) {
-                try {
-                    con.close();
-                } catch (SQLException ex1) {
-                    System.out.println(ex1.getMessage());
-                }
-                con = null;
-            }
+            System.out.println(new Date() + ": " + UserServiceDB.class + "ERROR: Inserting service forwarding: " + ex.getMessage());
+            throw new Exception(ex.getMessage());
         } finally {
-            if (rs != null) {
-                try {
-                    rs.close();
-                } catch (SQLException e) {
-                    ;
-                }
-                rs = null;
-            }
-            if (prepstat != null) {
-                try {
-                    prepstat.close();
-                } catch (SQLException e) {
-                    ;
-                }
-                prepstat = null;
-            }
-            if (con != null) {
-                try {
-                    con.close();
-                } catch (SQLException e) {
-                    ;
-                }
-                con = null;
+            if (conn != null) {
+                conn.close();
             }
         }
     }
 
-    public static HashMap viewServiceForwarding(String account_id, String keyword) throws Exception {
-        String SQL;
+    public static Map<String, String> viewServiceForwarding(String account_id, String keyword) throws Exception {
         ResultSet rs = null;
-        Connection con = null;
-        PreparedStatement prepstat = null;
-        HashMap serviceLabel = new HashMap();
+        Connection conn = null;
+
+        Map<String, String> serviceLabel = new HashMap<String, String>();
 
         try {
-            con = DConnect.getConnection();
+            conn = DConnect.getConnection();
 
-            SQL = "select * from service_forwarding where account_id = ? and keyword = ? ";
+            String sql = "select * from service_forwarding where account_id = '" + account_id + "' and keyword = '" + keyword + "'";
 
-            prepstat = con.prepareStatement(SQL);
-
-            prepstat.setString(1, account_id);
-            prepstat.setString(2, keyword);
-
-            rs = prepstat.executeQuery();
-
+            System.out.println(new Date() + ": " + UserServiceDB.class + ":DEBUG Will view service forwarding: " + sql);
+            rs = conn.createStatement().executeQuery(sql);
             while (rs.next()) {
                 serviceLabel.put("account_id", rs.getString("account_id"));
                 serviceLabel.put("keyword", rs.getString("keyword"));
                 serviceLabel.put("url", rs.getString("url"));
                 serviceLabel.put("timeout", rs.getString("timeout"));
                 serviceLabel.put("listen_status", rs.getString("listen_status"));
+                break;
             }
 
+            return serviceLabel;
         } catch (Exception ex) {
-            if (con != null) {
-                try {
-                    con.close();
-                } catch (SQLException ex1) {
-                    System.out.println(ex1.getMessage());
-                }
-                con = null;
-            }
+            System.out.println(new Date() + ": " + UserServiceDB.class + "ERROR: Viewing service forwarding: " + ex.getMessage());
+            throw new Exception(ex.getMessage());
 
         } finally {
             if (rs != null) {
-                try {
-                    rs.close();
-                } catch (SQLException e) {
-                    ;
-                }
-                rs = null;
+                rs.close();
             }
-            if (prepstat != null) {
-                try {
-                    prepstat.close();
-                } catch (SQLException e) {
-                    ;
-                }
-                prepstat = null;
-            }
-            if (con != null) {
-                try {
-                    con.close();
-                } catch (SQLException e) {
-                    ;
-                }
-                con = null;
+            if (conn != null) {
+                conn.close();
             }
         }
-
-        return serviceLabel;
-
     }
 
     public static void deleteServiceForwarding(String account_id, String keyword) throws Exception {
-        String SQL;
-        ResultSet rs = null;
-        Connection con = null;
-        PreparedStatement prepstat = null;
+        Connection conn = null;
 
         try {
-            con = DConnect.getConnection();
+            conn = DConnect.getConnection();
 
-            SQL = "delete from service_forwarding where account_id = ? and keyword = ?";
+            String sql = "delete from service_forwarding where account_id = '" + account_id + "' and keyword = '" + keyword + "'";
 
-            prepstat = con.prepareStatement(SQL);
-
-            prepstat.setString(1, account_id);
-            prepstat.setString(2, keyword);
-
-            prepstat.execute();
+            System.out.println(new Date() + ": " + UserServiceDB.class + ":DEBUG Will delete service forwarding: " + sql);
+            conn.createStatement().execute(sql);
 
         } catch (Exception ex) {
-            if (con != null) {
-                try {
-                    con.close();
-                } catch (SQLException ex1) {
-                    System.out.println(ex1.getMessage());
-                }
-                con = null;
-            }
+            System.out.println(new Date() + ": " + UserServiceDB.class + "ERROR: Deleting service forwarding: " + ex.getMessage());
+            throw new Exception(ex.getMessage());
 
         } finally {
-            if (rs != null) {
-                try {
-                    rs.close();
-                } catch (SQLException e) {
-                    ;
-                }
-                rs = null;
-            }
-            if (prepstat != null) {
-                try {
-                    prepstat.close();
-                } catch (SQLException e) {
-                    ;
-                }
-                prepstat = null;
-            }
-            if (con != null) {
-                try {
-                    con.close();
-                } catch (SQLException e) {
-                    ;
-                }
-                con = null;
+            if (conn != null) {
+                conn.close();
             }
         }
     }
 
-    public static void deleteServiceForwarding(String account_id, ArrayList keywords) throws Exception {
-        String SQL;
-        ResultSet rs = null;
-        Connection con = null;
-        PreparedStatement prepstat = null;
+    public static void deleteServiceForwarding(String account_id, List<String> keywords) throws Exception {
+        Connection conn = null;
 
-        String keywordStr = "";
+        StringBuilder keywordStr = new StringBuilder();
         for (int i = 0; i < keywords.size(); i++) {
-            keywordStr = keywordStr + "'" + keywords.get(i).toString() + "',";
+            keywordStr.append("'").append(keywords.get(i).toString()).append("',");
         }
-        keywordStr = keywordStr.substring(0, keywordStr.lastIndexOf(","));
+        keywordStr.deleteCharAt(keywordStr.toString().lastIndexOf(","));
 
         try {
-            con = DConnect.getConnection();
-            SQL = "delete from service_forwarding where keyword in (" + keywordStr + ") and account_id='" + account_id + "'";
-            prepstat = con.prepareStatement(SQL);
-            prepstat.execute();
+            conn = DConnect.getConnection();
+            String sql = "delete from service_forwarding where keyword in (" + keywordStr + ") and account_id = '" + account_id + "'";
+
+            System.out.println(new Date() + ": " + UserServiceDB.class + ":DEBUG Will delete service forwarding: " + sql);
+            conn.createStatement().execute(sql);
         } catch (Exception ex) {
-            if (con != null) {
-                try {
-                    con.close();
-                } catch (SQLException ex1) {
-                    System.out.println(ex1.getMessage());
-                }
-                con = null;
-            }
+            System.out.println(new Date() + ": " + UserServiceDB.class + "ERROR: Deleting service forwarding: " + ex.getMessage());
+            throw new Exception(ex.getMessage());
         } finally {
-            if (rs != null) {
-                try {
-                    rs.close();
-                } catch (SQLException e) {
-                    ;
-                }
-                rs = null;
-            }
-            if (prepstat != null) {
-                try {
-                    prepstat.close();
-                } catch (SQLException e) {
-                    ;
-                }
-                prepstat = null;
-            }
-            if (con != null) {
-                try {
-                    con.close();
-                } catch (SQLException e) {
-                    ;
-                }
-                con = null;
+            if (conn != null) {
+                conn.close();
             }
         }
     }
 
     public static void updateServiceForwarding(String update_account_id, String update_keyword, String new_account_id,
             String new_keyword, String new_url, String new_timeout, String new_listen_status) throws Exception {
-
-        String SQL;
-        ResultSet rs = null;
-        Connection con = null;
-        PreparedStatement prepstat = null;
-
-        //Check and set update parameters
-        String account_id = (new_account_id != null && !new_account_id.equals("")) ? "'" + new_account_id + "'" : "account_id";
-        String keyword = (new_keyword != null && !new_keyword.equals("")) ? "'" + new_keyword + "'" : "keyword";
-        String url = (new_url != null && !new_url.equals("")) ? "'" + new_url + "'" : "url";
-        String timeout = (new_timeout != null && !new_timeout.equals("")) ? "'" + new_timeout + "'" : "timeout";
-        String listen_status = (new_listen_status != null && !new_listen_status.equals("")) ? "'" + new_listen_status + "'" : "listen_status";
+        Connection conn = null;
 
         try {
-            con = DConnect.getConnection();
-            SQL = "UPDATE service_forwarding SET account_id = " + account_id + ", keyword = " + keyword + ", url = " + url + ","
-                    + "timeout = " + timeout + ", listen_status = " + listen_status + " WHERE account_id = ? and keyword = ? ";
+            conn = DConnect.getConnection();
+            String sql = "UPDATE service_forwarding SET account_id = '" + new_account_id + "', keyword = '" + new_keyword + "', url = '" + new_url + "', "
+                    + "timeout = " + new_timeout + ", listen_status = " + new_listen_status + " WHERE account_id = '" + update_account_id + "' and keyword = '" + update_keyword + "'";
 
-            prepstat = con.prepareStatement(SQL);
-
-            prepstat.setString(1, update_account_id);
-            prepstat.setString(2, update_keyword);
-
-            prepstat.execute();
-
+            System.out.println(new Date() + ": " + UserServiceDB.class + ":DEBUG Will update service forwarding: " + sql);
+            conn.createStatement().executeUpdate(sql);
         } catch (Exception ex) {
-            if (con != null) {
-                try {
-                    con.close();
-                } catch (SQLException ex1) {
-                    System.out.println(ex1.getMessage());
-                }
-                con = null;
-            }
+            System.out.println(new Date() + ": " + UserServiceDB.class + "ERROR: Updating service forwarding: " + ex.getMessage());
+            throw new Exception(ex.getMessage());
         } finally {
-            if (rs != null) {
-                try {
-                    rs.close();
-                } catch (SQLException e) {
-                    ;
-                }
-                rs = null;
-            }
-            if (prepstat != null) {
-                try {
-                    prepstat.close();
-                } catch (SQLException e) {
-                    ;
-                }
-                prepstat = null;
-            }
-            if (con != null) {
-                try {
-                    con.close();
-                } catch (SQLException e) {
-                    ;
-                }
-                con = null;
+            if (conn != null) {
+                conn.close();
             }
         }
     }
-    /*public static String getServiceReportQuery(String csid, String msisdn, String status, java.sql.Timestamp startdate,
-     java.sql.Timestamp enddate, int typeId, String listId, String pin, String siteId, String billed, int start, int count) throws Exception {
-    
-     java.util.ArrayList transactions = new java.util.ArrayList();
-     ContentItem item = new ContentItem();
-     Page page = null;
-    
-     int y = 0;
-     int i = 0;
-     int numResults = 0;
-     boolean hasNext = false;
-    
-     String query;
-     ResultSet rs = null;
-     Connection con = null;
-     PreparedStatement prepstat = null;
-    
-     try {
-     con = DConnect.getConnection("rmcs");
-    
-     String siteIDquery = new String();
-     String otherAffliliatedSiteIDquery = new String();
-    
-     //for my sites
-     query = "select site_id from cp_sites where cp_id='" + csid +"'";
-     prepstat = con.prepareStatement(query);
-     rs = prepstat.executeQuery();
-     while(rs.next()){
-     siteIDquery = siteIDquery + "d.site_id='" + rs.getString("site_id") + "' or ";
-     }
-     siteIDquery = siteIDquery.substring(0, siteIDquery.lastIndexOf("' or ") + 1);
-    
-     //for my affiliated sites
-     query = "select site_id from cp_sites where cp_id in (select cs_id from cs_cp_relationship where list_id='" + csid + "')";
-     prepstat = con.prepareStatement(query);
-     rs = prepstat.executeQuery();
-     while(rs.next()){
-     otherAffliliatedSiteIDquery = otherAffliliatedSiteIDquery + "(d.site_id='" + rs.getString("site_id") + "' and d.list_id='" + csid + "') or ";
-     }
-     otherAffliliatedSiteIDquery = otherAffliliatedSiteIDquery.substring(0, otherAffliliatedSiteIDquery.lastIndexOf(" or ") + 1);
-    
-     if((otherAffliliatedSiteIDquery == null || otherAffliliatedSiteIDquery.equals("")) && (siteIDquery == null || siteIDquery.equals(""))){
-     listId = csid;
-     }
-    
-     //for report
-     query = "select * from download_log d inner join content_list c on d.id=c.id and d.list_id=c.list_id inner join format_list f " +
-     "on c.formats=f.format_id inner join service_route t on c.content_type=t.service_type inner join cp_user u on d.list_id=u.id";
-    
-     if (msisdn != null && !msisdn.equals("")) {
-     if (query.indexOf("where") == -1) {
-     query = query + " where d.subscriberMSISDN='" + msisdn + "'";
-     } else {
-     query = query + " and d.subscriberMSISDN='" + msisdn + "'";
-     }
-     }
-     if (status != null && (status.equals("1") || status.equals("0"))) {
-     if (query.indexOf("where") == -1) {
-     query = query + " where d.status=" + Integer.parseInt(status);
-     } else {
-     query = query + " and d.status=" + Integer.parseInt(status);
-     }
-     }
-     if (startdate != null) {
-     if (query.indexOf("where") == -1) {
-     query = query + " where d.date_of_download >='" + startdate + "'";
-     } else {
-     query = query + " and d.date_of_download >='" + startdate + "'";
-     }
-     }
-     if (enddate != null) {
-     if (query.indexOf("where") == -1) {
-     query = query + " where d.date_of_download <='" + enddate + "'";
-     } else {
-     query = query + " and d.date_of_download <='" + enddate + "'";
-     }
-     }
-     if (siteId != null && !siteId.equals("")) {
-     //checking owner of given site ID
-     String tempquery = "select cp_id from cp_sites where site_id='" + siteId + "'";
-     prepstat = con.prepareStatement(tempquery);
-     ResultSet temprs = prepstat.executeQuery();
-     if(temprs.next()){
-     if(!csid.equals(temprs.getString("cp_id"))){ //not the owner of the site
-     listId = csid;
-     }
-     }
-     if (query.indexOf("where") == -1) {
-     query = query + " where d.site_id='" + siteId + "'";
-     } else {
-     query = query + " and d.site_id='" + siteId + "'";
-     }
-     }
-     if (listId != null && !listId.equals("")) {
-     if (query.indexOf("where") == -1) {
-     query = query + " where d.list_id ='" + listId + "'";
-     } else {
-     query = query + " and d.list_id ='" + listId + "'";
-     }
-     }
-     if (pin != null && !pin.equals("")) {
-     if (query.indexOf("where") == -1) {
-     query = query + " where d.pin='" + pin + "'";
-     } else {
-     query = query + " and d.pin='" + pin + "'";
-     }
-     }
-     if (billed != null && (billed.equals("1") || billed.equals("0"))) {
-     if (query.indexOf("where") == -1) {
-     query = query + " where d.billed=" + Integer.parseInt(billed);
-     } else {
-     query = query + " and d.billed=" + Integer.parseInt(billed);
-     }
-     }
-     if (typeId != 0) {
-     if (query.indexOf("where") == -1) {
-     query = query + " where d.id=c.id and d.list_id=c.list_id " + "and c.content_type=" + typeId;
-     } else {
-     query = query + " and d.id=c.id and d.list_id=c.list_id and " + "c.content_type=" + typeId;
-     }
-     }
-     if (siteId == null || siteId.equals("")) {
-     if(siteIDquery != null && !siteIDquery.equals("")){
-     if (query.indexOf("where") == -1) {
-     query = query + " where ((" + siteIDquery + ")";
-     } else {
-     query = query + " and ((" + siteIDquery + ")";
-     }
-     if(otherAffliliatedSiteIDquery != null && !otherAffliliatedSiteIDquery.equals("")){
-     query = query + " or " + otherAffliliatedSiteIDquery;
-     }
-     query = query + ")";
-     }else{
-     if(otherAffliliatedSiteIDquery != null && !otherAffliliatedSiteIDquery.equals("")){
-     query = query + " and (" + otherAffliliatedSiteIDquery + ")";
-     }
-     }
-    
-     }
-    
-     prepstat = con.prepareStatement(query);
-     rs = prepstat.executeQuery();
-    
-     // get the total number of records
-     rs.last();
-     numResults = rs.getRow();
-     rs.beforeFirst();
-    
-     while (i < (start + count) && rs.next()) {
-     if (i == 0) {
-     int x = numResults;
-     y = x / count;
-     if ((x % count) > 0) {
-     y += 1;
-     }
-     }
-     if (i >= start) {
-    
-     Transaction newBean = new Transaction();
-     //for transaction record
-     newBean.setTicketID(rs.getString("d.ticketid"));
-     newBean.setSubscriberMSISDN(rs.getString(
-     "d.subscriberMSISDN"));
-     newBean.setPhoneId(rs.getString("d.phone_id"));
-     newBean.setDate(rs.getTimestamp("d.date_of_download"));
-     newBean.setPin(rs.getString("d.pin"));
-     if (rs.getInt("d.status") == 1) {
-     newBean.setDownloadCompleted(true);
-     } else {
-     newBean.setDownloadCompleted(false);
-     }
-     newBean.setSiteId(rs.getString("d.site_id"));
-     if (rs.getInt("d.billed") == 1) {
-     newBean.setIsBilled(true);
-     } else {
-     newBean.setIsBilled(false);
-     }
-     newBean.setKeyword(rs.getString("d.keyword"));
-    
-     //for format object
-     Format format = new Format(rs.getInt("f.format_id"),
-     rs.getString("f.file_ext"),
-     rs.getString("f.push_bearer"),
-     rs.getString("f.mime_type"));
-    
-     //for type object
-     ContentType type = new ContentType(rs.getString("t.service_name"), rs.getInt("t.service_type"),
-     rs.getInt("t.parent_service_type"));
-    
-     //for cp_user
-     com.rancard.mobility.contentprovider.User cp =
-     new com.rancard.mobility.contentprovider.User();
-     cp.setName(rs.getString("u.name"));
-     cp.setDefaultSmsc(rs.getString("default_smsc"));
-     cp.setId(rs.getString("u.id"));
-     cp.setLogoUrl(rs.getString("logo_url"));
-     cp.setPassword(rs.getString("password"));
-     cp.setUsername(rs.getString("username"));
-    
-     //for content item
-     item = new ContentItem();
-     item.setAuthor(rs.getString("c.author"));
-     if (rs.getInt("c.show") == 1) {
-     item.setCanList(true);
-     } else {
-     item.setCanList(false);
-     }
-     item.setCategory(new Integer(rs.getInt(
-     "c.category")));
-     item.setContentId(rs.getString("c.content_id"));
-     item.setContentTypeDetails(type);
-     item.setDate_Added(rs.getTimestamp("c.date_added"));
-     item.setDownloadUrl(rs.getString("c.download_url"));
-     item.setFormat(format);
-     item.setid(rs.getString("c.id"));
-     item.setListId(rs.getString("c.list_id"));
-     item.setOther_Details(rs.getString("c.other_details"));
-     item.setPreviewUrl(rs.getString("c.preview_url"));
-     item.setPrice(rs.getString("c.price"));
-     item.setSize(new Long(rs.getLong("c.size")));
-     if (rs.getInt("c.isLocal") == 1) {
-     item.setIsLocal(true);
-     } else {
-     item.setIsLocal(false);
-     }
-     if (rs.getInt("c.isLocal") == 1) {
-     item.setPreviewExists(new Boolean(true));
-     } else {
-     item.setPreviewExists(new Boolean(false));
-     }
-     item.settitle(rs.getString("c.title"));
-     item.setProviderDetails(cp);
-    
-     newBean.setContentItem(item);
-     newBean.setFormat(format);
-    
-     transactions.add(newBean);
-     }
-     i++;
-     }
-    
-     hasNext = rs.next();
-     page = new Page(transactions, start, hasNext, y, numResults);
-    
-     if (page == null) {
-     page = com.rancard.util.Page.EMPTY_PAGE;
-     }
-    
-     } catch (Exception ex) {
-     if (con != null) {
-     con.close();
-     }
-     throw new Exception(ex.getMessage());
-     }
-     if (con != null) {
-     con.close();
-     }
-     return page;
-     }*/
 }

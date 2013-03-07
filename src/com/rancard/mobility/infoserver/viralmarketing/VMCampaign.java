@@ -5,6 +5,8 @@
 
 package com.rancard.mobility.infoserver.viralmarketing;
 
+import java.util.Date;
+
 /**
  *
  * @author nii
@@ -16,27 +18,19 @@ public class VMCampaign {
     private String keyword;
     private String messageSender;
     private String message;
-    private String lastUpdated;
+    private Date lastUpdated;
 
-    public VMCampaign() {
-        this.campaignId = "";
-        this.accountId = "";
-        this.keyword = "";
-        this.messageSender = "";
-        this.message = "";
-        this.lastUpdated = "";
-    }
-
-    public VMCampaign(String campaignId, String accountId, String keyword, String messageSender, String message) {
+  
+    public VMCampaign(String campaignId, String accountId, String keyword, String messageSender, String message, Date lastUpdated) {
         this.campaignId = campaignId;
         this.accountId = accountId;
         this.keyword = keyword;
         this.messageSender = messageSender;
         this.message = message;
-        this.lastUpdated = "";
+        this.lastUpdated = lastUpdated;
     }
 
-    public String getLastUpdated() {
+    public Date getLastUpdated() {
         return lastUpdated;
     }
 
@@ -60,7 +54,7 @@ public class VMCampaign {
         return message;
     }
 
-    public void setLastUpdated(String lastUpdated) {
+    public void setLastUpdated(Date lastUpdated) {
         this.lastUpdated = lastUpdated;
     }
 

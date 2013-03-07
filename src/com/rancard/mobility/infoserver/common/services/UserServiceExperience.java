@@ -24,6 +24,31 @@ public class UserServiceExperience {
     private String metaData;
     private static final int DEFAULT_URL_CALL_TIMEOUT = 5000;
 
+    public UserServiceExperience(String accountID, String siteID, String keyword, String promoMsg, String promoID, String promoRespCode,
+            String welcomeMsg, String alreadySubscribedMsg, String unsubscriptionConfirmationMsg, String promoMsgSender,
+            String welcomeMsgSender, String alreadySubscribedMsgSender, String unsubscriptionConfirmationMsgSender, 
+            int pushMsgWaitTime, int subscriptionInterval, String url, int urlTimeout, String metaData){
+        this.accountId=accountID;
+        this.siteId =siteID;
+        this.keyword = keyword;
+        this.promoMsg = promoMsg;
+        this.promoId = promoID;
+        this.promoRespCode = promoRespCode;
+        this.welcomeMsg = welcomeMsg;
+        this.alreadySubscribedMsg = alreadySubscribedMsg;
+        this.unsubscriptionConfirmationMsg = unsubscriptionConfirmationMsg;
+        this.promoMsgSender = promoMsgSender;
+        this.welcomeMsgSender = welcomeMsgSender;
+        this.alreadySubscribedMsgSender = alreadySubscribedMsgSender;
+        this.unsubscriptionConfirmationMsgSender = unsubscriptionConfirmationMsgSender;
+        this.pushMsgWaitTime = pushMsgWaitTime;
+        this.subscriptionInterval = subscriptionInterval;
+        this.url = url;
+        this.urlTimeout = urlTimeout;
+        this.metaData = metaData;
+    }
+    
+    
     public UserServiceExperience() {
         this.accountId = "";
         this.siteId = "";

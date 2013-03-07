@@ -256,8 +256,9 @@ public class sendinfo extends HttpServlet implements RequestDispatcher {
                 if (!isAsciiPrintable) {
                     System.out.println ("Setting request attribute for Kannel Header: X-Kannel-Coding ...");
                     request.setAttribute ("X-Kannel-Coding", "2");
-                    if (request.getAttribute ("X-Kannel-Coding") != null)
+                    if (request.getAttribute ("X-Kannel-Coding") != null){
                         System.out.println ("Request contains X-Kannel-Coding attribute");
+                    }
                 }
                 out.println(message);
                 return;
@@ -430,7 +431,7 @@ public class sendinfo extends HttpServlet implements RequestDispatcher {
                         }
 
                         /*if (skipMessagingFromCallBack) {
-                        completeTransnxnUrl = completeTransnxnUrl + "&push=FALSE";
+                        compleTransnxnUrl = completeTransnxnUrl + "&push=FALSE";
                         } else {
                         completeTransnxnUrl = completeTransnxnUrl + "&push=TRUE";
                         }*/
@@ -445,7 +446,7 @@ public class sendinfo extends HttpServlet implements RequestDispatcher {
                         } else {
                             trans.setIsBilled(0);
                             trans.setIsCompleted(isCompleted);
-                            //updateOTTransaction(kw, provId, "on-demand", msisdn, pricePoint.getPricePointId(), 0, 0, transactionId);
+                            //updateOTTransaction(kw, provId, "on-demand",msisdn, pricePoint.getPricePointId(), 0, 0, transactionId);
                         }
 
                         try {

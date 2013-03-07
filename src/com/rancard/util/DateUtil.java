@@ -17,6 +17,7 @@ import java.util.GregorianCalendar;
  */
 public class DateUtil {
     public static final DateFormat MYSQLTIMESTAMPFORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    public static final DateFormat MYSQLSHORTFORMAT = new SimpleDateFormat("yyyy-MM-dd");
     
     public static String convertToMySQLTimeStamp(java.util.Date date){               
         return MYSQLTIMESTAMPFORMAT.format(date);
@@ -26,9 +27,17 @@ public class DateUtil {
         return MYSQLTIMESTAMPFORMAT.parse(timeStamp);
     }
     
+    public static String convertToMySQLShort(java.util.Date date){               
+        return MYSQLSHORTFORMAT.format(date);
+    }
+    
+    public static java.util.Date convertFromMySQLShort(String shortDate) throws ParseException{
+        return MYSQLSHORTFORMAT.parse(shortDate);
+    }
+    
     public static java.util.Date addDaysToDate(java.util.Date date, int noOfDays) {        
         Calendar calender = new GregorianCalendar();
-        calender.add(calender.DATE, noOfDays);
+        calender.add(Calendar.DATE, noOfDays);
         return calender.getTime();        
     }
     

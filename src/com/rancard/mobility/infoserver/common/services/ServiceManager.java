@@ -4,6 +4,8 @@ import com.rancard.util.Page;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public abstract class ServiceManager {
 
@@ -126,7 +128,7 @@ public abstract class ServiceManager {
         UserServiceDB.createServiceForwarding(account_id, keyword, url, timeout,listen_status);
     }
 
-    public static HashMap viewServiceForwarding(String account_id, String keyword) throws Exception {
+    public static Map<String, String> viewServiceForwarding(String account_id, String keyword) throws Exception {
         return UserServiceDB.viewServiceForwarding(account_id, keyword);
     }
 
@@ -163,64 +165,56 @@ public abstract class ServiceManager {
         return UserServiceDB.viewLastSubscribedKeyword(msisdn, accountId);
     }
 
-    public static java.util.ArrayList viewAllServices(String accountId) throws Exception {
+    public static List viewAllServices(String accountId) throws Exception {
         return UserServiceDB.viewAllServices(accountId);
     }
 
-    public static ArrayList viewAllServices(String accountId, String serviceType) throws
+    public static List viewAllServices(String accountId, String serviceType) throws
             Exception {
         return UserServiceDB.viewAllServices(accountId, serviceType);
     }
 
-    public static ArrayList<UserService> viewAllServices(String accountId, String serviceType, String command) throws
+    public static List<UserService> viewAllServices(String accountId, String serviceType, String command) throws
             Exception {
         return UserServiceDB.viewAllServices(accountId, serviceType, command);
     }
 
-    public static ArrayList viewAllServicesOfParentType(String accountId, String parentType) throws
+    public static List viewAllServicesOfParentType(String accountId, String parentType) throws
             Exception {
         return UserServiceDB.viewAllServicesOfParentType(accountId, parentType);
     }
 
-    public static ArrayList viewAllServicesForType(String serviceType) throws
+    public static List viewAllServicesForType(String serviceType) throws
             Exception {
         return UserServiceDB.viewAllServicesForType(serviceType);
     }
 
-    public static HashMap populateRoutingTable() throws Exception {
+    public static Map populateRoutingTable() throws Exception {
         return UserServiceDB.populateRoutingTable();
     }
 
-    public static HashMap getServiceTable() throws Exception {
+    public static Map getServiceTable() throws Exception {
         return UserServiceDB.getServiceTable();
     }
 
-    public static String[][] getCPsForTypes() throws Exception {
-        return UserServiceDB.getCPsForTypes();
-    }
-
-    public static String[] getCPIDsForServiceType(String serviceType) throws Exception {
+    public static List<String> getCPIDsForServiceType(String serviceType) throws Exception {
         return UserServiceDB.getCPIDsForServiceType(serviceType);
     }
 
-    public static HashMap<String, String> getCPIDsForServiceType(String serviceType, String command) throws Exception {
+    public static Map<String, String> getCPIDsForServiceType(String serviceType, String command) throws Exception {
         return UserServiceDB.getCPIDsForServiceType(serviceType, command);
     }
 
     public static void updateSubscriptionStatus(String msisdn, String keyword, String accountId, int status) throws Exception {
         UserServiceDB.updateSubscriptionStatus(msisdn, keyword, accountId, status);
+    }   
+    
+    public static void subscribeToService(String msisdn, ArrayList keywords, String accountId) throws Exception {
+        UserServiceDB.subscribeToService(msisdn, keywords, accountId);
     }
 
-    public static String subscribeToService(String msisdn, String keyword, String accountId) throws Exception {
-        return UserServiceDB.subscribeToService(msisdn, keyword, accountId);
-    }
-
-    public static String[] subscribeToService(String msisdn, ArrayList keywords, String accountId) throws Exception {
-        return UserServiceDB.subscribeToService(msisdn, keywords, accountId);
-    }
-
-    public static String[] subscribeToService(String msisdn, ArrayList keywords, String accountId, int numOfDays) throws Exception {
-        return UserServiceDB.subscribeToService(msisdn, keywords, accountId, numOfDays);
+    public static void subscribeToService(String msisdn, ArrayList keywords, String accountId, int numOfDays) throws Exception {
+        UserServiceDB.subscribeToService(msisdn, keywords, accountId, numOfDays);
     }
 
     public static String[] subscribeToService(String msisdn, ArrayList keywords, String accountId, int numOfDays, int status, int billingType) throws Exception {
