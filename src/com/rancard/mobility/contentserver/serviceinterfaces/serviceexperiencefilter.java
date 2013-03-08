@@ -25,6 +25,7 @@ import java.sql.ResultSet;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Map;
@@ -291,7 +292,7 @@ public class serviceexperiencefilter extends HttpServlet
             CPConnections cnxn = CPConnections.getConnection(accountId, msisdn);
 
             VMTransaction trans = VMServiceManager.viewTransaction(accountId, keyword, msisdn);
-            if (trans.getStatus().equals("inv_sent")) {
+            if (!(trans == null) && trans.getStatus().equals("inv_sent")) {
                 VMServiceManager.updateTransactionStatus(trans.getCampaignId(), msisdn, "inv_accepted", 10);
 
                 String recruiter = trans.getRecruiterMsisdn();
@@ -306,7 +307,7 @@ public class serviceexperiencefilter extends HttpServlet
                 new Thread(new ThreadedMessageSender(cnxn, msisdn, this.push_sender, this.inv_instruction, 30000)).start();
             }
         } catch (Exception exc) {
-            System.out.println("Exception caught processing viral marketing step 2: acceptance");
+            System.out.println(new Date() +" "+ serviceexperiencefilter.class +":ERROR Exception caught processing viral marketing step 2: acceptance "+exc.getMessage());
         }
     }
 
