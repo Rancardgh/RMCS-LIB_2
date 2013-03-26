@@ -119,6 +119,11 @@ public class KeywordMatcher {
         try {
             conn = DConnect.getConnection();
             //select keyword, service_name, tags from service_definition sd 
+            
+            if(smsc.endsWith("2")){
+                smsc = smsc.substring(0, smsc.length() - 1);
+            }
+            
             String query = "select * from service_definition sd "
                     + "INNER JOIN cp_connections cp ON sd.account_id = cp.list_id "
                     + "where sd.service_type='14' AND cp.conn_id like '" + smsc + "%' "

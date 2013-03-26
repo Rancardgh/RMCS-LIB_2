@@ -29,7 +29,7 @@ public class AddressBookDB {
             rs = conn.createStatement().executeQuery(sql);
 
             if(rs.next()){
-                address = new AddressBook(rs.getString("account_id"), rs.getString("address"), rs.getString("registration_id"));               
+                address = new AddressBook(rs.getString("account_id"), rs.getString("msisdn"), rs.getString("registration_id"));               
             }
             return address;
         } catch (SQLException se) {
