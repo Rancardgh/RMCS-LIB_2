@@ -14,6 +14,9 @@ import java.net.URLConnection;
 import com.rancard.common.Feedback;
 import com.rancard.mobility.common.FonCapabilityMtrx;
 import com.rancard.mobility.contentserver.Transaction;
+import com.rancard.mobility.infoserver.common.services.ServiceManager;
+import com.rancard.mobility.infoserver.common.services.UserService;
+import java.util.List;
 //import com.rancard.common.DConnect;
 //import com.rancard.mobility.contentserver.uploadsBean;
 //import java.sql.ResultSet;
@@ -58,7 +61,7 @@ public class downloadcontent extends HttpServlet {
         if (supportsDrm == null) {
             supportsDrm = (String) request.getAttribute("drm");
         }
-
+        
         String lang = "";
         if (lang == null || lang.equals("")) {
             lang = "en";
@@ -83,18 +86,38 @@ public class downloadcontent extends HttpServlet {
         if (supportsDrm == null || supportsDrm.length() <= 0) {
             supportsDrm = "no";
         }
+        
+        String keyword = request.getParameter("keyword");
+        if (keyword == null) {
+            keyword = (String) request.getAttribute("keyword");
+        }
+        
+        String accId = request.getParameter("accId");
+        if (accId == null) {
+            accId = (String) request.getAttribute("accId");
+        }
+        
+        UserService service = null;   
 
         try {
-            // get details of this transaction
+            // check if direct download request
+            if (keyword != null && accId != null) {
+                service = ServiceManager.viewService(keyword, accId);
+                if (service == null) {
+                    throw new Exception(String.format("Service not found for keyword = %s and account = %s", keyword, accId));
+                }
+            } else {
+                // get details of this transaction            
 
-            //logging statements
-            System.out.println("Looking up transaction details for transaction ID: " + ticketID + " ......");
-            //end of logging
-            download = Transaction.viewTransaction(ticketID);
-            //logging statements
-            System.out.println("Found transaction details for transaction ID: " + ticketID);
-            System.out.println("user's mobile number: " + download.getSubscriberMSISDN());
-            System.out.println("request came from site with ID: " + download.getSiteId());
+                //logging statements
+                System.out.println("Looking up transaction details for transaction ID: " + ticketID + " ......");
+                //end of logging
+                download = Transaction.viewTransaction(ticketID);
+                //logging statements
+                System.out.println("Found transaction details for transaction ID: " + ticketID);
+                System.out.println("user's mobile number: " + download.getSubscriberMSISDN());
+                System.out.println("request came from site with ID: " + download.getSiteId());
+            }
             //end of logging
         } catch (Exception e) {
             //logging statements
@@ -121,16 +144,28 @@ public class downloadcontent extends HttpServlet {
         }
 
         // check if transaction is valid i.e has not been used before and transaction Id exists
-        if (!download.getDownloadCompleted()) {
+        if (!download.getDownloadCompleted() || service != null) {
             try {
-                if (updateBandwidthAllocation(download) == true) {
+                // handle direct download request
+                if (service != null) {
+                    ContentListDB contentDB = new ContentListDB();
+                    List<ContentItem> contentItems = (List<ContentItem>) contentDB.getRecentlyAdded(service.getAccountId(), Integer.parseInt(service.getServiceType()));
+                    if (contentItems == null || contentItems.isEmpty()) {
+                        throw new Exception("No content found");
+                    }
+                    System.out.println("Streaming data...");
+                    streamData(response, request, contentItems.get(0), supportsDrm);
+                    System.out.println("Streaming data complete....");
+                }
+                else if (updateBandwidthAllocation(download) == true) {
                     // stream data based on format , location of content
                     //logging statements
                     System.out.println("Streaming data....");
                     //end of logging
                     //response.setContentType("application/x-download");
                     //response.setHeader("Content-Disposition", "attachment;filename="+download.getContentItem().gettitle());
-                    streamData(response, request, download, supportsDrm);
+                    streamData(response, request, download.getContentItem(), supportsDrm);
+                    Transaction.updateDownloadStatus(download.getTicketID(), true);
                     //logging statements
                     System.out.println("Streaming data complete....");
                     //end of logging
@@ -252,61 +287,107 @@ public class downloadcontent extends HttpServlet {
     //Clean up resources
     public void destroy() {
     }
+//    
+//    public void streamData(HttpServletResponse response,
+//            HttpServletRequest request, Transaction download, String supportsDrm) throws
+//            Exception {
+//
+//        // determine bearer
+//        // determine location
+//        // stream data
+//        if (download.getFormat().getPushBearer().equals("WAP")) {
+//            // binary content over packet switched network
+//            System.out.println(new java.util.Date() + ":Request to streamBinaryConent...");
+//            if (supportsDrm.equalsIgnoreCase("yes")) {
+//                if (streamBinaryData(download, response, request)) {
+//                    //download.updateTransaction (download.getTicketID (), true, true);
+//                    download.updateDownloadStatus(download.getTicketID(), true);
+//                } else {
+//                    System.out.println(new java.util.Date() + ":Unable to streamBinaryData: Feedback.NO_CONTENT_AT_LOCATION");
+//
+//                    throw new Exception(Feedback.NO_CONTENT_AT_LOCATION);
+//                }
+//            } else {
+//                if (streamBinaryDataNoDrm(download, response, request)) {
+//                    //download.updateTransaction (download.getTicketID (), true, true);
+//                    download.updateDownloadStatus(download.getTicketID(), true);
+//                } else {
+//                    System.out.println(new java.util.Date() + ":Unable to streamBinaryData: Feedback.NO_CONTENT_AT_LOCATION");
+//
+//                    throw new Exception(Feedback.NO_CONTENT_AT_LOCATION);
+//                }
+//            }
+//            // character based content
+//        } else {
+//            System.out.println(new java.util.Date() + ":Request to stream Character based content...");
+//            if (!download.getContentItem().islocal()) {
+//                // stream  text content form remote host
+//                if (streamCharacterData(download.getContentItem().getDownloadUrl(), download.getFormat().getMimeType(), new PrintWriter(response.getOutputStream()), response, request)) {
+//                    //download.updateTransaction (download.getTicketID (), true, true);
+//                    download.updateDownloadStatus(download.getTicketID(), true);
+//                } else {
+//                    System.out.println(new java.util.Date() + ":Unable to stream Character based content:Feedback.NO_CONTENT_AT_LOCATION");
+//
+//                    throw new Exception(Feedback.NO_CONTENT_AT_LOCATION);
+//                }
+//            } else {
+//                com.rancard.mobility.contentserver.uploadsBean upload = new com.rancard.mobility.contentserver.uploadsBean();
+//                upload.setid(download.getContentItem().getid());
+//                upload.setlist_id(download.getContentItem().getListId());
+//                upload = new RepositoryManager().fetchFile(upload.getlist_id(),
+//                        upload.getid());
+//                // stream text content from local host
+//                if (streamCharacterData( /*new File(uc.getContentLocation() +item.getDownloadUrl()),*/upload.getDataStream(), download.getFormat().getMimeType(),
+//                        new PrintWriter(response.getOutputStream()), response, request)) {
+//                    //download.updateTransaction (download.getTicketID (), true, true);
+//                    download.updateDownloadStatus(download.getTicketID(), true);
+//                } else {
+//                    throw new Exception(Feedback.NO_CONTENT_AT_LOCATION);
+//                }
+//            }
+//        }
+//    }
+    
 
     public void streamData(HttpServletResponse response,
-            HttpServletRequest request, Transaction download, String supportsDrm) throws
+            HttpServletRequest request, ContentItem content, String supportsDrm) throws
             Exception {
 
         // determine bearer
         // determine location
         // stream data
-        if (download.getFormat().getPushBearer().equals("WAP")) {
+        if (content.getFormat().getPushBearer().equals("WAP")) {
             // binary content over packet switched network
             System.out.println(new java.util.Date() + ":Request to streamBinaryConent...");
             if (supportsDrm.equalsIgnoreCase("yes")) {
-                if (streamBinaryData(download, response, request)) {
-                    //download.updateTransaction (download.getTicketID (), true, true);
-                    download.updateDownloadStatus(download.getTicketID(), true);
-                } else {
+                if (!streamBinaryData(content, response, request)) {
                     System.out.println(new java.util.Date() + ":Unable to streamBinaryData: Feedback.NO_CONTENT_AT_LOCATION");
-
                     throw new Exception(Feedback.NO_CONTENT_AT_LOCATION);
                 }
             } else {
-                if (streamBinaryDataNoDrm(download, response, request)) {
-                    //download.updateTransaction (download.getTicketID (), true, true);
-                    download.updateDownloadStatus(download.getTicketID(), true);
-                } else {
+                if (!streamBinaryDataNoDrm(content, response, request)) {
                     System.out.println(new java.util.Date() + ":Unable to streamBinaryData: Feedback.NO_CONTENT_AT_LOCATION");
-
                     throw new Exception(Feedback.NO_CONTENT_AT_LOCATION);
                 }
             }
             // character based content
         } else {
             System.out.println(new java.util.Date() + ":Request to stream Character based content...");
-            if (!download.getContentItem().islocal()) {
+            if (!content.islocal()) {
                 // stream  text content form remote host
-                if (streamCharacterData(download.getContentItem().getDownloadUrl(), download.getFormat().getMimeType(), new PrintWriter(response.getOutputStream()), response, request)) {
-                    //download.updateTransaction (download.getTicketID (), true, true);
-                    download.updateDownloadStatus(download.getTicketID(), true);
-                } else {
+                if (!streamCharacterData(content.getDownloadUrl(), content.getFormat().getMimeType(), new PrintWriter(response.getOutputStream()), response, request)) {
                     System.out.println(new java.util.Date() + ":Unable to stream Character based content:Feedback.NO_CONTENT_AT_LOCATION");
-
                     throw new Exception(Feedback.NO_CONTENT_AT_LOCATION);
                 }
             } else {
                 com.rancard.mobility.contentserver.uploadsBean upload = new com.rancard.mobility.contentserver.uploadsBean();
-                upload.setid(download.getContentItem().getid());
-                upload.setlist_id(download.getContentItem().getListId());
+                upload.setid(content.getid());
+                upload.setlist_id(content.getListId());
                 upload = new RepositoryManager().fetchFile(upload.getlist_id(),
                         upload.getid());
                 // stream text content from local host
-                if (streamCharacterData( /*new File(uc.getContentLocation() +item.getDownloadUrl()),*/upload.getDataStream(), download.getFormat().getMimeType(),
+                if (!streamCharacterData(upload.getDataStream(), content.getFormat().getMimeType(),
                         new PrintWriter(response.getOutputStream()), response, request)) {
-                    //download.updateTransaction (download.getTicketID (), true, true);
-                    download.updateDownloadStatus(download.getTicketID(), true);
-                } else {
                     throw new Exception(Feedback.NO_CONTENT_AT_LOCATION);
                 }
             }
@@ -487,14 +568,14 @@ public class downloadcontent extends HttpServlet {
         return convertedTone;
     }
 
-    private boolean streamBinaryData(Transaction download,
+    private boolean streamBinaryData(ContentItem content,
             HttpServletResponse resp,
             HttpServletRequest request) throws
             Exception {
 
         boolean streamStatus = false;
         String ErrorStr = null;
-        String formatMIMEType = download.getContentItem().getFormat().
+        String formatMIMEType = content.getFormat().
                 getMimeType();
         BufferedOutputStream bos = null;
         BufferedInputStream isr = null;
@@ -503,10 +584,10 @@ public class downloadcontent extends HttpServlet {
 
         byte[] item = null;
 
-        if (download.getContentItem().islocal()) {
+        if (content.islocal()) {
             com.rancard.mobility.contentserver.uploadsBean upload = new com.rancard.mobility.contentserver.uploadsBean();
-            upload.setid(download.getContentItem().getid());
-            upload.setlist_id(download.getContentItem().getListId());
+            upload.setid(content.getid());
+            upload.setlist_id(content.getListId());
 
             try {
                 upload = new RepositoryManager().fetchFile(upload.getlist_id(),
@@ -517,7 +598,7 @@ public class downloadcontent extends HttpServlet {
 
             item = upload.getDataStream();
         } else {
-            String urlstr = download.getContentItem().getDownloadUrl();
+            String urlstr = content.getDownloadUrl();
             HttpClient httpclient = new HttpClient();
             GetMethod httpget = new GetMethod(urlstr);
 
@@ -662,17 +743,17 @@ public class downloadcontent extends HttpServlet {
         return streamStatus;
     }
 
-    private boolean streamBinaryDataNoDrm(Transaction download,
+    private boolean streamBinaryDataNoDrm(ContentItem content,
             HttpServletResponse resp,
             HttpServletRequest request) throws
             Exception {
 
         boolean streamStatus = false;
         String ErrorStr = null;
-        String formatMIMEType = download.getContentItem().getFormat().getMimeType();
+        String formatMIMEType = content.getFormat().getMimeType();
         //file headers
         resp.setContentType(formatMIMEType);
-        resp.setHeader("Content-Disposition", "attachment;filename=" + download.getContentItem().gettitle() + "." + download.getContentItem().getFormat().getFileExt());
+        resp.setHeader("Content-Disposition", "attachment;filename=" + content.gettitle() + "." + content.getFormat().getFileExt());
         BufferedOutputStream bos = null;
         BufferedInputStream isr = null;
         BufferedInputStream bis = null;
@@ -680,10 +761,10 @@ public class downloadcontent extends HttpServlet {
 
         byte[] item = null;
 
-        if (download.getContentItem().islocal()) {
+        if (content.islocal()) {
             com.rancard.mobility.contentserver.uploadsBean upload = new com.rancard.mobility.contentserver.uploadsBean();
-            upload.setid(download.getContentItem().getid());
-            upload.setlist_id(download.getContentItem().getListId());
+            upload.setid(content.getid());
+            upload.setlist_id(content.getListId());
 
             try {
                 upload = new RepositoryManager().fetchFile(upload.getlist_id(),
@@ -694,7 +775,7 @@ public class downloadcontent extends HttpServlet {
 
             item = upload.getDataStream();
         } else {
-            String urlstr = download.getContentItem().getDownloadUrl();
+            String urlstr = content.getDownloadUrl();
             HttpClient httpclient = new HttpClient();
             GetMethod httpget = new GetMethod(urlstr);
 
