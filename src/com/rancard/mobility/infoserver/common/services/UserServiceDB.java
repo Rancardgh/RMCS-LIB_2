@@ -5,6 +5,7 @@ import com.rancard.common.AddressBookDB;
 import com.rancard.common.DConnect;
 import com.rancard.common.Feedback;
 import com.rancard.common.uidGen;
+import com.rancard.mobility.common.ThreadedPostman;
 import com.rancard.util.DateUtil;
 import com.rancard.util.Page;
 import java.sql.Connection;
@@ -816,6 +817,11 @@ public class UserServiceDB {
 
                     System.out.println(new Date() + ": " + UserServiceDB.class + ":DEBUG Create service: " + prepstat.toString());
                     prepstat.execute();
+                    
+                    String url = "http://192.168.1.246/rndvu/" 
+                            + java.net.URLEncoder.encode (msisdn, "UTF-8")
+                            + "/action/log/" + java.net.URLEncoder.encode (keyword, "UTF-8") + "/buy";
+                    new ThreadedPostman (url).run ();
                 } else {
                     System.out.println(new Date() + ": " + UserServiceDB.class + "ERROR: Creating service. Service does not exist: " + accountId + "-" + keyword);
                     throw new Exception(Feedback.NO_SUCH_SERVICE);
@@ -864,6 +870,11 @@ public class UserServiceDB {
 
                     System.out.println(new Date() + ": " + UserServiceDB.class + ":DEBUG Create service: " + prepstat.toString());
                     prepstat.execute();
+                    
+                    String url = "http://192.168.1.246/rndvu/" 
+                            + java.net.URLEncoder.encode (msisdn, "UTF-8")
+                            + "/action/log/" + java.net.URLEncoder.encode (keyword, "UTF-8") + "/buy";
+                    new ThreadedPostman (url).run ();
                 } else {
                     System.out.println(new Date() + ": " + UserServiceDB.class + "ERROR: Creating service. Service does not exist: " + accountId + "-" + keyword);
                     throw new Exception(Feedback.NO_SUCH_SERVICE);
@@ -947,6 +958,11 @@ public class UserServiceDB {
                     prepstat.setInt(7, billingType);
                     prepstat.execute();
                     regId[2] = nextSubDate;
+                    
+                    String url = "http://192.168.1.246/rndvu/" 
+                            + java.net.URLEncoder.encode (msisdn, "UTF-8")
+                            + "/action/log/" + java.net.URLEncoder.encode (keyword, "UTF-8") + "/buy";
+                    new ThreadedPostman (url).run ();
                 } else {
                     failedCheck = true;
                 }
@@ -1029,6 +1045,11 @@ public class UserServiceDB {
                     prepstat.setInt(5, status);
                     prepstat.setTimestamp(6, new java.sql.Timestamp(nextSubscriptionDate.getTime()));
                     prepstat.execute();
+                    
+                    String url = "http://192.168.1.246/rndvu/" 
+                            + java.net.URLEncoder.encode (msisdn, "UTF-8")
+                            + "/action/log/" + java.net.URLEncoder.encode (keyword, "UTF-8") + "/buy";
+                    new ThreadedPostman (url).run ();
                 } else {
                     failedCheck = true;
                 }
