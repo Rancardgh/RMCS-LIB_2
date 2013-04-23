@@ -23,6 +23,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class UserServiceDB {
 
@@ -818,10 +820,10 @@ public class UserServiceDB {
                     System.out.println(new Date() + ": " + UserServiceDB.class + ":DEBUG Create service: " + prepstat.toString());
                     prepstat.execute();
                     
-                    String url = "http://192.168.1.246/rndvu/" 
-                            + java.net.URLEncoder.encode (msisdn, "UTF-8")
-                            + "/action/log/" + java.net.URLEncoder.encode (keyword, "UTF-8") + "/buy";
-                    new ThreadedPostman (url).run ();
+                    HashMap<String, String> params = new HashMap<String, String> ();
+                    params.put ("msisdn", msisdn);
+                    params.put ("keyword", keyword);
+                    new ThreadedPostman (ThreadedPostman.RNDVU_BUY_USER_ACTION_API_TMPLT, params).run ();
                 } else {
                     System.out.println(new Date() + ": " + UserServiceDB.class + "ERROR: Creating service. Service does not exist: " + accountId + "-" + keyword);
                     throw new Exception(Feedback.NO_SUCH_SERVICE);
@@ -871,10 +873,10 @@ public class UserServiceDB {
                     System.out.println(new Date() + ": " + UserServiceDB.class + ":DEBUG Create service: " + prepstat.toString());
                     prepstat.execute();
                     
-                    String url = "http://192.168.1.246/rndvu/" 
-                            + java.net.URLEncoder.encode (msisdn, "UTF-8")
-                            + "/action/log/" + java.net.URLEncoder.encode (keyword, "UTF-8") + "/buy";
-                    new ThreadedPostman (url).run ();
+                    HashMap<String, String> params = new HashMap<String, String> ();
+                    params.put ("msisdn", msisdn);
+                    params.put ("keyword", keyword);
+                    new ThreadedPostman (ThreadedPostman.RNDVU_BUY_USER_ACTION_API_TMPLT, params).run ();
                 } else {
                     System.out.println(new Date() + ": " + UserServiceDB.class + "ERROR: Creating service. Service does not exist: " + accountId + "-" + keyword);
                     throw new Exception(Feedback.NO_SUCH_SERVICE);
@@ -959,10 +961,10 @@ public class UserServiceDB {
                     prepstat.execute();
                     regId[2] = nextSubDate;
                     
-                    String url = "http://192.168.1.246/rndvu/" 
-                            + java.net.URLEncoder.encode (msisdn, "UTF-8")
-                            + "/action/log/" + java.net.URLEncoder.encode (keyword, "UTF-8") + "/buy";
-                    new ThreadedPostman (url).run ();
+                    HashMap<String, String> params = new HashMap<String, String> ();
+                    params.put ("msisdn", msisdn);
+                    params.put ("keyword", keyword);
+                    new ThreadedPostman (ThreadedPostman.RNDVU_BUY_USER_ACTION_API_TMPLT, params).run ();
                 } else {
                     failedCheck = true;
                 }
@@ -1046,10 +1048,10 @@ public class UserServiceDB {
                     prepstat.setTimestamp(6, new java.sql.Timestamp(nextSubscriptionDate.getTime()));
                     prepstat.execute();
                     
-                    String url = "http://192.168.1.246/rndvu/" 
-                            + java.net.URLEncoder.encode (msisdn, "UTF-8")
-                            + "/action/log/" + java.net.URLEncoder.encode (keyword, "UTF-8") + "/buy";
-                    new ThreadedPostman (url).run ();
+                    HashMap<String, String> params = new HashMap<String, String> ();
+                    params.put ("msisdn", msisdn);
+                    params.put ("keyword", keyword);
+                    new ThreadedPostman (ThreadedPostman.RNDVU_BUY_USER_ACTION_API_TMPLT, params).run ();
                 } else {
                     failedCheck = true;
                 }
