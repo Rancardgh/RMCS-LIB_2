@@ -23,6 +23,7 @@ import org.apache.commons.httpclient.methods.GetMethod;
 public class ThreadedPostman implements Runnable {
     
     public static String RNDVU_BUY_USER_ACTION_API_TMPLT = "http://192.168.1.246/rndvu/@@msisdn@@/action/log/@@keyword@@/buy";
+    public static String RNDVU_CONNECT_USER_API_TMPLT = "http://192.168.1.246/rndvu/@@recruiter@@/knows/@@recipient@@?keyword=@@keyword@@";
 
     String apiEndpoint;
     HashMap<String, String> params;
