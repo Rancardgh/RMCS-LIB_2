@@ -1,2 +1,4 @@
+[syntax: glob]
 nbproject/*
-
+build.xml
+manifest.mf
