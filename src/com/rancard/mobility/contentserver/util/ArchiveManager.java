@@ -938,7 +938,7 @@ public class ArchiveManager {
                 String listId = tableName;
                 //Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/rcs", "admin", "admin");
                 PreparedStatement pstmt = conn.prepareStatement(
-                        "insert into uploads  (id, filename,binaryfile,list_id) 	values 	(?, ?, ? ,?,?)");
+                        "insert into uploads  (id, filename,binaryfile,list_id) 	values 	(?, ?, ? ,?)");
                 pstmt.setString(1, ID);
                 executeStatus = pstmt.EXECUTE_FAILED;
                 pstmt.setString(2, filename);
