@@ -197,6 +197,68 @@ public class uploadsDB {
         return uploads;
     }
     
+    public uploadsBean viewuploads (String list_id, String id, String keyword) throws Exception {
+        
+        if (keyword == null || "".equals(keyword.trim())) {
+            return viewuploads(list_id, id);
+        }
+        
+        uploadsBean uploads = new uploadsBean ();
+        java.io.InputStream filein;
+        String SQL;
+        ResultSet rs = null;
+        Connection con = null;
+        PreparedStatement prepstat = null;
+        try {
+            con = DConnect.getConnection ();
+            
+            SQL = "select * from uploads,content_list,format_list where" +
+                    " uploads.list_id=? and uploads.id=? and content_list.keyword=? and content_list.id=uploads.id and " +
+                    " content_list.list_id=uploads.list_id and format_list.format_id=content_list.formats";
+            prepstat = con.prepareStatement (SQL);
+            
+            prepstat.setString (1, list_id);
+            prepstat.setString (2, id);
+            prepstat.setString(3, keyword);
+            rs = prepstat.executeQuery ();
+            if (!rs.next ()) {
+                throw new Exception ("File not found");
+            }
+            uploads.setid (id);
+            uploads.setlist_id (list_id);
+            uploads.setfilename (rs.getString ("uploads.filename"));
+            java.sql.Blob b = rs.getBlob ("uploads.binaryfile");
+            uploads.setDataStream (b.getBytes (1, new Long (b.length ()).intValue ()));
+            java.sql.Blob p = rs.getBlob ("uploads.previewfile");
+            if (p != null) {
+                uploads.setPreviewStream (p.getBytes (1,
+                        new Long (p.length ()).intValue ()));
+            }
+            uploads.setFormat (rs.getString ("format_list.file_ext"));
+            uploads.setMimeType (rs.getString ("format_list.mime_type"));
+            
+        } catch (Exception ex) {
+            if (con != null) {
+                con.close ();
+            }
+            throw new Exception (ex.getMessage ());
+        } finally {
+            try {
+                if (rs != null) {
+                    rs.close ();
+                }
+                if (prepstat != null) {
+                    prepstat.close ();
+                }
+                if (con != null) {
+                    con.close ();
+                }
+            } catch (SQLException sqlee) {}
+        }
+        
+        return uploads;
+    }
+    
     //returns size of files in the Uploads table in bytes
     public static long totalDiskSpaceUsed (String list_id) throws Exception {
         long space = 0;

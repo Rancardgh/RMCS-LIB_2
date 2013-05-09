@@ -9,6 +9,7 @@ public class ContentItem implements java.io.Serializable {
     private String contentId;
     private java.lang.String id;
     private java.lang.String listId;
+    private java.lang.String keyword;
     private java.lang.String title;
     private java.lang.Integer type;
     private java.lang.String downloadUrl;
@@ -60,6 +61,10 @@ public class ContentItem implements java.io.Serializable {
 
     public void settype(java.lang.Integer type) {
         this.type = type;
+    }
+    
+    public void setKeyword(String keyword) {
+        this.keyword = keyword;
     }
 
     public void setdownload_url(java.lang.String download_url) {
@@ -149,6 +154,10 @@ public class ContentItem implements java.io.Serializable {
 
     public java.lang.String getdownload_url() {
         return this.downloadUrl;
+    }
+    
+    public String getKeyword(){
+        return this.keyword;
     }
 
     public com.rancard.mobility.contentserver.Format getFormat() {

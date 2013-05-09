@@ -2624,6 +2624,111 @@ public class ContentListDB {
         return recentlyAdded;
     }
     
+    public java.util.ArrayList getRecentlyAdded(String cpid, int typeId, String keyword) throws Exception {
+        
+        if (keyword == null || "".equals(keyword.trim())) {
+            return getRecentlyAdded(cpid, typeId);
+        }
+        
+        java.util.ArrayList recentlyAdded = new ArrayList();
+        String SQL;
+        ResultSet rs = null;
+        Connection con = null;
+        PreparedStatement prepstat = null;
+        
+        try {
+            
+            con = DConnect.getConnection();
+            
+            SQL = "SELECT * FROM content_list, service_route, cp_user, format_list where content_type=? and content_list.content_type=" +
+                    "service_route.service_type and content_list.list_id=cp_user.id and content_list.formats=format_list.format_id"
+                    + " and content_list.list_id=? and content_list.keyword=? order by date_added desc limit 10";
+            
+            prepstat = con.prepareStatement(SQL);            
+            prepstat.setInt(1, typeId);
+            prepstat.setString(2, cpid);
+            prepstat.setString(3, keyword);
+            
+            rs = prepstat.executeQuery();
+            while (rs.next()) {
+                ContentItem item = new ContentItem();
+                ContentType type = new ContentType();
+                Format format = new Format();
+                com.rancard.mobility.contentprovider.User cp = new com.rancard.mobility.contentprovider.User();
+                
+                //content item
+                item.setContentId(rs.getString("content_id"));
+                item.setid(rs.getString("id"));
+                item.settitle(rs.getString("title"));
+                item.settype(new Integer(rs.getInt("content_type")));
+                item.setdownload_url(rs.getString("download_url"));
+                item.setPreviewUrl(rs.getString("preview_url"));
+                //item.setformats(rs.getString("formats"));
+                item.setPrice(rs.getString("price"));
+                item.setAuthor(rs.getString("author"));
+                item.setCategory(new Integer(rs.getInt("category")));
+                item.setSize(new Long(rs.getLong("size")));
+                item.setListId(rs.getString("list_id"));
+                item.setDate_Added(rs.getTimestamp("date_added"));
+                item.setOther_Details(rs.getString("other_details"));
+                item.setKeyword(rs.getString("keyword"));
+                if (rs.getInt("isLocal") == 1) {
+                    item.setIsLocal(true);
+                } else {
+                    item.setIsLocal(false);
+                }
+                if (rs.getInt("show") == 1) {
+                    item.setCanList(true);
+                } else {
+                    item.setCanList(false);
+                }
+                if (rs.getInt("is_free") == 1) {
+                    item.setFree(true);
+                } else {
+                    item.setFree(false);
+                }
+                item.setShortItemRef (rs.getString ("short_item_ref"));
+                item.setSupplierId (rs.getString ("supplier_id"));
+                
+                //content type
+                type.setParentServiceType(rs.getInt("service_route.parent_service_type"));
+                type.setServiceName(rs.getString("service_route.service_name"));
+                type.setServiceType(rs.getInt("service_route.service_type"));
+                
+                //content provider
+                cp.setId(rs.getString("cp_user.id"));
+                cp.setName(rs.getString("cp_user.name"));
+                cp.setUsername(rs.getString("cp_user.username"));
+                cp.setPassword(rs.getString("cp_user.password"));
+                cp.setDefaultSmsc(rs.getString("cp_user.default_smsc"));
+                cp.setLogoUrl(rs.getString("cp_user.logo_url"));
+                cp.setDefaultService(rs.getString("cp_user.default_service"));
+                
+                //format
+                format.setId(rs.getInt("format_list.format_id"));
+                format.setFileExt(rs.getString("format_list.file_ext"));
+                format.setMimeType(rs.getString("format_list.mime_type"));
+                format.setPushBearer(rs.getString("format_list.push_bearer"));
+                
+                item.setContentTypeDetails(type);
+                item.setProviderDetails(cp);
+                item.setFormat(format);
+                
+                recentlyAdded.add(item);
+            }
+        } catch (Exception ex) {
+            if (con != null) {
+                con.close();
+            }
+            throw new Exception(ex.getMessage());
+        }
+        if (con != null) {
+            con.close();
+        }
+        
+        return recentlyAdded;
+    }
+    
     public java.util.ArrayList getRecentlyAdded(String cpid, int typeId) throws Exception {
         java.util.ArrayList recentlyAdded = new ArrayList();
         String SQL;

@@ -9,6 +9,7 @@ public class ContentListBean {
     private String contentId;// global unique ID
     private java.lang.String id; // file Id
     private java.lang.String listId; // provider Id
+    private java.lang.String keyword; // keyword 
     private java.lang.String title; // title of item
     private java.lang.Integer type; // content type ringtone, logo etc
     private java.lang.String downloadUrl; // Url for fetching  the file
@@ -54,6 +55,10 @@ public class ContentListBean {
 
     public void setdownload_url(java.lang.String download_url) {
         this.downloadUrl = download_url;
+    }
+    
+    public void setKeyword(String keyword) {
+        this.keyword = keyword;
     }
 
     public void setformats(java.lang.String formats) {
@@ -126,6 +131,10 @@ public class ContentListBean {
     public java.lang.String gettitle() {
         return this.title;
     }
+    
+    public String getKeyword(){
+        return this.keyword;
+    }    
 
     public java.lang.Integer gettype() {
         return this.type;
