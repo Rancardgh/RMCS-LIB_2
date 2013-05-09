@@ -201,7 +201,7 @@ public class ArchiveManager {
     }
 
     public void unZipToContentRepository(InputStream in, String fileName,
-                                         String contentProviderId, Integer type, String supplierId, String keyword) {
+                                         String contentProviderId, Integer type, String supplierId, String keyword) throws Exception {
         ArchiveManager u = new ArchiveManager();
         u.setMode(EXTRACT);
         String candidate = fileName;
@@ -211,19 +211,13 @@ public class ArchiveManager {
             conn = com.rancard.common.DConnect.getConnection();
             if (candidate.endsWith(".zip") || candidate.endsWith(".jar")) {
                 u.unZip(in, conn, contentProviderId, type, supplierId, keyword);
+                System.err.println("All done!");
             } else {
                 System.err.println("Not a zip file? " + candidate);
-            }
-            System.err.println("All done!");
+                throw new Exception("Invalid file type");
+            }            
         } catch (Exception ex) {
-            System.err.println(ex.getMessage());
-            if (conn != null) {
-                try{
-                    conn.close();
-                }catch (Exception e) {
-                    conn = null;
-                }
-            }
+            throw ex;
         } finally {
             //close DB connection
             if (conn != null) {
@@ -434,7 +428,7 @@ public class ArchiveManager {
 
         } catch (IOException err) {
             System.err.println("IO Error: " + err);
-            return;
+            throw new Exception("Unzipping content failed");
         } catch (SQLException ex) {
             //System.out.println("SQL Error "+ex.getMessage());
         }
@@ -444,42 +438,32 @@ public class ArchiveManager {
                      String contenProviderId, Integer type, String supplierId, String keyword) throws
             Exception {
         dirsMade = new TreeSet();
-        try {
-            zipStream = new ZipInputStream(in);
-            // Enumeration all = zippy.entries();
-            String tablename = contenProviderId;
-            // create temp table
-            // get connection to temporary table
-            // extract each file
-            //while (0 != zipStream.available()) {
-            ZipEntry z;
+        zipStream = new ZipInputStream(in);
+        // Enumeration all = zippy.entries();
+        String tablename = contenProviderId;
+        // create temp table
+        // get connection to temporary table
+        // extract each file
+        //while (0 != zipStream.available()) {
+        ZipEntry z;
 
-            while ((z = zipStream.getNextEntry()) != null) {
-                byte[] buf = new byte[1024];
-                int len;
-                java.io.ByteArrayOutputStream bos = new java.io.
-                        ByteArrayOutputStream();
-                while ((len = zipStream.read(buf)) > 0) {
-                    bos.write(buf, 0, len);
-                }
-                byte[] unzippedFile = bos.toByteArray();
-                bos.close();
-                // write validation class to ensure that only valid file types are written
-
-                write(z, unzippedFile, conn, tablename, type.intValue (), supplierId, keyword);
-                //zipStream.closeEntry();
-                // add to batch
-
+        while ((z = zipStream.getNextEntry()) != null) {
+            byte[] buf = new byte[1024];
+            int len;
+            java.io.ByteArrayOutputStream bos = new java.io.
+                    ByteArrayOutputStream();
+            while ((len = zipStream.read(buf)) > 0) {
+                bos.write(buf, 0, len);
             }
-            //}
-            zipStream.close();
+            byte[] unzippedFile = bos.toByteArray();
+            bos.close();
+            // write validation class to ensure that only valid file types are written
 
-        } catch (IOException err) {
-            System.err.println("IO Error: " + err);
-            return;
-        } catch (SQLException ex) {
-            //System.out.println("SQL Error "+ex.getMessage());
+            write(z, unzippedFile, conn, tablename, type.intValue (), supplierId, keyword);
+            //zipStream.closeEntry();
+            // add to batch
         }
+        zipStream.close();
     }
 
     /**
@@ -936,38 +920,41 @@ public class ArchiveManager {
                 int executeStatus;
                 String ID = new com.rancard.common.uidGen().generateNumberID (10);
                 String listId = tableName;
-                //Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/rcs", "admin", "admin");
-                PreparedStatement pstmt = conn.prepareStatement(
-                        "insert into uploads  (id, filename,binaryfile,list_id) 	values 	(?, ?, ? ,?)");
+                
+                PreparedStatement pstmt = null;
+                // update the content list table with a refference
+                String qry = "insert into content_list (id, content_id, title,size,  price, list_id, date_added ,content_type,formats,isLocal,supplier_id, keyword,download_url)" +
+                             " values (?, ?, ?, ?, ?,?, ?,?,?,?,?,?)";
+                pstmt = conn.prepareStatement(qry);
                 pstmt.setString(1, ID);
-                executeStatus = pstmt.EXECUTE_FAILED;
-                pstmt.setString(2, filename);
-                pstmt.setBytes(3, zipedfile);
-                pstmt.setString(4, listId);
+                pstmt.setString(2, new com.rancard.common.uidGen().getUId());
+                pstmt.setString(3, zipName);
+                pstmt.setLong(4, size);
+                pstmt.setString(5, "0");
+                pstmt.setString(6, listId);
+                pstmt.setTimestamp(7, new java.sql.Timestamp(time));
+                pstmt.setInt(8, type);
+                pstmt.setString(9, formatid);
+                pstmt.setInt(10, 1);
+                pstmt.setString(11, supplierId);
+                pstmt.setString(12, keyword);
                 executeStatus = pstmt.executeUpdate();
                 // if the status is not failed
-                if (executeStatus != pstmt.EXECUTE_FAILED) {
-                    // update the content list table with a refference
-                    String qry = "insert into content_list (id, content_id, title,size,  price, list_id, date_added ,content_type,formats,isLocal,supplier_id, keyword)" +
-                                 " values (?, ?, ?, ?, ?,?, ?,?,?,?,?,?)";
-                    pstmt = conn.prepareStatement(qry);
+                if (executeStatus != PreparedStatement.EXECUTE_FAILED) {
+                    pstmt = conn.prepareStatement(
+                        "insert into uploads  (id, filename,binaryfile,list_id) 	values 	(?, ?, ? ,?)");
                     pstmt.setString(1, ID);
-                    pstmt.setString(2, new com.rancard.common.uidGen().getUId());
-                    pstmt.setString(3, zipName);
-                    pstmt.setLong(4, size);
-                    pstmt.setString(5, "0");
-                    pstmt.setString(6, listId);
-                    pstmt.setTimestamp(7, new java.sql.Timestamp(time));
-                    pstmt.setInt(8, type);
-                    pstmt.setString(9, formatid);
-                    pstmt.setInt(10, 1);
-                    pstmt.setString(11, supplierId);
-                    pstmt.setString(12, keyword);
-                    pstmt.execute();
+                    pstmt.setString(2, filename);
+                    pstmt.setBytes(3, zipedfile);
+                    pstmt.setString(4, listId);
+                } else {
+                    // remove content list
+                    pstmt = conn.prepareStatement(String.format("delete from content_list where id='%s' and keyword='%s'", ID, keyword));
+                    pstmt.executeUpdate();
                 }
             } catch (Exception ex) {
-                System.out.println(ex.getMessage());
                 System.out.println("Error importing ringtone into database");
+                throw ex;
             }
         } 
     }    

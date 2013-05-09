@@ -231,7 +231,6 @@ public class RepositoryManager {
     public void ImportContent(FileItem fi, String contentProviderId ,Integer type, String supplierId, String keyword) throws Exception {
         if (!fi.isFormField()) {
             String filename = fi.getName();
-            int executeStatus;
             // check file type
             // if filetype is zip
             if (filename != null && filename.endsWith(".zip")) {
@@ -246,9 +245,7 @@ public class RepositoryManager {
                 // delete temp file
                 // update content list
             } else {
-                throw new Exception(
-                        "Invalid file Archive. File must be a zip file");
-                
+                throw new Exception("Invalid file Archive. File must be a zip file");                
             }
             
         }

@@ -1,1 +1,2 @@
-alter table `content_list` add column `keyword` varchar(100) character set utf8 NOT NULL;
+alter table `content_list` add column `keyword` varchar(100) character set utf8 NOT NULL default '';
+alter table `content_list` change column `download_url` varchar(255) character set utf8 NOT NULL default '';
