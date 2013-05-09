@@ -1676,6 +1676,56 @@ public class UserServiceDB {
         }
         return keywords;
     }
+    
+    public static ArrayList getKeywordsOfServices(String accountId) throws Exception {
+        ArrayList keywords = new ArrayList();
+        String SQL;
+        ResultSet rs = null;
+        Connection con = null;
+        PreparedStatement prepstat = null;
+        try {
+            con = DConnect.getConnection();
+            SQL = "select keyword from service_definition where account_id='" + accountId + "'";
+            prepstat = con.prepareStatement(SQL);
+            rs = prepstat.executeQuery();
+
+            while (rs.next()) {
+                keywords.add(rs.getString("keyword"));
+            }
+        } catch (Exception ex) {
+            if (con != null) {
+                try {
+                    con.close();
+                } catch (SQLException ex1) {
+                    System.out.println(ex1.getMessage());
+                }
+                con = null;
+            }
+        } finally {
+            if (rs != null) {
+                try {
+                    rs.close();
+                } catch (SQLException e) {
+                }
+                rs = null;
+            }
+            if (prepstat != null) {
+                try {
+                    prepstat.close();
+                } catch (SQLException e) {
+                }
+                prepstat = null;
+            }
+            if (con != null) {
+                try {
+                    con.close();
+                } catch (SQLException e) {
+                }
+                con = null;
+            }
+        }
+        return keywords;
+    }    
 
     public static ArrayList getKeywordsUserSubscribedTo(String msisdn, String accountId) throws Exception {
         ArrayList keywords = new ArrayList();
