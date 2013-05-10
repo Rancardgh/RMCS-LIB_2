@@ -923,7 +923,7 @@ public class ArchiveManager {
                 
                 PreparedStatement pstmt = null;
                 // update the content list table with a refference
-                String qry = "insert into content_list (id, content_id, title,size,  price, list_id, date_added ,content_type,formats,isLocal,supplier_id, keyword,download_url)" +
+                String qry = "insert into content_list (id, content_id, title,size,  price, list_id, date_added ,content_type,formats,isLocal,supplier_id, keyword)" +
                              " values (?, ?, ?, ?, ?,?, ?,?,?,?,?,?)";
                 pstmt = conn.prepareStatement(qry);
                 pstmt.setString(1, ID);
