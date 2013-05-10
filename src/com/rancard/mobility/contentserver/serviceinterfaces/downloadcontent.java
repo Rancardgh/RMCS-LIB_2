@@ -167,6 +167,7 @@ public class downloadcontent extends HttpServlet {
                     throw new Exception(Feedback.BANDWIDTH_EXCEEDED);
                 }
             } catch (java.net.ConnectException ex) {
+                System.out.println(new Date() + ": Exception> " + ex.getMessage());
                 try {
                     if (siteType.equals(CPSite.SMS)) {
                         message = feedback.getUserFriendlyDescription(Feedback.CONNECTION_ERROR);
@@ -179,6 +180,7 @@ public class downloadcontent extends HttpServlet {
                 out.println(message);
                 return;
             } catch (HttpException e) {
+                System.out.println(new Date() + ": Exception> " + e.getMessage());
                 try {
                     if (siteType.equals(CPSite.SMS)) {
                         message = feedback.getUserFriendlyDescription(Feedback.CONNECTION_ERROR);
@@ -191,7 +193,7 @@ public class downloadcontent extends HttpServlet {
                 out.println(message);
                 return;
             } catch (IOException e) {
-
+                System.out.println(new Date() + ": Exception> " + e.getMessage());
                 try {
                     if (siteType.equals(CPSite.SMS)) {
                         message = feedback.getUserFriendlyDescription(Feedback.CONNECTION_ERROR);
@@ -204,6 +206,7 @@ public class downloadcontent extends HttpServlet {
                 out.println(message);
                 return;
             } catch (Exception e) {
+                System.out.println(new Date() + ": Exception> " + e.getMessage());
                 try {
                     if (siteType.equals(CPSite.SMS)) {
                         message = feedback.getUserFriendlyDescription(e.getMessage());
@@ -719,7 +722,6 @@ public class downloadcontent extends HttpServlet {
         BufferedOutputStream bos = null;
         BufferedInputStream bis = null;
         ServletOutputStream outstr = resp.getOutputStream();
-
         byte[] item = null;
 
         if (content.islocal()) {

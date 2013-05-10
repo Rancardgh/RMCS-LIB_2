@@ -892,6 +892,7 @@ public class ArchiveManager {
         }
         // extract information
         System.out.println("Creating " + zipName);
+        System.out.println("FileSize: " + toReadableByteCount((long)zipedfile.length, false));
         // file name
         String filename = e.getName();
         filename = zipName.substring(zipName.lastIndexOf("/") + 1, zipName.length());
@@ -947,8 +948,10 @@ public class ArchiveManager {
                     pstmt.setString(2, filename);
                     pstmt.setBytes(3, zipedfile);
                     pstmt.setString(4, listId);
-                    pstmt.execute();
-                } else {
+                    executeStatus = pstmt.executeUpdate();
+                } 
+                // if content upldoad failed, remove entry
+                if (executeStatus == PreparedStatement.EXECUTE_FAILED) {
                     // remove content list
                     pstmt = conn.prepareStatement(String.format("delete from content_list where id='%s' and keyword='%s'", ID, keyword));
                     pstmt.execute();
@@ -974,5 +977,12 @@ public class ArchiveManager {
                 "S:\\developer\\work\\";
     }
 
+    public static String toReadableByteCount(long bytes, boolean si) {
+        int unit = si ? 1000 : 1024;
+        if (bytes < unit) return bytes + " B";
+        int exp = (int) (Math.log(bytes) / Math.log(unit));
+        String pre = (si ? "kMGTPE" : "KMGTPE").charAt(exp-1) + (si ? "" : "i");
+        return String.format("%.1f %sB", bytes / Math.pow(unit, exp), pre);
+    }
 
 }
