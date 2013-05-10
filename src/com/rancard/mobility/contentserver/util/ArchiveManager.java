@@ -947,10 +947,12 @@ public class ArchiveManager {
                     pstmt.setString(2, filename);
                     pstmt.setBytes(3, zipedfile);
                     pstmt.setString(4, listId);
+                    pstmt.execute();
                 } else {
                     // remove content list
                     pstmt = conn.prepareStatement(String.format("delete from content_list where id='%s' and keyword='%s'", ID, keyword));
-                    pstmt.executeUpdate();
+                    pstmt.execute();
+                    throw new Exception("Failed to import content");
                 }
             } catch (Exception ex) {
                 System.out.println("Error importing ringtone into database");
