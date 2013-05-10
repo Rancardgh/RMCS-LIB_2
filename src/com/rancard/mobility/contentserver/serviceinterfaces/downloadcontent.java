@@ -47,7 +47,7 @@ public class downloadcontent extends HttpServlet {
         //String baseUrl = s + "://" + request.getServerName () + ":" + request.getServerPort () + request.getContextPath () + "/";
         String baseUrl = this.getServletContext().getInitParameter("contentServerPublicURL");//
         com.rancard.common.Message replyPg = new com.rancard.common.Message();
-        PrintWriter out = response.getWriter();
+        ServletOutputStream out = response.getOutputStream();
 
         // this represents an instance of a transaction
         Transaction download = new Transaction();
@@ -235,7 +235,6 @@ public class downloadcontent extends HttpServlet {
             } catch (Exception ex) {
                 message = ex.getMessage();
             }
-//            out = response.getWriter();
             out.println(message);
             return;
         }
