@@ -912,7 +912,7 @@ public class ArchiveManager {
             type = ExtManager.getTypeForFormat(extension);
         }
         // time
-        long time = e.getTime();
+        long time = new java.util.Date().getTime(); //e.getTime();
         // preview file
         // slightly better performance use single datbase connection all files can be written in a single connection
         if (type != 0) {
