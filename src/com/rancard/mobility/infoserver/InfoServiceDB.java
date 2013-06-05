@@ -4,8 +4,13 @@ import com.rancard.common.DConnect;
 import com.rancard.mobility.infoserver.common.services.UserService;
 import com.rancard.util.URLUTF8Encoder;
 import java.io.*;
-import java.nio.charset.Charset;
-import java.sql.*;
+import java.sql.Clob;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Date;
+
 
 public class InfoServiceDB extends com.rancard.mobility.infoserver.common.services.UserServiceDB {
 
@@ -14,7 +19,7 @@ public class InfoServiceDB extends com.rancard.mobility.infoserver.common.servic
     }
 
     //insert record
-    public void createInfoServiceEntry (java.util.Date date, java.lang.String keyword, java.lang.String message, java.lang.String accountId, String ownerId, String imageURL, String articleTitle) throws Exception {
+    public void createInfoServiceEntry (Date date, String keyword, String message, String accountId, String ownerId, String imageURL, String articleTitle) throws Exception {
         // check if keyword is registered.
         com.rancard.mobility.infoserver.common.services.UserService serv = viewService (keyword, accountId);
         int test = 0;
@@ -340,15 +345,14 @@ public class InfoServiceDB extends com.rancard.mobility.infoserver.common.servic
 
                 // If footer exists, enter new line character before adding footer -- only of content + footer is <= maxContentLength
                 String final_message = header + message;
-                System.out.println ("Ignoring footer: \"" + footer + "\" from actual message. Stored message: " + final_message);
-                /*if (new String (final_message + ((footer.equals ("")) ? "" : "\n" + footer)).length () <= maxContentLength) {
+                if (new String (final_message + ((footer.equals ("")) ? "" : "\n" + footer)).length () <= maxContentLength) {
                     final_message = final_message + ((footer.equals ("")) ? "" : "\n" + footer);
                 } else {
                     System.out.println ("Ignoring footer: \"" + footer + "\" from actual message. Stored message: " + final_message);
-                }*/
+                }
 
                 // Test length of final message
-                if (final_message.length () > maxContentLength || final_message.length () < 30) {
+                if (final_message.length () > maxContentLength) {
                     return 1;
                 }
 
@@ -785,7 +789,7 @@ public class InfoServiceDB extends com.rancard.mobility.infoserver.common.servic
         ResultSet rs = null;
         Connection con = null;
         PreparedStatement prepstat = null;
-        Date sqlDate = new java.sql.Date (date.getTime ());
+        java.sql.Date sqlDate = new java.sql.Date (date.getTime ());
         //------log Statement
         System.out.println (new java.util.Date () + ":@com.rancard.mobility.infoserver.InfoServiceDB..");
         System.out.println (new java.util.Date () + ": retrieving outbound message from message queue...");
@@ -895,7 +899,7 @@ public class InfoServiceDB extends com.rancard.mobility.infoserver.common.servic
         ResultSet rs = null;
         Connection con = null;
         PreparedStatement prepstat = null;
-        Date sqlDate = new java.sql.Date (date.getTime ());
+        java.sql.Date sqlDate = new java.sql.Date (date.getTime ());
         //------log Statement
         System.out.println (new java.util.Date () + ":@com.rancard.mobility.infoserver.InfoServiceDB..");
         System.out.println (new java.util.Date () + ":viewing info service...");
@@ -1012,7 +1016,7 @@ public class InfoServiceDB extends com.rancard.mobility.infoserver.common.servic
         ResultSet rs = null;
         Connection con = null;
         PreparedStatement prepstat = null;
-        Date sqlDate = new java.sql.Date (date.getTime ());
+        java.sql.Date sqlDate = new java.sql.Date (date.getTime ());
 
         try {
             UserService service = com.rancard.mobility.infoserver.common.services.ServiceManager.viewService (keyword, accountId);
@@ -1473,46 +1477,5 @@ public class InfoServiceDB extends com.rancard.mobility.infoserver.common.servic
         if (con != null) {
             con.close ();
         }
-    }
-    
-    public static String getServiceFooter (String accountId, String keyword)  throws Exception {
-        String footer = "";
-        
-        String SQL;
-        ResultSet rs = null;
-        Connection con = null;
-        PreparedStatement prepstat = null;
-
-        try {
-
-            SQL = "select * from service_labels where account_id = ? and keyword = ?";
-            con = DConnect.getConnection ();
-            prepstat = con.prepareStatement (SQL);
-            prepstat.setString (1, accountId);
-            prepstat.setString (2, keyword);
-            rs = prepstat.executeQuery ();
-
-            while (rs.next ()) {
-                footer = rs.getString ("footer");
-            }
-        } catch (Exception ex) {
-            if (con != null) {
-                con.close ();
-            }
-
-            throw new Exception (ex.getMessage ());
-        } finally {
-            if (prepstat != null) {
-                prepstat.close ();
-            }
-            if (rs != null) {
-                rs.close ();
-            }
-            if (con != null) {
-                con.close ();
-            }
-        }
-        
-        return footer;
     }
 }

@@ -1,5 +1,7 @@
 package com.rancard.mobility.infoserver.common.services;
 
+import java.util.List;
+
 public class UserService implements java.io.Serializable{
     
     private boolean isBasic;    
@@ -13,7 +15,6 @@ public class UserService implements java.io.Serializable{
     private String command;
     private String allowedShortcodes;
     private String allowedSiteTypes;
-    //private String allowedNetworks;
     private String pricing;
     private String serviceResponseSender;
     
@@ -42,7 +43,7 @@ public class UserService implements java.io.Serializable{
     }
     
     public UserService(String serviceType, String keyword, String accountId, String serviceid, String defaultMessage, String command, String allowedShortcodes, String allowedSiteTypes,
-            /*String allowedNetworks, */String pricing, boolean isBasic) {
+            String pricing, boolean isBasic) {
         this.isBasic = isBasic;
         
         this.serviceType = serviceType;
@@ -52,13 +53,12 @@ public class UserService implements java.io.Serializable{
         this.defaultMessage = defaultMessage;
         this.command = command;
         this.allowedShortcodes = allowedShortcodes;
-        this.allowedSiteTypes = allowedSiteTypes;
-        //this.allowedNetworks = allowedNetworks;
+        this.allowedSiteTypes = allowedSiteTypes;        
         this.pricing = pricing;
     }
     
     public UserService(String serviceType, String keyword, String accountId, String serviceid, String defaultMessage, String command, String allowedShortcodes, String allowedSiteTypes,
-            /*String allowedNetworks, */String pricing, boolean isBasic, boolean isSubscription, String serviceReponseSender) {
+            String pricing, boolean isBasic, boolean isSubscription, String serviceReponseSender) {
         this.isBasic = isBasic;
         this.isSubscription = isSubscription;
         this.serviceType = serviceType;
@@ -68,8 +68,7 @@ public class UserService implements java.io.Serializable{
         this.defaultMessage = defaultMessage;
         this.command = command;
         this.allowedShortcodes = allowedShortcodes;
-        this.allowedSiteTypes = allowedSiteTypes;
-        //this.allowedNetworks = allowedNetworks;
+        this.allowedSiteTypes = allowedSiteTypes;        
         this.pricing = pricing;
         this.serviceResponseSender = serviceReponseSender;
     }
@@ -114,15 +113,26 @@ public class UserService implements java.io.Serializable{
         this.serviceName = serviceName;
     }
 
+    @Override
     public boolean equals(Object elem) {
+        if(elem instanceof UserService){
+            return false;
+        }
+        
         UserService e = (UserService) elem;
-
-        if (this.accountId.equals(e.getAccountId()) &&
-            this.keyword.equals(e.getKeyword())) {
+        if (this.accountId.equals(e.getAccountId()) && this.keyword.equals(e.getKeyword())) {
             return true;
         } else {
             return false;
         }
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 3;
+        hash = 41 * hash + (this.keyword != null ? this.keyword.hashCode() : 0);
+        hash = 41 * hash + (this.accountId != null ? this.accountId.hashCode() : 0);
+        return hash;
     }
 
     /**
@@ -207,13 +217,6 @@ public class UserService implements java.io.Serializable{
     public void setServiceResponseSender (String serviceResponseSender) {
         this.serviceResponseSender = serviceResponseSender;
     } 
-    /*public String getAllowedNetworks () {
-        return allowedNetworks;
-    }
-
-    public void setAllowedNetworks (String allowedNetworks) {
-        this.allowedNetworks = allowedNetworks;
-    }*/
 
     public String getPricing () {
         return pricing;

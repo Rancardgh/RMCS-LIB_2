@@ -33,7 +33,7 @@ public class PricePoint {
     }
     
     /** Creates a new instance of PricePoint */
-    public PricePoint (String pricePointId, String networkPrefix, String value, String currenc, String billingMech, String billingUrl) {
+    public PricePoint (String pricePointId, String networkPrefix, String value, String currency, String billingMech, String billingUrl) {
         this.pricePointId = pricePointId;
         this.networkPrefix = networkPrefix;
         this.value = value;

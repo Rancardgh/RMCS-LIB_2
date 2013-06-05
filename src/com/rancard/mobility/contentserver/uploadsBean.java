@@ -119,7 +119,7 @@ public class uploadsBean {
     public static long getStorageSpaceUsed(String listId) throws Exception{
         return uploadsDB.totalDiskSpaceUsed(listId);
     }
-    
+
     public static void uploadPreview (DataImportListener listener, List fileItems, String listId) throws Exception {
         uploadsDB.uploadPreview (listener, fileItems, listId);
     }

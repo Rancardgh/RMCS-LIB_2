@@ -200,6 +200,35 @@ public class ArchiveManager {
         }
     }
 
+    public void unZipToContentRepository(InputStream in, String fileName,
+                                         String contentProviderId, Integer type, String supplierId, String keyword) throws Exception {
+        ArchiveManager u = new ArchiveManager();
+        u.setMode(EXTRACT);
+        String candidate = fileName;
+        // System.err.println("Trying path " + candidate);
+        java.sql.Connection conn = null;
+        try {
+            conn = com.rancard.common.DConnect.getConnection();
+            if (candidate.endsWith(".zip") || candidate.endsWith(".jar")) {
+                u.unZip(in, conn, contentProviderId, type, supplierId, keyword);
+                System.err.println("All done!");
+            } else {
+                System.err.println("Not a zip file? " + candidate);
+                throw new Exception("Invalid file type");
+            }            
+        } catch (Exception ex) {
+            throw ex;
+        } finally {
+            //close DB connection
+            if (conn != null) {
+                try{
+                    conn.close();
+                }catch (Exception e) {
+                    conn = null;
+                }
+            }
+        }
+    }    
 
     /** Construct an ArchiveManager object. Just allocate the buffer */
     public ArchiveManager() {
@@ -399,12 +428,43 @@ public class ArchiveManager {
 
         } catch (IOException err) {
             System.err.println("IO Error: " + err);
-            return;
+            throw new Exception("Unzipping content failed");
         } catch (SQLException ex) {
             //System.out.println("SQL Error "+ex.getMessage());
         }
     }
 
+    protected void unZip(InputStream in, java.sql.Connection conn,
+                     String contenProviderId, Integer type, String supplierId, String keyword) throws
+            Exception {
+        dirsMade = new TreeSet();
+        zipStream = new ZipInputStream(in);
+        // Enumeration all = zippy.entries();
+        String tablename = contenProviderId;
+        // create temp table
+        // get connection to temporary table
+        // extract each file
+        //while (0 != zipStream.available()) {
+        ZipEntry z;
+
+        while ((z = zipStream.getNextEntry()) != null) {
+            byte[] buf = new byte[1024];
+            int len;
+            java.io.ByteArrayOutputStream bos = new java.io.
+                    ByteArrayOutputStream();
+            while ((len = zipStream.read(buf)) > 0) {
+                bos.write(buf, 0, len);
+            }
+            byte[] unzippedFile = bos.toByteArray();
+            bos.close();
+            // write validation class to ensure that only valid file types are written
+
+            write(z, unzippedFile, conn, tablename, type.intValue (), supplierId, keyword);
+            //zipStream.closeEntry();
+            // add to batch
+        }
+        zipStream.close();
+    }
 
     /**
      * Process one file from the zip, given its name. Either print the name, or
@@ -723,7 +783,7 @@ public class ArchiveManager {
             }
         }
         //os.close();
-    }
+    }   
     
     protected void write(ZipEntry e, byte[] zipedfile, java.sql.Connection conn,
                          String tableName, int type, String supplierId) throws
@@ -810,7 +870,99 @@ public class ArchiveManager {
         }
         //os.close();
     }
+    
+    protected void write(ZipEntry e, byte[] zipedfile, java.sql.Connection conn,
+                         String tableName, int type, String supplierId, String keyword) throws 
+            IOException, java.sql.SQLException, Exception {
+        String zipName = e.getName();
 
+        if (zipName.startsWith("/")) {
+            if (!warnedMkDir) {
+                System.out.println("Ignoring absolute paths");
+            }
+            warnedMkDir = true;
+            zipName = zipName.substring(1);
+        }
+
+        // if a directory, just return. We mkdir for every file,
+        // since some widely-used Zip creators don't put out
+        // any directory entries, or put them in the wrong place.
+        if (zipName.endsWith("/")) {
+            return;
+        }
+        // extract information
+        System.out.println("Creating " + zipName);
+        System.out.println("FileSize: " + toReadableByteCount((long)zipedfile.length, false));
+        // file name
+        String filename = e.getName();
+        filename = zipName.substring(zipName.lastIndexOf("/") + 1, zipName.length());
+
+        // // strip away folders as an optional feature
+        // size
+        long size = e.getSize();
+        // extenstion
+        String extension = null;
+        int x = filename.lastIndexOf(".");
+        if (x != 0) {
+            extension = filename.substring(x + 1, filename.length());
+        }
+        String typeId = "" + type;
+        String formatid = ExtManager.getFormatFor(extension);
+        if(!ExtManager.match (typeId, formatid)){
+            type = ExtManager.getTypeForFormat(extension);
+        }
+        // time
+        long time = new java.util.Date().getTime(); //e.getTime();
+        // preview file
+        // slightly better performance use single datbase connection all files can be written in a single connection
+        if (type != 0) {
+            try {
+                //check if extenasion is valid
+                int executeStatus;
+                String ID = new com.rancard.common.uidGen().generateNumberID (10);
+                String listId = tableName;
+                
+                PreparedStatement pstmt = null;
+                // update the content list table with a refference
+                String qry = "insert into content_list (id, content_id, title,size,  price, list_id, date_added ,content_type,formats,isLocal,supplier_id, keyword)" +
+                             " values (?, ?, ?, ?, ?,?, ?,?,?,?,?,?)";
+                pstmt = conn.prepareStatement(qry);
+                pstmt.setString(1, ID);
+                pstmt.setString(2, new com.rancard.common.uidGen().getUId());
+                pstmt.setString(3, zipName);
+                pstmt.setLong(4, size);
+                pstmt.setString(5, "0");
+                pstmt.setString(6, listId);
+                pstmt.setTimestamp(7, new java.sql.Timestamp(time));
+                pstmt.setInt(8, type);
+                pstmt.setString(9, formatid);
+                pstmt.setInt(10, 1);
+                pstmt.setString(11, supplierId);
+                pstmt.setString(12, keyword);
+                executeStatus = pstmt.executeUpdate();
+                // if the status is not failed
+                if (executeStatus != PreparedStatement.EXECUTE_FAILED) {
+                    pstmt = conn.prepareStatement(
+                        "insert into uploads  (id, filename,binaryfile,list_id) 	values 	(?, ?, ? ,?)");
+                    pstmt.setString(1, ID);
+                    pstmt.setString(2, filename);
+                    pstmt.setBytes(3, zipedfile);
+                    pstmt.setString(4, listId);
+                    executeStatus = pstmt.executeUpdate();
+                } 
+                // if content upldoad failed, remove entry
+                if (executeStatus == PreparedStatement.EXECUTE_FAILED) {
+                    // remove content list
+                    pstmt = conn.prepareStatement(String.format("delete from content_list where id='%s' and keyword='%s'", ID, keyword));
+                    pstmt.execute();
+                    throw new Exception("Failed to import content");
+                }
+            } catch (Exception ex) {
+                System.out.println("Error importing ringtone into database");
+                throw ex;
+            }
+        } 
+    }    
 
     private String getTempDirectory() throws Exception {
         /*  try {
@@ -825,5 +977,12 @@ public class ArchiveManager {
                 "S:\\developer\\work\\";
     }
 
+    public static String toReadableByteCount(long bytes, boolean si) {
+        int unit = si ? 1000 : 1024;
+        if (bytes < unit) return bytes + " B";
+        int exp = (int) (Math.log(bytes) / Math.log(unit));
+        String pre = (si ? "kMGTPE" : "KMGTPE").charAt(exp-1) + (si ? "" : "i");
+        return String.format("%.1f %sB", bytes / Math.pow(unit, exp), pre);
+    }
 
 }

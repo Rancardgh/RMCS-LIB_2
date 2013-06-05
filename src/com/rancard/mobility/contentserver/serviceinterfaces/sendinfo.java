@@ -12,15 +12,14 @@ import com.rancard.common.Feedback;
 import com.rancard.mobility.contentserver.CPConnections;
 import com.rancard.mobility.contentserver.CPSite;
 import com.rancard.mobility.infoserver.InfoService;
-import com.rancard.mobility.infoserver.InfoServiceDB;
 import com.rancard.util.payment.PaymentManager;
 import com.rancard.util.payment.PricePoint;
 import com.rancard.mobility.infoserver.common.services.UserServiceTransaction;
 import com.rancard.mobility.infoserver.common.services.ServiceManager;
-import com.rancard.mobility.rendezvous.discovery.viral_marketing.VMServiceManager;
 import com.rancard.util.GsmCharset;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.URLEncoder;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -34,17 +33,19 @@ import javax.servlet.*;
 public class sendinfo extends HttpServlet implements RequestDispatcher {
 
     //Initialize global variables
+    @Override
     public void init() throws ServletException {
     }
 
     //Process the HTTP Get request
+    @Override
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         
         try {
             request.setCharacterEncoding ("UTF-8");
         } catch (Exception e) {}
 
-        String fullContextPath = "http://192.168.1.243:81" + request.getContextPath ();
+        String fullContextPath = "http://192.168.1.243:81" + request.getContextPath();
         boolean skipMessagingFromCallBack = false; //used to communicate with handler who implements the callback functionality whether to send notification or not
 
         //get reeponse writer
@@ -122,8 +123,9 @@ public class sendinfo extends HttpServlet implements RequestDispatcher {
             if (!isAsciiPrintable) {
                 System.out.println ("Setting request attribute for Kannel Header: X-Kannel-Coding ...");
                 request.setAttribute ("X-Kannel-Coding", "2");
-                if (request.getAttribute ("X-Kannel-Coding") != null)
+                if (request.getAttribute ("X-Kannel-Coding") != null) {
                     System.out.println ("Request contains X-Kannel-Coding attribute");
+                }
             }
             out.println(message);
             return;
@@ -254,8 +256,9 @@ public class sendinfo extends HttpServlet implements RequestDispatcher {
                 if (!isAsciiPrintable) {
                     System.out.println ("Setting request attribute for Kannel Header: X-Kannel-Coding ...");
                     request.setAttribute ("X-Kannel-Coding", "2");
-                    if (request.getAttribute ("X-Kannel-Coding") != null)
+                    if (request.getAttribute ("X-Kannel-Coding") != null){
                         System.out.println ("Request contains X-Kannel-Coding attribute");
+                    }
                 }
                 out.println(message);
                 return;
@@ -372,9 +375,9 @@ public class sendinfo extends HttpServlet implements RequestDispatcher {
 
                     //-----insert transacton------------
                     //URL used to complete the transaction after billing has been completed
-                    String completeTransnxnUrl = fullContextPath + "/sendinfo_push.jsp?msisdn=" + com.rancard.util.URLUTF8Encoder.encode(msisdn)
-                            + "&keyword=" + kw.toUpperCase() + "&alert_count=" + is.getMsgId() + "&dest=" + com.rancard.util.URLUTF8Encoder.encode(shortcode)
-                            + "&siteId=" + siteId + "&transId=" + transactionId;
+                    String completeTransnxnUrl = fullContextPath + "/sendinfo_push.jsp?msisdn=" + URLEncoder.encode(msisdn, "UTF-8")
+                            + "&keyword=" + URLEncoder.encode(kw.toUpperCase(), "UTF-8")  + "&alert_count=" + is.getMsgId() + "&dest=" + URLEncoder.encode(shortcode, "UTF-8")
+                            + "&siteId=" + URLEncoder.encode(siteId, "UTF-8") + "&transId=" + URLEncoder.encode(transactionId, "UTF-8");
 
                     if (pricePoint.getBillingMech().equals(PaymentManager.OT_BILL)) {
                         completeTransnxnUrl = completeTransnxnUrl + "&sender=KEYWORD";
@@ -428,7 +431,7 @@ public class sendinfo extends HttpServlet implements RequestDispatcher {
                         }
 
                         /*if (skipMessagingFromCallBack) {
-                        completeTransnxnUrl = completeTransnxnUrl + "&push=FALSE";
+                        compleTransnxnUrl = completeTransnxnUrl + "&push=FALSE";
                         } else {
                         completeTransnxnUrl = completeTransnxnUrl + "&push=TRUE";
                         }*/
@@ -443,7 +446,7 @@ public class sendinfo extends HttpServlet implements RequestDispatcher {
                         } else {
                             trans.setIsBilled(0);
                             trans.setIsCompleted(isCompleted);
-                            //updateOTTransaction(kw, provId, "on-demand", msisdn, pricePoint.getPricePointId(), 0, 0, transactionId);
+                            //updateOTTransaction(kw, provId, "on-demand",msisdn, pricePoint.getPricePointId(), 0, 0, transactionId);
                         }
 
                         try {
@@ -496,12 +499,6 @@ public class sendinfo extends HttpServlet implements RequestDispatcher {
                             System.out.println ("Request contains X-Kannel-Coding attribute");
                         }
                     }
-                    
-                    try {
-                        compactInfo = VMServiceManager.embedShareLink (provId, kw, compactInfo, msisdn);
-                    } catch (Exception e) {
-                    }
-                    
                     out.println(compactInfo);
                     //request.setAttribute("dfltMsg", info);
                 } else {

@@ -228,6 +228,30 @@ public class RepositoryManager {
         
     }
     
+    public void ImportContent(FileItem fi, String contentProviderId ,Integer type, String supplierId, String keyword) throws Exception {
+        if (!fi.isFormField()) {
+            String filename = fi.getName();
+            // check file type
+            // if filetype is zip
+            if (filename != null && filename.endsWith(".zip")) {
+                // store to tempory location
+                // unzip to db
+                // instantiate archive manager with connection to repository
+                com.rancard.mobility.contentserver.util.ArchiveManager
+                        zipmanager = new com.rancard.mobility.contentserver.
+                        util.ArchiveManager(this.getTmpFolder());
+                zipmanager.unZipToContentRepository(fi.getInputStream(),
+                        fi.getName(), contentProviderId, type, supplierId, keyword);
+                // delete temp file
+                // update content list
+            } else {
+                throw new Exception("Invalid file Archive. File must be a zip file");                
+            }
+            
+        }
+        
+    }   
+    
     public void ImportContent(FileItem fi, String contentProviderId) throws Exception {
         if (!fi.isFormField()) {
             String filename = fi.getName();

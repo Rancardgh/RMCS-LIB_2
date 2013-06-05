@@ -2,38 +2,32 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-
 package com.rancard.mobility.infoserver.viralmarketing;
+
+import java.util.Date;
 
 /**
  *
  * @author nii
+ * @Updated Mustee
  */
 public class VMTransaction {
 
-    private String transactionDate;
+    private Date transactionDate;
     private String campaignId;
     private String recruiterMsisdn;
     private String recipientMsisdn;
     private String status;
 
-    public VMTransaction() {
-        this.transactionDate = "";
-        this.campaignId = "";
-        this.recruiterMsisdn = "";
-        this.recipientMsisdn = "";
-        this.status = "";
-    }
-
-    public VMTransaction(String campaignId, String recruiterMsisdn, String recipientMsisdn, String status) {        
+    public VMTransaction(String campaignId, String recruiterMsisdn, String recipientMsisdn, String status, Date transactionDate) {
         this.campaignId = campaignId;
         this.recruiterMsisdn = recruiterMsisdn;
         this.recipientMsisdn = recipientMsisdn;
         this.status = status;
-        this.transactionDate = "";
+        this.transactionDate = transactionDate;
     }
 
-    public String getTransactionDate() {
+    public Date getTransactionDate() {
         return transactionDate;
     }
 
@@ -53,7 +47,7 @@ public class VMTransaction {
         return status;
     }
 
-    public void setTransactionDate(String transactionDate) {
+    public void setTransactionDate(Date transactionDate) {
         this.transactionDate = transactionDate;
     }
 
@@ -71,17 +65,6 @@ public class VMTransaction {
 
     public void setStatus(String status) {
         this.status = status;
-    }
-
-    public boolean isEmptyTransaction() {
-        if (this.transactionDate.equals("") &&
-                this.campaignId.equals("") &&
-                this.recruiterMsisdn.equals("") &&
-                this.recipientMsisdn.equals("") &&
-                this.status.equals(""))
-            return true;
-        else
-            return false;
     }
 
 }

@@ -10,10 +10,12 @@
 package com.rancard.util.payment;
 
 import com.rancard.common.DConnect;
+import com.rancard.mobility.infoserver.common.services.UserServiceDB;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 
 /**
@@ -224,37 +226,35 @@ public abstract class PricePointDB {
         }
     }
     
-    public static PricePoint viewPricePoint (String pricePointId) throws Exception {
-        PricePoint pricePoint = new PricePoint ();
-        
-        String SQL;
+    public static PricePoint viewPricePoint (String pricePointId) throws Exception {        
         ResultSet rs = null;
-        Connection con = null;
-        PreparedStatement prepstat = null;
+        Connection conn = null;       
         
         try {
-            con = DConnect.getConnection ();
-            SQL =   "select * from price_points where price_point_id='" + pricePointId + "'";
-            prepstat = con.prepareStatement (SQL);
-            rs = prepstat.executeQuery ();
+            conn = DConnect.getConnection ();
+            
+            String sql =   "select * from price_points where price_point_id = '" + pricePointId + "'";
+            System.out.println(new Date() + ": " + UserServiceDB.class + ":DEBUG SQL Query to get price point: " + sql);            
+            
+            rs = conn.createStatement().executeQuery(sql);
             
             if(rs.next ()){
-                pricePoint.setBillingUrl (rs.getString ("billing_url"));
-                pricePoint.setCurrency (rs.getString ("currency"));
-                pricePoint.setNetworkPrefix (rs.getString ("network_prefix"));
-                pricePoint.setPricePointId (rs.getString ("price_point_id"));
-                pricePoint.setBillingMech (rs.getString ("billing_mech"));
-                pricePoint.setValue (rs.getString ("value"));
+                return new PricePoint(rs.getString ("price_point_id"), rs.getString ("network_prefix"), rs.getString ("value"),
+                        rs.getString ("currency"), rs.getString ("billing_mech"), rs.getString ("billing_url"));                
             }
+            
+            return null;
         } catch (Exception ex) {
-            if (con != null) {
-                con.close ();
-            }
+            System.out.println(new java.util.Date() + ": " + UserServiceDB.class + ":ERROR Getting price point " + pricePointId + ": " + ex.getMessage());
+            throw new Exception(ex.getMessage());
         } finally {
-            if (con != null) {
-                con.close ();
+            if(rs != null){
+                rs.close();
             }
-            return pricePoint;
+            if (conn != null) {
+                conn.close ();
+            }
+            
         }
     }
     

@@ -32,7 +32,7 @@ public class uidGen {
     }*/
     
     public static synchronized String generateID (int stringLength) {
-        StringBuffer id = new StringBuffer ();
+        StringBuilder id = new StringBuilder ();
         char[] characters = {'Q', 'U', 'o', 'a', 'G', 'y', '2', 'M', '4', '0',
         'v', '9', 'T', 'c', 'k', 'l', 'N', 'm', 'g', 'q', '5', 'r', '8', 's', 'w', 'z',
         'Z', 'x', 'A', 'f', 'i', 'u', 'B', '1', 'E', 'H', 'I', 'p', 'J', 'X', 'j', 'L',
@@ -46,15 +46,12 @@ public class uidGen {
         
         String id_string = id.toString ();
         
-        //cleaning up
-        id = null;
-        characters = null;
         
         return id_string;
     }
     
     public static synchronized String generateNumberID (int stringLength) {
-        StringBuffer id = new StringBuffer ();
+        StringBuilder id = new StringBuilder ();
         char[] characters = {'1', '0', '2', '4', '3', '5', '8', '6', '9', '0',
         '7', '9', '3', '1', '9', '7', '6', '8', '1', '4', '2', '3', '9', '3', '1', '8',
         '5', '5', '3', '8', '6', '0', '2', '1', '6', '8', '8'};
@@ -66,9 +63,7 @@ public class uidGen {
         
         String id_string = id.toString ();
         
-        //cleaning up
-        id = null;
-        characters = null;
+       
         
         return id_string;
     }

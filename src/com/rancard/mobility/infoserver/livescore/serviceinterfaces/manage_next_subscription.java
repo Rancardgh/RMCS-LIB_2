@@ -66,7 +66,7 @@ public class manage_next_subscription extends HttpServlet implements RequestDisp
             CPConnections cnxn = new CPConnections();
             
             //1.--------get cp account Ids and corresponding keyword for monthly subscription
-            HashMap accountsReSubKeywordMatrix = ServiceManager.getCPIDsForServiceType("15","9");
+            Map<String, String> accountsReSubKeywordMatrix = ServiceManager.getCPIDsForServiceType("15","9");
             
             Iterator iter = accountsReSubKeywordMatrix.keySet().iterator();
             String accountId ="";
