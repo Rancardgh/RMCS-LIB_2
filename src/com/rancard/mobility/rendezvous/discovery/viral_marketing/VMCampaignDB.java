@@ -185,6 +185,7 @@ public class VMCampaignDB {
                 campaign.setVmHowTo (rs.getString ("how_to_msg"));
                 campaign.setFollowUpMsgError (rs.getString ("follow_up_msg_error"));
                 campaign.setFollowUpMsgSuccess (rs.getString ("follow_up_msg_success"));
+                campaign.setInviteAcceptedMsg(rs.getString ("invite_accepted_msg"));
             }
 
         } catch (Exception ex) {

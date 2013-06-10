@@ -2,32 +2,38 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.rancard.mobility.infoserver.viralmarketing;
 
-import java.util.Date;
+package com.rancard.mobility.infoserver.viralmarketing;
 
 /**
  *
  * @author nii
- * @Updated Mustee
  */
 public class VMTransaction {
 
-    private Date transactionDate;
+    private String transactionDate;
     private String campaignId;
     private String recruiterMsisdn;
     private String recipientMsisdn;
     private String status;
 
-    public VMTransaction(String campaignId, String recruiterMsisdn, String recipientMsisdn, String status, Date transactionDate) {
+    public VMTransaction() {
+        this.transactionDate = "";
+        this.campaignId = "";
+        this.recruiterMsisdn = "";
+        this.recipientMsisdn = "";
+        this.status = "";
+    }
+
+    public VMTransaction(String campaignId, String recruiterMsisdn, String recipientMsisdn, String status) {        
         this.campaignId = campaignId;
         this.recruiterMsisdn = recruiterMsisdn;
         this.recipientMsisdn = recipientMsisdn;
         this.status = status;
-        this.transactionDate = transactionDate;
+        this.transactionDate = "";
     }
 
-    public Date getTransactionDate() {
+    public String getTransactionDate() {
         return transactionDate;
     }
 
@@ -47,7 +53,7 @@ public class VMTransaction {
         return status;
     }
 
-    public void setTransactionDate(Date transactionDate) {
+    public void setTransactionDate(String transactionDate) {
         this.transactionDate = transactionDate;
     }
 
@@ -65,6 +71,17 @@ public class VMTransaction {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public boolean isEmptyTransaction() {
+        if (this.transactionDate.equals("") &&
+                this.campaignId.equals("") &&
+                this.recruiterMsisdn.equals("") &&
+                this.recipientMsisdn.equals("") &&
+                this.status.equals(""))
+            return true;
+        else
+            return false;
     }
 
 }

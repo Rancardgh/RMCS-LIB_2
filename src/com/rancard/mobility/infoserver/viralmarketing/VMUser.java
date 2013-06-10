@@ -5,8 +5,6 @@
 
 package com.rancard.mobility.infoserver.viralmarketing;
 
-import java.util.Date;
-
 /**
  *
  * @author nii
@@ -17,17 +15,25 @@ public class VMUser {
     private String accountId;
     private String keyword;
     private String username;
-    private Date regDate;
+    private String regDate;
     private int points;
 
+    public VMUser() {
+        this.accountId = "";
+        this.msisdn = "";
+        this.keyword = "";
+        this.username = "";
+        this.regDate = "";
+        this.points = 0;
+    }
 
-    public VMUser(String msisdn, String accountId, String keyword, String username, Date regDate, int points) {
+    public VMUser(String msisdn, String accountId, String keyword, String username, int points) {
         this.accountId = accountId;
         this.msisdn = msisdn;
         this.keyword = keyword;
         this.username = username;
         this.points = points;
-        this.regDate = regDate;
+        this.regDate = "";
     }
 
     public String getAccountId() {
@@ -46,7 +52,7 @@ public class VMUser {
         return username;
     }
 
-    public Date getRegDate() {
+    public String getRegDate() {
         return regDate;
     }
 
@@ -70,7 +76,7 @@ public class VMUser {
         this.username = username;
     }
 
-    public void setRegDate(Date regDate) {
+    public void setRegDate(String regDate) {
         this.regDate = regDate;
     }
 

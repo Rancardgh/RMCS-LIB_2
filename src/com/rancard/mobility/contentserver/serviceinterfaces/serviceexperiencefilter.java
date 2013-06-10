@@ -213,9 +213,9 @@ public class serviceexperiencefilter extends HttpServlet
 
                                 skipMessagePush = true;
                             }
-
-                            vmAcceptance(accountId, service_keyword, msisdn, srvc.getServiceName(), 
-                                    srvcExpr.getWelcomeMsgSender().equals("") ? shortCode : srvcExpr.getWelcomeMsgSender(), smsc);
+                            vmAcceptance (srvc, msisdn, "");
+                            //vmAcceptance(accountId, service_keyword, msisdn, srvc.getServiceName(), 
+                                  //  srvcExpr.getWelcomeMsgSender().equals("") ? shortCode : srvcExpr.getWelcomeMsgSender(), smsc);
                         } else if (srvcExpr.getSubscriptionInterval() == -1) {
                             pushMsg = srvcExpr.getPromoMsg();
                             pushMsgSender = srvcExpr.getPromoMsgSender();
@@ -241,8 +241,9 @@ public class serviceexperiencefilter extends HttpServlet
                                 ServiceManager.subscribeToService(msisdn, keywordList, accountId, srvcExpr.getSubscriptionInterval(), 1, 0);
                             }
 
-                            vmAcceptance(accountId, service_keyword, msisdn, srvc.getServiceName(), 
-                                    srvcExpr.getWelcomeMsgSender().equals("") ? shortCode : srvcExpr.getWelcomeMsgSender(), smsc);
+                            //vmAcceptance(accountId, service_keyword, msisdn, srvc.getServiceName(), 
+                                    //srvcExpr.getWelcomeMsgSender().equals("") ? shortCode : srvcExpr.getWelcomeMsgSender(), smsc);
+                            vmAcceptance (srvc, msisdn, "");
 
                             pushMsg = srvcExpr.getWelcomeMsg();
                             pushMsgSender = srvcExpr.getWelcomeMsgSender().equals("") ? shortCode : srvcExpr.getWelcomeMsgSender();
@@ -286,28 +287,76 @@ public class serviceexperiencefilter extends HttpServlet
         filterChain.doFilter(req, res);
     }
 
-    private void vmAcceptance(String accountId, String keyword, String msisdn, String serviceName, String shortCode, String smsc) {
-        initializeServiceCustomization(accountId, keyword, shortCode);
+    private void vmAcceptance(String accountId, String keyword, String msisdn, String serviceName, String shortCode, String smsc)
+  {
+    initializeServiceCustomization(accountId, keyword, shortCode);
+    try
+    {
+      CPConnections cnxn = CPConnections.getConnection(accountId, msisdn);
+
+      VMTransaction trans = VMServiceManager.viewTransaction(accountId, keyword, msisdn);
+      if (trans.getStatus().equals("inv_sent")) {
+        VMServiceManager.updateTransactionStatus(trans.getCampaignId(), msisdn, "inv_accepted", 10);
+
+        String recruiter = trans.getRecruiterMsisdn();
+        VMUser user = VMServiceManager.viewUser(keyword, accountId, recruiter);
+        String displayable_number = "0" + trans.getRecipientMsisdn().substring(4);
+        String confirmation_msg = "You recently invited " + displayable_number + " to use your favourite service. " + "We're excited to inform you that your invitation was just accepted! You now have " + user.getPoints() + " points.";
+
+        new Thread(new ThreadedMessageSender(cnxn, recruiter, this.push_sender, confirmation_msg, 5000)).start();
+      }
+
+      if ((!smsc.equalsIgnoreCase("myBuzz")) && (!smsc.equalsIgnoreCase("myBuzz2")))
+      {
+        new Thread(new ThreadedMessageSender(cnxn, msisdn, this.push_sender, this.inv_instruction, 30000)).start();
+      }
+    } catch (Exception exc) {
+      System.out.println("Exception caught processing viral marketing step 2: acceptance");
+    }
+  }
+  
+  //function to implement acceptance of viral marketting
+  private void vmAcceptance (UserService srvc, String msisdn, String msisdnNetworkId) throws Exception {
+        //Performing service customizations based on operator/provider
+        com.rancard.mobility.rendezvous.discovery.viral_marketing.VMCampaign campaign =
+                com.rancard.mobility.rendezvous.discovery.viral_marketing.VMServiceManager.viewCampaignByService (srvc.getAccountId (), srvc.getKeyword ());
+
         try {
-            CPConnections cnxn = CPConnections.getConnection(accountId, msisdn);
+            //Get connections for sending messages
+            CPConnections cnxn = new CPConnections ();
+            cnxn = CPConnections.getConnection (srvc.getAccountId (), msisdn);
 
-            VMTransaction trans = VMServiceManager.viewTransaction(accountId, keyword, msisdn);
-            if (!(trans == null) && trans.getStatus().equals("inv_sent")) {
-                VMServiceManager.updateTransactionStatus(trans.getCampaignId(), msisdn, "inv_accepted", 10);
+            // Update VM profile and transaction log
+            com.rancard.mobility.rendezvous.discovery.viral_marketing. VMTransaction trans =
+                    com.rancard.mobility.rendezvous.discovery.viral_marketing.VMServiceManager.viewMostRecentTransaction (srvc.getAccountId (), srvc.getKeyword (), msisdn);
+            if (trans.getStatus ().equals ("inv_sent")) { // ensures user has never accepted in the past
+                com.rancard.mobility.rendezvous.discovery.viral_marketing.VMServiceManager.updateTransactionStatus (trans.getCampaignId (), msisdn, trans.getRecruiterMsisdn (), "inv_accepted", 10);
 
-                String recruiter = trans.getRecruiterMsisdn();
-                VMUser user = VMServiceManager.viewUser(keyword, accountId, recruiter);
-                String displayable_number = "0" + trans.getRecipientMsisdn().substring(4);
-                String confirmation_msg = "You recently invited " + displayable_number + " to use your favourite service. " + "We're excited to inform you that your invitation was just accepted! You now have " + user.getPoints() + " points.";
+                //Send confirmation message to recruiter
+                String recruiter = trans.getRecruiterMsisdn ();
+                VMUser user = VMServiceManager.viewUser (srvc.getKeyword (), srvc.getAccountId (), recruiter);
+                String displayable_number = "0" + trans.getRecipientMsisdn ().substring (4);
+                String default_confirmation_msg = "You recently invited " + displayable_number + " to use your favourite service. "
+                        + "We're excited to inform you that your invitation was just accepted! You now have " + user.getPoints () + " points.";
+                String confirmation_msg = campaign.getInviteAcceptedMsg();
+                if(confirmation_msg == null || "".equals(confirmation_msg)){
+                    confirmation_msg = default_confirmation_msg;
+                }
+                String insertions = "msisdn=" + displayable_number + "&keyword=" + campaign.getKeyword() + "&serviceName=" + srvc.getServiceName()+"&points="+user.getPoints();
+                confirmation_msg = com.rancard.util.URLUTF8Encoder.doMessageEscaping(insertions, confirmation_msg);
 
-                new Thread(new ThreadedMessageSender(cnxn, recruiter, this.push_sender, confirmation_msg, 5000)).start();
+                //Push acceptance notification to recruiter after 5 seconds including total points acquired.
+                (new Thread (new ThreadedMessageSender (cnxn, recruiter, campaign.getMessageSender (), confirmation_msg, 5000))).start ();
+
             }
 
-            if ((!smsc.equalsIgnoreCase("myBuzz")) && (!smsc.equalsIgnoreCase("myBuzz2"))) {
-                new Thread(new ThreadedMessageSender(cnxn, msisdn, this.push_sender, this.inv_instruction, 30000)).start();
+            if (campaign.getVmHowTo () != null && !campaign.getVmHowTo ().equals ("")) {
+                String howTo = com.rancard.mobility.rendezvous.discovery.viral_marketing.VMServiceManager.createHowToMessage (srvc, campaign, msisdn);
+                // Push additional message showing how to invite more people with delay of 30 seconds
+                (new Thread (new ThreadedMessageSender (cnxn, msisdn, campaign.getMessageSender (), howTo, 30000))).start ();
             }
         } catch (Exception exc) {
-            System.out.println(new Date() +" "+ serviceexperiencefilter.class +":ERROR Exception caught processing viral marketing step 2: acceptance "+exc.getMessage());
+            System.out.println ("Exception caught processing viral marketing step 2: acceptance");
         }
     }
 

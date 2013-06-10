@@ -822,7 +822,7 @@ public class UserServiceDB {
                     Map<String, String> params = new HashMap<String, String>();
                     params.put("msisdn", msisdn.substring(msisdn.indexOf("+") + 1));
                     params.put("keyword", keyword);
-                    new ThreadedPostman(ThreadedPostman.RNDVU_BUY_USER_ACTION_API_TMPLT, params).run();
+                    new Thread(new ThreadedPostman(ThreadedPostman.RNDVU_BUY_USER_ACTION_API_TMPLT, params)).start();
                 } else {
                     System.out.println(new Date() + ": " + UserServiceDB.class + "ERROR: Creating service. Service does not exist: " + accountId + "-" + keyword);
                     throw new Exception(Feedback.NO_SUCH_SERVICE);
@@ -873,7 +873,7 @@ public class UserServiceDB {
                     Map<String, String> params = new HashMap<String, String>();
                     params.put("msisdn", msisdn.substring(msisdn.indexOf("+") + 1));
                     params.put("keyword", keyword);
-                    new ThreadedPostman(ThreadedPostman.RNDVU_BUY_USER_ACTION_API_TMPLT, params).run();
+                    new Thread(new ThreadedPostman(ThreadedPostman.RNDVU_BUY_USER_ACTION_API_TMPLT, params)).start();
                 } else {
                     System.out.println(new Date() + ": " + UserServiceDB.class + "ERROR: Creating service. Service does not exist: " + accountId + "-" + keyword);
                     throw new Exception(Feedback.NO_SUCH_SERVICE);
@@ -926,7 +926,7 @@ public class UserServiceDB {
                     HashMap<String, String> params = new HashMap<String, String>();
                     params.put("msisdn", msisdn.substring(msisdn.indexOf("+") + 1));
                     params.put("keyword", keyword);
-                    new ThreadedPostman(ThreadedPostman.RNDVU_BUY_USER_ACTION_API_TMPLT, params).run();
+                    new Thread(new ThreadedPostman(ThreadedPostman.RNDVU_BUY_USER_ACTION_API_TMPLT, params)).start();
                 } else {
                     System.out.println(new Date() + ": " + UserServiceDB.class + "ERROR: Creating service. Service does not exist: " + accountId + "-" + keyword);
                     throw new Exception(Feedback.NO_SUCH_SERVICE);
@@ -1014,7 +1014,7 @@ public class UserServiceDB {
                     HashMap<String, String> params = new HashMap<String, String>();
                     params.put("msisdn", msisdn.substring(msisdn.indexOf("+") + 1));
                     params.put("keyword", keyword);
-                    new ThreadedPostman(ThreadedPostman.RNDVU_BUY_USER_ACTION_API_TMPLT, params).run();
+                    new Thread(new ThreadedPostman(ThreadedPostman.RNDVU_BUY_USER_ACTION_API_TMPLT, params)).start();
                 } else {
                     failedCheck = true;
                 }
@@ -1101,7 +1101,7 @@ public class UserServiceDB {
                     HashMap<String, String> params = new HashMap<String, String>();
                     params.put("msisdn", msisdn.substring(msisdn.indexOf("+") + 1));
                     params.put("keyword", keyword);
-                    new ThreadedPostman(ThreadedPostman.RNDVU_BUY_USER_ACTION_API_TMPLT, params).run();
+                    new Thread(new ThreadedPostman(ThreadedPostman.RNDVU_BUY_USER_ACTION_API_TMPLT, params)).start();
                 } else {
                     failedCheck = true;
                 }

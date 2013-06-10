@@ -16,6 +16,7 @@ public class VMCampaign {
     private String followUpMsgError;
     //private String networkId;
     private java.util.Date lastUpdated;
+    private String inviteAcceptedMsg;
 
     public VMCampaign () {
         this.campaignId = "";
@@ -147,4 +148,14 @@ public class VMCampaign {
     public void setFollowUpMsgError (String followUpMsgError) {
         this.followUpMsgError = followUpMsgError;
     }
+
+    public String getInviteAcceptedMsg() {
+        return inviteAcceptedMsg;
+    }
+
+    public void setInviteAcceptedMsg(String inviteAcceptedMsg) {
+        this.inviteAcceptedMsg = inviteAcceptedMsg;
+    }
+   
+    
 }

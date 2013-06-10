@@ -5,92 +5,206 @@
 package com.rancard.mobility.infoserver.viralmarketing;
 
 import com.rancard.common.DConnect;
-import com.rancard.util.DateUtil;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.util.Date;
+import java.sql.SQLException;
 
 /**
  *
  * @author nii
- * Updated Mustee
  */
 public class VMUserDB {
 
     public static void createUser(VMUser user) throws Exception {
-        Connection conn = null;
+        String SQL;
+        ResultSet rs = null;
+        Connection con = null;
+        PreparedStatement prepstat = null;
 
         try {
-            conn = DConnect.getConnection();
-            String sql = "insert into vm_users(reg_date, account_id, keyword, msisdn, username, points) "
-                    + "values('" + DateUtil.convertToMySQLTimeStamp(user.getRegDate()) + "', '" + user.getAccountId() + "', "
-                    + "'" + user.getKeyword() + "', '" + user.getMsisdn() + "', '" + user.getUsername() + "', " + user.getPoints() + ")";
-            System.out.println(new Date() + ": " + VMUser.class + ":DEBUG Creating vm user: " + sql);
+            con = DConnect.getConnection();
+            SQL = "insert into vm_users(reg_date, account_id, keyword, msisdn, username, points) " +
+                    "values(?, ?, ?, ?, ?, ?)";
 
-            conn.createStatement().execute(sql);
+            prepstat = con.prepareStatement(SQL);
+
+            prepstat.setTimestamp(1, new java.sql.Timestamp(new java.util.Date().getTime()));
+            prepstat.setString(2, user.getAccountId());
+            prepstat.setString(3, user.getKeyword());
+            prepstat.setString(4, user.getMsisdn());
+            prepstat.setString(5, user.getUsername());
+            prepstat.setInt(6, user.getPoints());
+
+            prepstat.execute();
 
         } catch (Exception ex) {
-            System.out.println(new Date() + ": " + VMUser.class + ":ERROR Creating vm user: " + ex.getMessage());
-            throw new Exception(ex.getMessage());
+            if (con != null) {
+                try {
+                    con.close();
+                } catch (SQLException ex1) {
+                    System.out.println(ex1.getMessage());
+                }
+                con = null;
+            }
         } finally {
-            if (conn != null) {
-                conn.close();
+            if (rs != null) {
+                try {
+                    rs.close();
+                } catch (SQLException e) {
+                    ;
+                }
+                rs = null;
+            }
+            if (prepstat != null) {
+                try {
+                    prepstat.close();
+                } catch (SQLException e) {
+                    ;
+                }
+                prepstat = null;
+            }
+            if (con != null) {
+                try {
+                    con.close();
+                } catch (SQLException e) {
+                    ;
+                }
+                con = null;
             }
         }
 
     }
 
     public static VMUser viewUser(String keyword, String accountId, String msisdn) throws Exception {
+
+        String SQL;
         ResultSet rs = null;
-        Connection conn = null;
-        VMUser user = null;
+        Connection con = null;
+        PreparedStatement prepstat = null;
+        VMUser user = new VMUser();
 
         try {
-            conn = DConnect.getConnection();
+            con = DConnect.getConnection();
 
-            String sql = "select * from vm_users where keyword = '" + keyword + "' and account_id = '" + accountId + "' and msisdn = '" + msisdn + "'";
-            System.out.println(new Date() + ": " + VMUser.class + ":DEBUG Selecting vm user: " + sql);
+            SQL = "select * from vm_users where keyword = ? and account_id = ? and msisdn = ?";
 
-            rs = conn.createStatement().executeQuery(sql);
+            prepstat = con.prepareStatement(SQL);
+
+            prepstat.setString(1, keyword);
+            prepstat.setString(2, accountId);
+            prepstat.setString(3, msisdn);
+
+            rs = prepstat.executeQuery();
 
             while (rs.next()) {
-
-                user = new VMUser(rs.getString("msisdn"), rs.getString("account_id"), rs.getString("keyword"),
-                        rs.getString("username"), DateUtil.convertFromMySQLTimeStamp(rs.getString("reg_date")), rs.getInt("points"));
-                break;
+                user.setKeyword(rs.getString("keyword"));
+                user.setAccountId(rs.getString("account_id"));
+                user.setMsisdn(rs.getString("msisdn"));
+                user.setUsername(rs.getString("username"));
+                user.setPoints(rs.getInt("points"));
+                java.text.SimpleDateFormat df = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                String regDate = df.format(new java.util.Date(rs.getTimestamp("reg_date").getTime()));
+                user.setRegDate(regDate);
             }
 
-            return user;
         } catch (Exception ex) {
-            System.out.println(new Date() + ": " + VMUser.class + ":ERROR Creating vm user: " + ex.getMessage());
-            throw new Exception(ex.getMessage());
+            if (con != null) {
+                try {
+                    con.close();
+                } catch (SQLException ex1) {
+                    System.out.println(ex1.getMessage());
+                }
+                con = null;
+            }
+
+            //error log
+            System.out.println(new java.util.Date()+ ": error viewing vm_user ("+ keyword +", "+accountId+", " + msisdn + "): " + ex.getMessage() );
+
         } finally {
             if (rs != null) {
-                rs.close();
+                try {
+                    rs.close();
+                } catch (SQLException e) {
+                    ;
+                }
+                rs = null;
             }
-            if (conn != null) {
-                conn.close();
+            if (prepstat != null) {
+                try {
+                    prepstat.close();
+                } catch (SQLException e) {
+                    ;
+                }
+                prepstat = null;
+            }
+            if (con != null) {
+                try {
+                    con.close();
+                } catch (SQLException e) {
+                    ;
+                }
+                con = null;
             }
         }
-    }  
 
-    
-    public static void addPoints(String keyword, String accountId, String msisdn, int points) throws Exception {     
-        Connection conn = null;        
+        return user;
+    }
+
+    public static void addPoints(String keyword, String accountId, String msisdn, int points) throws Exception {
+
+        String SQL;
+        ResultSet rs = null;
+        Connection con = null;
+        PreparedStatement prepstat = null;
 
         try {
-            conn = DConnect.getConnection();
-            String sql = "UPDATE vm_users SET points = points + " + points + " WHERE keyword = '" + keyword + "' and account_id = '" + accountId + "' and msisdn = '" + msisdn + "'";
-            System.out.println(new Date() + ": " + VMUser.class + ":DEBUG Add poits to user: " + sql);
+            con = DConnect.getConnection();
+            SQL =
+                    "UPDATE vm_users SET points = points + ? " +
+                    "WHERE keyword = ?  and account_id =? and msisdn = ?";
 
-           conn.createStatement().executeUpdate(sql);
+            prepstat = con.prepareStatement(SQL);
+
+            prepstat.setInt(1, points);
+            prepstat.setString(2, keyword);
+            prepstat.setString(3, accountId);
+            prepstat.setString(4, msisdn);
+            prepstat.execute();
 
         } catch (Exception ex) {
-            System.out.println(new Date() + ": " + VMUser.class + ":ERROR Creating vm user: " + ex.getMessage());
-            throw new Exception(ex.getMessage());
+            if (con != null) {
+                try {
+                    con.close();
+                } catch (SQLException ex1) {
+                    System.out.println(ex1.getMessage());
+                }
+                con = null;
+            }
         } finally {
-            if (conn != null) {
-                conn.close();
+            if (rs != null) {
+                try {
+                    rs.close();
+                } catch (SQLException e) {
+                    ;
+                }
+                rs = null;
+            }
+            if (prepstat != null) {
+                try {
+                    prepstat.close();
+                } catch (SQLException e) {
+                    ;
+                }
+                prepstat = null;
+            }
+            if (con != null) {
+                try {
+                    con.close();
+                } catch (SQLException e) {
+                    ;
+                }
+                con = null;
             }
         }
 
