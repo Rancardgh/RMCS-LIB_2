@@ -110,8 +110,9 @@ public class VMServiceManager {
         ArrayList<String> formattedNumbers = new ArrayList<String>();
 
         // Register use in vm_users table
-        if (viewUser (campaign_keyword, campaign_account_id, msisdn) == null)
+        if (viewUser (campaign_keyword, campaign_account_id, msisdn) == null){
             VMServiceManager.createUser(msisdn, campaign_account_id, campaign_keyword, "", 0);
+        }
 
         String[] rawNumbers = recipList.split(" ");
         for (int i = 0; i < rawNumbers.length; i++) {
@@ -144,11 +145,11 @@ public class VMServiceManager {
 
         // Spawn off new threads to carry out sending so we don't wait for gateway response
         String recipient = "";
-        HashMap<String, String> params = new HashMap<String, String> ();
+        Map<String, String> params = new HashMap<String, String> ();
         while (subList.hasNext()) {
             recipient = subList.next();
-            params.put ("recruiter", msisdn);
-            params.put ("recipient", recipient);
+            params.put ("recruiter", msisdn.substring(msisdn.indexOf("+")  + 1));
+            params.put ("recipient", recipient.substring(recipient.indexOf("+")  + 1));
             params.put ("keyword", campaign_keyword);
             new ThreadedPostman (ThreadedPostman.RNDVU_CONNECT_USER_API_TMPLT, params).run ();
             
@@ -226,11 +227,11 @@ public class VMServiceManager {
 
         // Spawn off new threads to carry out sending so we don't wait for gateway response
         String recipient = "";
-        HashMap<String, String> params = new HashMap<String, String> ();
+        Map<String, String> params = new HashMap<String, String> ();
         while (subList.hasNext()) {
             recipient = subList.next();
-            params.put ("recruiter", msisdn);
-            params.put ("recipient", recipient);
+            params.put ("recruiter", msisdn.substring(msisdn.indexOf("+") + 1));
+            params.put ("recipient", recipient.substring(recipient.indexOf("+") + 1));
             params.put ("keyword", campaign.getKeyword ());
             new ThreadedPostman (ThreadedPostman.RNDVU_CONNECT_USER_API_TMPLT, params).run ();
             
@@ -289,7 +290,7 @@ public class VMServiceManager {
 
             CPConnections cnxn = CPConnections.getConnection(campaign.getAccountId(), msisdn);
             boolean wasSent = false;
-            HashMap<String, String> params = new HashMap<String, String> ();
+            Map<String, String> params = new HashMap<String, String> ();
 
             Pattern pattern = Pattern.compile(recipRegex);
             for (int i = 0; i < recipList.split(" ").length; i++) {
@@ -301,8 +302,8 @@ public class VMServiceManager {
 
                     // Check to make sure subscriber isn't being silly by sending to himself
                     if (!msisdn.equalsIgnoreCase(formattedRecipient)) {
-                        params.put ("recruiter", msisdn);
-                        params.put ("recipient", formattedRecipient);
+                        params.put ("recruiter", msisdn.substring(msisdn.indexOf("+") + 1));
+                        params.put ("recipient", formattedRecipient.substring(formattedRecipient.indexOf("+") + 1));
                         params.put ("keyword", campaign.getKeyword ());
                         new ThreadedPostman (ThreadedPostman.RNDVU_CONNECT_USER_API_TMPLT, params).run ();
             

@@ -253,7 +253,7 @@ public abstract class ServiceManager {
         return UserServiceDB.isSubscribed(msisdn, accountId, keyword);
     }
     
-    public static HashMap getSubscription (String msisdn, String accountId, String keyword, String alternativeKeyword) throws Exception {
+    public static Map getSubscription (String msisdn, String accountId, String keyword, String alternativeKeyword) throws Exception {
         return UserServiceDB.getSubscription (msisdn, accountId, keyword, alternativeKeyword);
     }
     

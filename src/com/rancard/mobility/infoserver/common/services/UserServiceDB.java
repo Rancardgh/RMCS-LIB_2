@@ -16,15 +16,12 @@ import java.sql.Statement;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class UserServiceDB {
 
@@ -271,7 +268,7 @@ public class UserServiceDB {
                 System.out.println(new java.util.Date() + ": " + UserServiceDB.class + "INFO: Service found");
                 return new UserService(rs.getString("service_type"), rs.getString("keyword"), rs.getString("account_id"),
                         rs.getString("service_name"), rs.getString("default_message"), rs.getString("command"), rs.getString("allowed_shortcodes"),
-                        rs.getString("allowed_site_types"), rs.getString("pricing"), rs.getBoolean("is_basic"), 
+                        rs.getString("allowed_site_types"), rs.getString("pricing"), rs.getBoolean("is_basic"),
                         rs.getBoolean("is_subscription"), rs.getString("service_response_sender"));
             }
 
@@ -309,7 +306,7 @@ public class UserServiceDB {
                 System.out.println(new java.util.Date() + ": " + UserServiceDB.class + "INFO: Service found");
                 return new UserService(rs.getString("service_type"), rs.getString("keyword"), rs.getString("account_id"),
                         rs.getString("service_name"), rs.getString("default_message"), rs.getString("command"), rs.getString("allowed_shortcodes"),
-                        rs.getString("allowed_site_types"),rs.getString("pricing"), rs.getBoolean("is_basic"), 
+                        rs.getString("allowed_site_types"), rs.getString("pricing"), rs.getBoolean("is_basic"),
                         rs.getBoolean("is_subscription"), rs.getString("service_response_sender"));
             }
 
@@ -345,7 +342,7 @@ public class UserServiceDB {
                 System.out.println(new java.util.Date() + ": " + UserServiceDB.class + "INFO: Service found");
                 return new UserService(rs.getString("service_type"), rs.getString("keyword"), rs.getString("account_id"),
                         rs.getString("service_name"), rs.getString("default_message"), rs.getString("command"), rs.getString("allowed_shortcodes"),
-                        rs.getString("allowed_site_types"), rs.getString("pricing"), rs.getBoolean("is_basic"), 
+                        rs.getString("allowed_site_types"), rs.getString("pricing"), rs.getBoolean("is_basic"),
                         rs.getBoolean("is_subscription"), rs.getString("service_response_sender"));
             }
 
@@ -381,7 +378,7 @@ public class UserServiceDB {
             while (rs.next()) {
                 serviceList.add(new UserService(rs.getString("service_type"), rs.getString("keyword"), rs.getString("account_id"),
                         rs.getString("service_name"), rs.getString("default_message"), rs.getString("command"), rs.getString("allowed_shortcodes"),
-                        rs.getString("allowed_site_types"), rs.getString("pricing"), rs.getBoolean("is_basic"), 
+                        rs.getString("allowed_site_types"), rs.getString("pricing"), rs.getBoolean("is_basic"),
                         rs.getBoolean("is_subscription"), rs.getString("service_response_sender")));
             }
             return serviceList;
@@ -414,7 +411,7 @@ public class UserServiceDB {
             while (rs.next()) {
                 serviceList.add(new UserService(rs.getString("service_type"), rs.getString("keyword"), rs.getString("account_id"),
                         rs.getString("service_name"), rs.getString("default_message"), rs.getString("command"), rs.getString("allowed_shortcodes"),
-                        rs.getString("allowed_site_types"), rs.getString("pricing"), rs.getBoolean("is_basic"), 
+                        rs.getString("allowed_site_types"), rs.getString("pricing"), rs.getBoolean("is_basic"),
                         rs.getBoolean("is_subscription"), rs.getString("service_response_sender")));
             }
 
@@ -447,7 +444,7 @@ public class UserServiceDB {
             while (rs.next()) {
                 serviceList.add(new UserService(rs.getString("service_type"), rs.getString("keyword"), rs.getString("account_id"),
                         rs.getString("service_name"), rs.getString("default_message"), rs.getString("command"), rs.getString("allowed_shortcodes"),
-                        rs.getString("allowed_site_types"), rs.getString("pricing"), rs.getBoolean("is_basic"), 
+                        rs.getString("allowed_site_types"), rs.getString("pricing"), rs.getBoolean("is_basic"),
                         rs.getBoolean("is_subscription"), rs.getString("service_response_sender")));
             }
             return serviceList;
@@ -482,7 +479,7 @@ public class UserServiceDB {
             while (rs.next()) {
                 serviceList.add(new UserService(rs.getString("service_type"), rs.getString("keyword"), rs.getString("account_id"),
                         rs.getString("service_name"), rs.getString("default_message"), rs.getString("command"), rs.getString("allowed_shortcodes"),
-                        rs.getString("allowed_site_types"), rs.getString("pricing"), rs.getBoolean("is_basic"), 
+                        rs.getString("allowed_site_types"), rs.getString("pricing"), rs.getBoolean("is_basic"),
                         rs.getBoolean("is_subscription"), rs.getString("service_response_sender")));
             }
             return serviceList;
@@ -516,7 +513,7 @@ public class UserServiceDB {
             while (rs.next()) {
                 serviceList.add(new UserService(rs.getString("service_type"), rs.getString("keyword"), rs.getString("account_id"),
                         rs.getString("service_name"), rs.getString("default_message"), rs.getString("command"), rs.getString("allowed_shortcodes"),
-                        rs.getString("allowed_site_types"), rs.getString("pricing"), rs.getBoolean("is_basic"), 
+                        rs.getString("allowed_site_types"), rs.getString("pricing"), rs.getBoolean("is_basic"),
                         rs.getBoolean("is_subscription"), rs.getString("service_response_sender")));
             }
             return serviceList;
@@ -790,6 +787,57 @@ public class UserServiceDB {
         }
 
     }
+    
+    public static void subscribeToService(String msisdn, String keyword, String accountId) throws Exception {
+    Connection conn = null;
+        PreparedStatement prepstat = null;
+
+        try {
+            AddressBook addressBook = AddressBookDB.getAddress(accountId, msisdn);
+
+            if (addressBook == null) {
+                AddressBookDB.save(new AddressBook(accountId, msisdn, uidGen.generateNumberID(6)));
+            }
+
+            conn = DConnect.getConnection();
+
+            String sql = "Insert into service_subscription (subscription_date,msisdn,keyword,account_id,status) values(?,?,?,?,?)";
+            prepstat = conn.prepareStatement(sql);
+
+            
+                UserService user = viewService(keyword, accountId);
+                if (user != null) {
+                    Date now = new Date();
+                    prepstat.setString(1, DateUtil.convertToMySQLTimeStamp(now));
+                    prepstat.setString(2, msisdn);
+                    prepstat.setString(3, keyword);
+                    prepstat.setString(4, accountId);
+                    prepstat.setInt(5, 1);
+
+                    System.out.println(new Date() + ": " + UserServiceDB.class + ":DEBUG Create service: " + prepstat.toString());
+                    prepstat.execute();
+
+                    Map<String, String> params = new HashMap<String, String>();
+                    params.put("msisdn", msisdn.substring(msisdn.indexOf("+") + 1));
+                    params.put("keyword", keyword);
+                    new ThreadedPostman(ThreadedPostman.RNDVU_BUY_USER_ACTION_API_TMPLT, params).run();
+                } else {
+                    System.out.println(new Date() + ": " + UserServiceDB.class + "ERROR: Creating service. Service does not exist: " + accountId + "-" + keyword);
+                    throw new Exception(Feedback.NO_SUCH_SERVICE);
+                }
+            
+        } catch (Exception e) {
+            System.out.println(new Date() + ": " + UserServiceDB.class + "ERROR: Creating service subscription: " + e.getMessage());
+            throw new Exception(e.getMessage());
+        } finally {
+            if (prepstat != null) {
+                prepstat.close();
+            }
+            if (conn != null) {
+                conn.close();
+            }
+        }
+  }
 
     public static void subscribeToService(String msisdn, List<String> keywords, String accountId) throws Exception {
         Connection conn = null;
@@ -819,11 +867,11 @@ public class UserServiceDB {
 
                     System.out.println(new Date() + ": " + UserServiceDB.class + ":DEBUG Create service: " + prepstat.toString());
                     prepstat.execute();
-                    
-                    HashMap<String, String> params = new HashMap<String, String> ();
-                    params.put ("msisdn", msisdn);
-                    params.put ("keyword", keyword);
-                    new ThreadedPostman (ThreadedPostman.RNDVU_BUY_USER_ACTION_API_TMPLT, params).run ();
+
+                    Map<String, String> params = new HashMap<String, String>();
+                    params.put("msisdn", msisdn.substring(msisdn.indexOf("+") + 1));
+                    params.put("keyword", keyword);
+                    new ThreadedPostman(ThreadedPostman.RNDVU_BUY_USER_ACTION_API_TMPLT, params).run();
                 } else {
                     System.out.println(new Date() + ": " + UserServiceDB.class + "ERROR: Creating service. Service does not exist: " + accountId + "-" + keyword);
                     throw new Exception(Feedback.NO_SUCH_SERVICE);
@@ -872,11 +920,11 @@ public class UserServiceDB {
 
                     System.out.println(new Date() + ": " + UserServiceDB.class + ":DEBUG Create service: " + prepstat.toString());
                     prepstat.execute();
-                    
-                    HashMap<String, String> params = new HashMap<String, String> ();
-                    params.put ("msisdn", msisdn);
-                    params.put ("keyword", keyword);
-                    new ThreadedPostman (ThreadedPostman.RNDVU_BUY_USER_ACTION_API_TMPLT, params).run ();
+
+                    HashMap<String, String> params = new HashMap<String, String>();
+                    params.put("msisdn", msisdn.substring(msisdn.indexOf("+") + 1));
+                    params.put("keyword", keyword);
+                    new ThreadedPostman(ThreadedPostman.RNDVU_BUY_USER_ACTION_API_TMPLT, params).run();
                 } else {
                     System.out.println(new Date() + ": " + UserServiceDB.class + "ERROR: Creating service. Service does not exist: " + accountId + "-" + keyword);
                     throw new Exception(Feedback.NO_SUCH_SERVICE);
@@ -960,11 +1008,11 @@ public class UserServiceDB {
                     prepstat.setInt(7, billingType);
                     prepstat.execute();
                     regId[2] = nextSubDate;
-                    
-                    HashMap<String, String> params = new HashMap<String, String> ();
-                    params.put ("msisdn", msisdn);
-                    params.put ("keyword", keyword);
-                    new ThreadedPostman (ThreadedPostman.RNDVU_BUY_USER_ACTION_API_TMPLT, params).run ();
+
+                    HashMap<String, String> params = new HashMap<String, String>();
+                    params.put("msisdn", msisdn.substring(msisdn.indexOf("+") + 1));
+                    params.put("keyword", keyword);
+                    new ThreadedPostman(ThreadedPostman.RNDVU_BUY_USER_ACTION_API_TMPLT, params).run();
                 } else {
                     failedCheck = true;
                 }
@@ -1047,11 +1095,11 @@ public class UserServiceDB {
                     prepstat.setInt(5, status);
                     prepstat.setTimestamp(6, new java.sql.Timestamp(nextSubscriptionDate.getTime()));
                     prepstat.execute();
-                    
-                    HashMap<String, String> params = new HashMap<String, String> ();
-                    params.put ("msisdn", msisdn);
-                    params.put ("keyword", keyword);
-                    new ThreadedPostman (ThreadedPostman.RNDVU_BUY_USER_ACTION_API_TMPLT, params).run ();
+
+                    HashMap<String, String> params = new HashMap<String, String>();
+                    params.put("msisdn", msisdn.substring(msisdn.indexOf("+") + 1));
+                    params.put("keyword", keyword);
+                    new ThreadedPostman(ThreadedPostman.RNDVU_BUY_USER_ACTION_API_TMPLT, params).run();
                 } else {
                     failedCheck = true;
                 }
@@ -1464,25 +1512,27 @@ public class UserServiceDB {
         }
     }
 
-    public static HashMap getSubscription(String msisdn, String accountId, String keyword, String alternativeKeyword) throws Exception {
-        HashMap subscription = new HashMap();
+    public static Map getSubscription(String msisdn, String accountID, String keyword, String alternativeKeyword) throws Exception {
+        Map<String, Object> subscription = null;
         String SQL;
         ResultSet rs = null;
-        Connection con = null;
-        PreparedStatement prepstat = null;
+        Connection conn = null;
+
         try {
-            con = DConnect.getConnection();
+            conn = DConnect.getConnection();
             if (alternativeKeyword != null && !alternativeKeyword.trim().equals("")) {
-                SQL = "select * from service_subscription where account_id='" + accountId + "' and msisdn='" + msisdn + "'"
-                        + " and (keyword='" + keyword + "' or keyword='" + alternativeKeyword + "')";
+                SQL = "select * from service_subscription where account_id = '" + accountID + "' and msisdn = '" + msisdn + "'"
+                        + " and (keyword = '" + keyword + "' or keyword = '" + alternativeKeyword + "')";
             } else {
-                SQL = "select * from service_subscription where account_id='" + accountId + "' and msisdn='" + msisdn + "'"
-                        + " and keyword='" + keyword + "'";
+                SQL = "select * from service_subscription where account_id = '" + accountID + "' and msisdn = '" + msisdn + "'"
+                        + " and keyword = '" + keyword + "'";
             }
-            prepstat = con.prepareStatement(SQL);
-            rs = prepstat.executeQuery();
+            
+            rs = conn.createStatement().executeQuery(SQL);
 
             if (rs.next()) {
+                subscription = new HashMap<String, Object>();
+                
                 subscription.put("msisdn", rs.getString("msisdn"));
                 subscription.put("keyword", rs.getString("keyword"));
                 subscription.put("account_id", rs.getString("account_id"));
@@ -1497,11 +1547,8 @@ public class UserServiceDB {
             if (rs != null) {
                 rs.close();
             }
-            if (prepstat != null) {
-                prepstat.close();
-            }
-            if (con != null) {
-                con.close();
+            if (conn != null) {
+                conn.close();
             }
             return subscription;
         }
@@ -1676,56 +1723,6 @@ public class UserServiceDB {
         }
         return keywords;
     }
-    
-    public static ArrayList getKeywordsOfServices(String accountId) throws Exception {
-        ArrayList keywords = new ArrayList();
-        String SQL;
-        ResultSet rs = null;
-        Connection con = null;
-        PreparedStatement prepstat = null;
-        try {
-            con = DConnect.getConnection();
-            SQL = "select keyword from service_definition where account_id='" + accountId + "'";
-            prepstat = con.prepareStatement(SQL);
-            rs = prepstat.executeQuery();
-
-            while (rs.next()) {
-                keywords.add(rs.getString("keyword"));
-            }
-        } catch (Exception ex) {
-            if (con != null) {
-                try {
-                    con.close();
-                } catch (SQLException ex1) {
-                    System.out.println(ex1.getMessage());
-                }
-                con = null;
-            }
-        } finally {
-            if (rs != null) {
-                try {
-                    rs.close();
-                } catch (SQLException e) {
-                }
-                rs = null;
-            }
-            if (prepstat != null) {
-                try {
-                    prepstat.close();
-                } catch (SQLException e) {
-                }
-                prepstat = null;
-            }
-            if (con != null) {
-                try {
-                    con.close();
-                } catch (SQLException e) {
-                }
-                con = null;
-            }
-        }
-        return keywords;
-    }    
 
     public static ArrayList getKeywordsUserSubscribedTo(String msisdn, String accountId) throws Exception {
         ArrayList keywords = new ArrayList();

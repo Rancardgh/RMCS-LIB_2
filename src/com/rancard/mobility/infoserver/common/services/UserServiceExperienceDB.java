@@ -59,7 +59,7 @@ public class UserServiceExperienceDB {
             while (rs.next()) {
                 System.out.println(new Date() + ": " + UserServiceExperienceDB.class + " : Found service_experience_config: " + sql);
                 return new UserServiceExperience(rs.getString("sec.account_id"), rs.getString("site_id"), rs.getString("keyword"),
-                        rs.getString("sec.promo_id"), rs.getString("promo_msg"), rs.getString("promo_response_code"), rs.getString("welcome_msg"),
+                        rs.getString("promo_msg"), rs.getString("sec.promo_id"), rs.getString("promo_response_code"), rs.getString("welcome_msg"),
                         rs.getString("already_subscribed_msg"), rs.getString("unsubscription_conf_msg"), rs.getString("promo_msg_sender"),
                         rs.getString("welcome_msg_sender"), rs.getString("already_subscribed_msg_sender"), rs.getString("unsubscription_conf_msg_sender"),
                         rs.getInt("push_msg_wait_time"), rs.getInt("subscription_interval"), rs.getString("url"), rs.getInt("url_timeout"),

@@ -7,15 +7,17 @@ import javax.servlet.*;
 import javax.servlet.http.*;
 
 public class AuthenticationFilter extends HttpServlet implements Filter {
+
     private FilterConfig filterConfig;
     //Handle the passed-in FilterConfig
+
     public void init(FilterConfig filterConfig) {
         this.filterConfig = filterConfig;
     }
 
     //Process the request/response pair
     public void doFilter(ServletRequest req, ServletResponse res,
-                         FilterChain filterChain) {
+            FilterChain filterChain) {
 
         ServletContext context = filterConfig.getServletContext();
 // setup base path.
@@ -24,9 +26,8 @@ public class AuthenticationFilter extends HttpServlet implements Filter {
             HttpServletRequest request = (HttpServletRequest) req;
             HttpServletResponse response = (HttpServletResponse) res;
             String s = request.getProtocol().toLowerCase();
-	s= s.substring(0, s.indexOf("/")).toLowerCase();
-            String base_url = s+"://" + request.getServerName() + ":" +
-                              request.getServerPort() + request.getContextPath()+"/";
+            s = s.substring(0, s.indexOf("/")).toLowerCase();
+            String base_url = s + "://" + request.getServerName() + request.getContextPath() + "/";
             InetAddress address = InetAddress.getByName(request.getServerName());
             String hostnameis = address.toString();
             String hostipis = hostnameis.substring(hostnameis.indexOf('/') + 1,
@@ -45,13 +46,13 @@ public class AuthenticationFilter extends HttpServlet implements Filter {
 
             } else {
                 if (queryString != null) {
-                    response.sendRedirect(base_url +
-                                          "default.jsp?login_err=1&redirect=" +
-                                          requestUri + "?" + queryString);
+                    response.sendRedirect(base_url
+                            + "default.jsp?login_err=1&redirect="
+                            + requestUri + "?" + queryString);
                 } else {
-                    response.sendRedirect(base_url +
-                                          "default.jsp?login_err=1&redirect=" +
-                                          requestUri);
+                    response.sendRedirect(base_url
+                            + "default.jsp?login_err=1&redirect="
+                            + requestUri);
                 }
             }
 

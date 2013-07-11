@@ -91,8 +91,8 @@ public class serviceexperiencefilter extends HttpServlet
                 if (srvc.isSubscription()) {                    
 
                     boolean alreadySubscribed = false;
-                    HashMap thisSubscription = ServiceManager.getSubscription(msisdn, accountId, keyword, altKeyword);
-                    if ((thisSubscription != null) && (!thisSubscription.isEmpty())) {
+                    Map thisSubscription = ServiceManager.getSubscription(msisdn, accountId, keyword, altKeyword);
+                    if (!(thisSubscription == null)) {
                         alreadySubscribed = true;
                     }
 

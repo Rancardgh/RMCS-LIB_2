@@ -5,6 +5,7 @@ import com.unwiredtec.rtcreator.*;
 import javax.servlet.*;
 import javax.servlet.http.*;
 import java.io.*;
+import java.util.*;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.HttpClient;
@@ -46,7 +47,7 @@ public class downloadcontent extends HttpServlet {
         //String baseUrl = s + "://" + request.getServerName () + ":" + request.getServerPort () + request.getContextPath () + "/";
         String baseUrl = this.getServletContext().getInitParameter("contentServerPublicURL");//
         com.rancard.common.Message replyPg = new com.rancard.common.Message();
-        PrintWriter out = response.getWriter();
+        ServletOutputStream out = response.getOutputStream();
 
         // this represents an instance of a transaction
         Transaction download = new Transaction();
@@ -166,6 +167,7 @@ public class downloadcontent extends HttpServlet {
                     throw new Exception(Feedback.BANDWIDTH_EXCEEDED);
                 }
             } catch (java.net.ConnectException ex) {
+                System.out.println(new Date() + ": Exception> " + ex.getMessage());
                 try {
                     if (siteType.equals(CPSite.SMS)) {
                         message = feedback.getUserFriendlyDescription(Feedback.CONNECTION_ERROR);
@@ -178,6 +180,7 @@ public class downloadcontent extends HttpServlet {
                 out.println(message);
                 return;
             } catch (HttpException e) {
+                System.out.println(new Date() + ": Exception> " + e.getMessage());
                 try {
                     if (siteType.equals(CPSite.SMS)) {
                         message = feedback.getUserFriendlyDescription(Feedback.CONNECTION_ERROR);
@@ -190,7 +193,7 @@ public class downloadcontent extends HttpServlet {
                 out.println(message);
                 return;
             } catch (IOException e) {
-
+                System.out.println(new Date() + ": Exception> " + e.getMessage());
                 try {
                     if (siteType.equals(CPSite.SMS)) {
                         message = feedback.getUserFriendlyDescription(Feedback.CONNECTION_ERROR);
@@ -203,6 +206,7 @@ public class downloadcontent extends HttpServlet {
                 out.println(message);
                 return;
             } catch (Exception e) {
+                System.out.println(new Date() + ": Exception> " + e.getMessage());
                 try {
                     if (siteType.equals(CPSite.SMS)) {
                         message = feedback.getUserFriendlyDescription(e.getMessage());
@@ -231,7 +235,6 @@ public class downloadcontent extends HttpServlet {
             } catch (Exception ex) {
                 message = ex.getMessage();
             }
-//            out = response.getWriter();
             out.println(message);
             return;
         }
@@ -259,12 +262,12 @@ public class downloadcontent extends HttpServlet {
         if (content.getFormat().getPushBearer().equals("WAP")) {
             // binary content over packet switched network
             System.out.println(new java.util.Date() + ":Request to streamBinaryConent...");
-            if (supportsDrm.equalsIgnoreCase("yes")) {
+            if (supportsDrm.equalsIgnoreCase("yes")) {                
                 if (!streamBinaryData(content, response, request)) {
                     System.out.println(new java.util.Date() + ":Unable to streamBinaryData: Feedback.NO_CONTENT_AT_LOCATION");
                     throw new Exception(Feedback.NO_CONTENT_AT_LOCATION);
                 }
-            } else {
+            } else {                
                 if (!streamBinaryDataNoDrm(content, response, request)) {
                     System.out.println(new java.util.Date() + ":Unable to streamBinaryData: Feedback.NO_CONTENT_AT_LOCATION");
                     throw new Exception(Feedback.NO_CONTENT_AT_LOCATION);
@@ -473,6 +476,7 @@ public class downloadcontent extends HttpServlet {
             HttpServletRequest request) throws
             Exception {
 
+        System.out.println( new Date() + ": Streaming with DRM enabled...");
         boolean streamStatus = false;
         String ErrorStr = null;
         String formatMIMEType = content.getFormat().getMimeType();
@@ -647,6 +651,7 @@ public class downloadcontent extends HttpServlet {
             HttpServletRequest request) throws
             Exception {
 
+        System.out.println( new Date() + ": Streaming with DRM disabled...");
         boolean streamStatus = false;
         String ErrorStr = null;
         String formatMIMEType = content.getFormat().getMimeType();
@@ -654,13 +659,12 @@ public class downloadcontent extends HttpServlet {
         resp.setContentType(formatMIMEType);
         resp.setHeader("Content-Disposition", "attachment;filename=" + content.gettitle() + "." + content.getFormat().getFileExt());
         BufferedOutputStream bos = null;
-        BufferedInputStream isr = null;
         BufferedInputStream bis = null;
         ServletOutputStream outstr = resp.getOutputStream();
-
         byte[] item = null;
 
         if (content.islocal()) {
+            System.out.println( new Date() + ": Sending content from RMCS server");
             com.rancard.mobility.contentserver.uploadsBean upload = new com.rancard.mobility.contentserver.uploadsBean();
             upload.setid(content.getid());
             upload.setlist_id(content.getListId());
@@ -674,6 +678,7 @@ public class downloadcontent extends HttpServlet {
 
             item = upload.getDataStream();
         } else {
+            System.out.println( new Date() + ": Sending content from external source with url = "+ content.getDownloadUrl());
             String urlstr = content.getDownloadUrl();
             HttpClient httpclient = new HttpClient();
             GetMethod httpget = new GetMethod(urlstr);
@@ -699,6 +704,7 @@ public class downloadcontent extends HttpServlet {
                 while (-1 != (bytesRead = bis.read(item, 0, item.length))) {
                 }
             } catch (Exception e) {
+                System.out.println(new Date() + ": Exception> " + e.getMessage());
                 streamStatus = false;
                 e.printStackTrace();
                 ErrorStr = "Error Streaming the Data";
@@ -736,52 +742,15 @@ public class downloadcontent extends HttpServlet {
         //stream bytes as a response
         try {
             //resp.setContentType(formatMIMEType);
-
-            //resp.setContentLength(length);
-            // Use Buffered Stream for reading/writing.
-            InputStream in = new ByteArrayInputStream(item);
-            isr = new BufferedInputStream(in);
-            bos = new BufferedOutputStream(outstr);
-
-            // Simple read/write loop.
-            for (int i = 0; i < item.length; i++) {
-                bos.write(item[i]);
-            }
-
-            bos.flush();
-
+            outstr.write(item);
             streamStatus = true;
-            //} else {
-            //    //We didn't find support for oma_v_1_0_forwardlock
-            //    //So use "Phase 0" Forward Lock. Will not fail on older devices
-            //    resp.setHeader ("Content-Type", formatMIMEType);
-            //    resp.setHeader ("x-drm", "noforward");
-            //    resp.setContentType (formatMIMEType);
-            //    for (int i = 0; i < item.length; i++) {
-            //        bos.write (item[i]);
-            //    }
-
-            //    streamStatus = true;
-            // }
         } catch (Exception e) {
             streamStatus = false;
-            e.printStackTrace();
-            ErrorStr = "Error Streaming the Data";
-            try {
-                outstr.print(ErrorStr);
-            } catch (IOException ex) {
-                ex.printStackTrace();
-            }
+            System.out.println(new Date() + ":Exception> " + e.getMessage());
+            outstr.print("Error Streaming the Data");
             return streamStatus;
         } finally {
             try {
-                if (isr != null) {
-                    isr.close();
-                }
-
-                if (bos != null) {
-                    bos.close();
-                }
                 if (outstr != null) {
                     outstr.flush();
                     outstr.close();
