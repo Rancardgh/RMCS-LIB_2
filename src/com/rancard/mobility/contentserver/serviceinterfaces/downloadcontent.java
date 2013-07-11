@@ -247,66 +247,6 @@ public class downloadcontent extends HttpServlet {
     //Clean up resources
     public void destroy() {
     }
-//    
-//    public void streamData(HttpServletResponse response,
-//            HttpServletRequest request, Transaction download, String supportsDrm) throws
-//            Exception {
-//
-//        // determine bearer
-//        // determine location
-//        // stream data
-//        if (download.getFormat().getPushBearer().equals("WAP")) {
-//            // binary content over packet switched network
-//            System.out.println(new java.util.Date() + ":Request to streamBinaryConent...");
-//            if (supportsDrm.equalsIgnoreCase("yes")) {
-//                if (streamBinaryData(download, response, request)) {
-//                    //download.updateTransaction (download.getTicketID (), true, true);
-//                    download.updateDownloadStatus(download.getTicketID(), true);
-//                } else {
-//                    System.out.println(new java.util.Date() + ":Unable to streamBinaryData: Feedback.NO_CONTENT_AT_LOCATION");
-//
-//                    throw new Exception(Feedback.NO_CONTENT_AT_LOCATION);
-//                }
-//            } else {
-//                if (streamBinaryDataNoDrm(download, response, request)) {
-//                    //download.updateTransaction (download.getTicketID (), true, true);
-//                    download.updateDownloadStatus(download.getTicketID(), true);
-//                } else {
-//                    System.out.println(new java.util.Date() + ":Unable to streamBinaryData: Feedback.NO_CONTENT_AT_LOCATION");
-//
-//                    throw new Exception(Feedback.NO_CONTENT_AT_LOCATION);
-//                }
-//            }
-//            // character based content
-//        } else {
-//            System.out.println(new java.util.Date() + ":Request to stream Character based content...");
-//            if (!download.getContentItem().islocal()) {
-//                // stream  text content form remote host
-//                if (streamCharacterData(download.getContentItem().getDownloadUrl(), download.getFormat().getMimeType(), new PrintWriter(response.getOutputStream()), response, request)) {
-//                    //download.updateTransaction (download.getTicketID (), true, true);
-//                    download.updateDownloadStatus(download.getTicketID(), true);
-//                } else {
-//                    System.out.println(new java.util.Date() + ":Unable to stream Character based content:Feedback.NO_CONTENT_AT_LOCATION");
-//
-//                    throw new Exception(Feedback.NO_CONTENT_AT_LOCATION);
-//                }
-//            } else {
-//                com.rancard.mobility.contentserver.uploadsBean upload = new com.rancard.mobility.contentserver.uploadsBean();
-//                upload.setid(download.getContentItem().getid());
-//                upload.setlist_id(download.getContentItem().getListId());
-//                upload = new RepositoryManager().fetchFile(upload.getlist_id(),
-//                        upload.getid());
-//                // stream text content from local host
-//                if (streamCharacterData( /*new File(uc.getContentLocation() +item.getDownloadUrl()),*/upload.getDataStream(), download.getFormat().getMimeType(),
-//                        new PrintWriter(response.getOutputStream()), response, request)) {
-//                    //download.updateTransaction (download.getTicketID (), true, true);
-//                    download.updateDownloadStatus(download.getTicketID(), true);
-//                } else {
-//                    throw new Exception(Feedback.NO_CONTENT_AT_LOCATION);
-//                }
-//            }
-//        }
-//    }
     
 
     public void streamData(HttpServletResponse response,
