@@ -787,9 +787,9 @@ public class UserServiceDB {
         }
 
     }
-    
+
     public static void subscribeToService(String msisdn, String keyword, String accountId) throws Exception {
-    Connection conn = null;
+        Connection conn = null;
         PreparedStatement prepstat = null;
 
         try {
@@ -804,28 +804,28 @@ public class UserServiceDB {
             String sql = "Insert into service_subscription (subscription_date,msisdn,keyword,account_id,status) values(?,?,?,?,?)";
             prepstat = conn.prepareStatement(sql);
 
-            
-                UserService user = viewService(keyword, accountId);
-                if (user != null) {
-                    Date now = new Date();
-                    prepstat.setString(1, DateUtil.convertToMySQLTimeStamp(now));
-                    prepstat.setString(2, msisdn);
-                    prepstat.setString(3, keyword);
-                    prepstat.setString(4, accountId);
-                    prepstat.setInt(5, 1);
 
-                    System.out.println(new Date() + ": " + UserServiceDB.class + ":DEBUG Create service: " + prepstat.toString());
-                    prepstat.execute();
+            UserService user = viewService(keyword, accountId);
+            if (user != null) {
+                Date now = new Date();
+                prepstat.setString(1, DateUtil.convertToMySQLTimeStamp(now));
+                prepstat.setString(2, msisdn);
+                prepstat.setString(3, keyword);
+                prepstat.setString(4, accountId);
+                prepstat.setInt(5, 1);
 
-                    Map<String, String> params = new HashMap<String, String>();
-                    params.put("msisdn", msisdn.substring(msisdn.indexOf("+") + 1));
-                    params.put("keyword", keyword);
-                    new ThreadedPostman(ThreadedPostman.RNDVU_BUY_USER_ACTION_API_TMPLT, params).run();
-                } else {
-                    System.out.println(new Date() + ": " + UserServiceDB.class + "ERROR: Creating service. Service does not exist: " + accountId + "-" + keyword);
-                    throw new Exception(Feedback.NO_SUCH_SERVICE);
-                }
-            
+                System.out.println(new Date() + ": " + UserServiceDB.class + ":DEBUG Create service: " + prepstat.toString());
+                prepstat.execute();
+
+                Map<String, String> params = new HashMap<String, String>();
+                params.put("msisdn", msisdn.substring(msisdn.indexOf("+") + 1));
+                params.put("keyword", keyword);
+                new ThreadedPostman(ThreadedPostman.RNDVU_BUY_USER_ACTION_API_TMPLT, params).run();
+            } else {
+                System.out.println(new Date() + ": " + UserServiceDB.class + "ERROR: Creating service. Service does not exist: " + accountId + "-" + keyword);
+                throw new Exception(Feedback.NO_SUCH_SERVICE);
+            }
+
         } catch (Exception e) {
             System.out.println(new Date() + ": " + UserServiceDB.class + "ERROR: Creating service subscription: " + e.getMessage());
             throw new Exception(e.getMessage());
@@ -837,7 +837,7 @@ public class UserServiceDB {
                 conn.close();
             }
         }
-  }
+    }
 
     public static void subscribeToService(String msisdn, List<String> keywords, String accountId) throws Exception {
         Connection conn = null;
@@ -1527,12 +1527,12 @@ public class UserServiceDB {
                 SQL = "select * from service_subscription where account_id = '" + accountID + "' and msisdn = '" + msisdn + "'"
                         + " and keyword = '" + keyword + "'";
             }
-            
+
             rs = conn.createStatement().executeQuery(SQL);
 
             if (rs.next()) {
                 subscription = new HashMap<String, Object>();
-                
+
                 subscription.put("msisdn", rs.getString("msisdn"));
                 subscription.put("keyword", rs.getString("keyword"));
                 subscription.put("account_id", rs.getString("account_id"));
@@ -1672,6 +1672,56 @@ public class UserServiceDB {
             }
             return isRegistered;
         }
+    }
+
+    public static ArrayList getKeywordsOfServices(String accountId) throws Exception {
+        ArrayList keywords = new ArrayList();
+        String SQL;
+        ResultSet rs = null;
+        Connection con = null;
+        PreparedStatement prepstat = null;
+        try {
+            con = DConnect.getConnection();
+            SQL = "select keyword from service_definition where account_id='" + accountId + "'";
+            prepstat = con.prepareStatement(SQL);
+            rs = prepstat.executeQuery();
+
+            while (rs.next()) {
+                keywords.add(rs.getString("keyword"));
+            }
+        } catch (Exception ex) {
+            if (con != null) {
+                try {
+                    con.close();
+                } catch (SQLException ex1) {
+                    System.out.println(ex1.getMessage());
+                }
+                con = null;
+            }
+        } finally {
+            if (rs != null) {
+                try {
+                    rs.close();
+                } catch (SQLException e) {
+                }
+                rs = null;
+            }
+            if (prepstat != null) {
+                try {
+                    prepstat.close();
+                } catch (SQLException e) {
+                }
+                prepstat = null;
+            }
+            if (con != null) {
+                try {
+                    con.close();
+                } catch (SQLException e) {
+                }
+                con = null;
+            }
+        }
+        return keywords;
     }
 
     public static ArrayList getKeywordsOfBasicServices(String accountId) throws Exception {
