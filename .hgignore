@@ -6,3 +6,5 @@ build/*
 dist/*
 build.xml
 manifest.mf
+.*
+*.iml

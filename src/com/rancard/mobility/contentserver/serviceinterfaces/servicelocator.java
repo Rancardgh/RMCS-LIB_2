@@ -1,15 +1,17 @@
 package com.rancard.mobility.contentserver.serviceinterfaces;
 
 import com.rancard.common.DConnect;
-import com.rancard.mobility.infoserver.common.services.UserService;
-import java.io.*;
-import java.util.Arrays;
-import java.util.HashMap;
-import com.rancard.mobility.infoserver.common.services.ServiceManager;
-import javax.servlet.*;
-import javax.servlet.http.*;
 import com.rancard.common.Feedback;
 import com.rancard.mobility.contentserver.CPSite;
+import com.rancard.mobility.infoserver.common.services.ServiceManager;
+
+import javax.servlet.*;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -52,7 +54,7 @@ public class servicelocator extends HttpServlet implements Filter {
         HttpServletResponse response = (HttpServletResponse) res;
         String s = request.getProtocol().toLowerCase();
         s = s.substring(0, s.indexOf("/")).toLowerCase();
-        String baseUrl = s + "://" + request.getServerName() + ":" + request.getServerPort() + request.getContextPath() + "/";
+        baseUrl = s + "://" + request.getServerName() + request.getContextPath() + "/";
         
         try {
             req.setCharacterEncoding("UTF-8");

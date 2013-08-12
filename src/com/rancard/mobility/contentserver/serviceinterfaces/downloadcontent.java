@@ -1,22 +1,27 @@
 package com.rancard.mobility.contentserver.serviceinterfaces;
 
-import com.rancard.mobility.contentserver.*;
-import com.unwiredtec.rtcreator.*;
-import javax.servlet.*;
-import javax.servlet.http.*;
-import java.io.*;
-import java.util.*;
-import org.apache.commons.httpclient.HttpStatus;
-import org.apache.commons.httpclient.HttpException;
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.methods.GetMethod;
-import java.net.URL;
-import java.net.URLConnection;
 import com.rancard.common.Feedback;
 import com.rancard.mobility.common.FonCapabilityMtrx;
-import com.rancard.mobility.contentserver.Transaction;
+import com.rancard.mobility.contentserver.*;
 import com.rancard.mobility.infoserver.common.services.ServiceManager;
 import com.rancard.mobility.infoserver.common.services.UserService;
+import com.unwiredtec.rtcreator.Ringtone;
+import com.unwiredtec.rtcreator.RingtoneConvertException;
+import com.unwiredtec.rtcreator.RingtoneParseException;
+import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.HttpException;
+import org.apache.commons.httpclient.HttpStatus;
+import org.apache.commons.httpclient.methods.GetMethod;
+
+import javax.servlet.ServletException;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.*;
+import java.net.URL;
+import java.net.URLConnection;
+import java.util.Date;
 import java.util.List;
 //import com.rancard.common.DConnect;
 //import com.rancard.mobility.contentserver.uploadsBean;
@@ -133,6 +138,7 @@ public class downloadcontent extends HttpServlet {
             } catch (Exception ex) {
                 message = ex.getMessage();
             }
+            response.setStatus(HttpStatus.SC_BAD_REQUEST);
             out.println(message);
             return;
         }
@@ -177,6 +183,7 @@ public class downloadcontent extends HttpServlet {
                 } catch (Exception e) {
                     message = ex.getMessage();
                 }
+                response.setStatus(HttpStatus.SC_BAD_REQUEST);
                 out.println(message);
                 return;
             } catch (HttpException e) {
@@ -190,6 +197,7 @@ public class downloadcontent extends HttpServlet {
                 } catch (Exception ex) {
                     message = ex.getMessage();
                 }
+                response.setStatus(HttpStatus.SC_BAD_REQUEST);
                 out.println(message);
                 return;
             } catch (IOException e) {
@@ -203,6 +211,7 @@ public class downloadcontent extends HttpServlet {
                 } catch (Exception ex) {
                     message = ex.getMessage();
                 }
+                response.setStatus(HttpStatus.SC_INTERNAL_SERVER_ERROR);
                 out.println(message);
                 return;
             } catch (Exception e) {
@@ -216,6 +225,7 @@ public class downloadcontent extends HttpServlet {
                 } catch (Exception ex) {
                     message = ex.getMessage();
                 }
+                response.setStatus(HttpStatus.SC_INTERNAL_SERVER_ERROR);
                 out.println(message);
                 return;
             }
@@ -235,6 +245,7 @@ public class downloadcontent extends HttpServlet {
             } catch (Exception ex) {
                 message = ex.getMessage();
             }
+            response.setStatus(HttpStatus.SC_BAD_REQUEST);
             out.println(message);
             return;
         }
