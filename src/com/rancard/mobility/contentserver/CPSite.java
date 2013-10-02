@@ -9,7 +9,7 @@
 
 package com.rancard.mobility.contentserver;
 
-import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
@@ -28,17 +28,18 @@ public class CPSite {
     private String siteType;
     private boolean checkUser;
     
-    /**
-     * Creates a new instance of CPSite
-     */
-    public CPSite () {
-        this.checkUser = false;
-        this.cpId ="";
-        this.cpSiteId = "";
-        this.siteType = WEB;
-        this.cpSiteName = "";
+    public CPSite(){        
     }
     
+    public CPSite(String cpID, String siteName, String siteID, String siteType, boolean checkUser){
+        this.cpId = cpID;
+        this.cpSiteName = siteName;
+        this.cpSiteId = siteID;
+        this.siteType = siteType;
+        this.checkUser = checkUser;
+    }
+    
+   
     public String getCpId () {
         return cpId;
     }
@@ -96,15 +97,15 @@ public class CPSite {
         return CPSiteDB.viewSite (siteId);
     }
     
-    public static ArrayList viewAllSitesForCP (String cpId) throws Exception {
+    public static List<CPSite> viewAllSitesForCP (String cpId) throws Exception {
         return CPSiteDB.viewAllSitesForCP (cpId);
     }
     
-    public static ArrayList viewAffiliatedSitesForCP (String cpId) throws Exception {
+    public static List<CPSite> viewAffiliatedSitesForCP (String cpId) throws Exception {
         return CPSiteDB.viewAffiliatedSitesForCP (cpId);
     }
     
-    public static ArrayList viewCPsWithSites () throws Exception {
+    public static List<String> viewCPsWithSites () throws Exception {
         return CPSiteDB.viewCPsWithSites ();
     }
     

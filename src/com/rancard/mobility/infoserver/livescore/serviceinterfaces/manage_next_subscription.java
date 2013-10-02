@@ -116,7 +116,7 @@ public class manage_next_subscription extends HttpServlet implements RequestDisp
                             String message = "";
                         
                             //----------get resubscription notification message template
-                            UserService us = new UserService();
+                            UserService us = null;
                             String messageTemplate = "";
                             try {
                                 us = ServiceManager.viewAllServices(accountId, "15", "11").get(0);//get resubsriptoin helper service
@@ -128,7 +128,7 @@ public class manage_next_subscription extends HttpServlet implements RequestDisp
                             
                             //view head livescore service
                             String from ="";
-                            UserService lsHeadSrvc = new UserService();
+                            UserService lsHeadSrvc = null;
                             try {
                                 lsHeadSrvc = LiveScoreServiceManager.viewHeadLiveScoreService(accountId);
                                 from = lsHeadSrvc.getKeyword();

@@ -19,19 +19,35 @@ public class DateUtil {
     public static final DateFormat MYSQLTIMESTAMPFORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     public static final DateFormat MYSQLSHORTFORMAT = new SimpleDateFormat("yyyy-MM-dd");
     
-    public static String convertToMySQLTimeStamp(java.util.Date date){               
+    public static String convertToMySQLTimeStamp(java.util.Date date){    
+        if(date == null){
+            return null;
+        }
+        
         return MYSQLTIMESTAMPFORMAT.format(date);
     }
     
     public static java.util.Date convertFromMySQLTimeStamp(String timeStamp) throws ParseException{
+        if(timeStamp == null || timeStamp.equals("")){
+            return null;
+        }
+        
         return MYSQLTIMESTAMPFORMAT.parse(timeStamp);
     }
     
-    public static String convertToMySQLShort(java.util.Date date){               
+    public static String convertToMySQLShort(java.util.Date date){  
+        if(date == null){
+            return null;
+        }
+        
         return MYSQLSHORTFORMAT.format(date);
     }
     
     public static java.util.Date convertFromMySQLShort(String shortDate) throws ParseException{
+        if(shortDate == null || shortDate.equals("")){
+            return null;
+        }
+        
         return MYSQLSHORTFORMAT.parse(shortDate);
     }
     

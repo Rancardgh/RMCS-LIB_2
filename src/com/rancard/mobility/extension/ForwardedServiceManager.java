@@ -9,13 +9,13 @@
 
 package com.rancard.mobility.extension;
 
-import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
  * @author Messenger
  */
-public abstract class ForwardedServiceManager {
+public class ForwardedServiceManager {
     
     public static void createForwardedService (ForwardedService service) throws Exception {
         ForwardedServiceDB.createForwardedService (service);
@@ -37,7 +37,7 @@ public abstract class ForwardedServiceManager {
         return ForwardedServiceDB.viewForwardedService (keyword, accountId);
     }
     
-    public static ArrayList viewAllForwardedServices (String accountId) throws Exception {
+    public static List<ForwardedService> viewAllForwardedServices (String accountId) throws Exception {
         return ForwardedServiceDB.viewAllForwardedServices (accountId);
     }
     

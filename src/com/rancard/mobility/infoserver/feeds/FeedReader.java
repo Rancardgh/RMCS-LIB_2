@@ -17,7 +17,6 @@ import com.rancard.common.DConnect;
 import com.rancard.common.uidGen;
 import com.rancard.mobility.infoserver.InfoServiceDB;
 import com.rancard.mobility.infoserver.common.services.UserService;
-import com.sun.org.apache.xml.internal.serializer.ElemDesc;
 
 import com.sun.syndication.io.*;
 import com.sun.syndication.feed.synd.*;

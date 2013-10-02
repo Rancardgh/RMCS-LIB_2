@@ -4,7 +4,7 @@
  */
 package com.rancard.mobility.contentserver.serviceinterfaces.freemium;
 
-import com.rancard.mobility.infoserver.common.services.ServiceSubscriberDB;
+import com.rancard.mobility.infoserver.common.services.ServiceSubscriptionDB;
 import com.rancard.util.DateUtil;
 import java.util.Date;
 
@@ -19,11 +19,11 @@ public class CAPPEDATENDDATEFreemiumSubscriber implements IFreemiumSubscriber{
             return false;
         }
         else if(DateUtil.daysBtnDates(freemium.getStartDate(), freemium.getEndDate()) < freemium.getLength()){
-            ServiceSubscriberDB.addSubscription(new Date(), freemium.getEndDate(), msisdn, freemium.getAccountID(),
+            ServiceSubscriptionDB.addSubscription(new Date(), freemium.getEndDate(), msisdn, freemium.getAccountID(),
                     freemium.getKeyword(), 1, 0);
             return true;
         }else{
-             ServiceSubscriberDB.addSubscription(new Date(), freemium.getLength(), msisdn, freemium.getAccountID(), freemium.getKeyword(), 1, 0);
+             ServiceSubscriptionDB.addSubscription(new Date(), freemium.getLength(), msisdn, freemium.getAccountID(), freemium.getKeyword(), 1, 0);
                 return true;
         }
     }

@@ -105,7 +105,7 @@ public class URLUTF8Encoder {
         return sbuf.toString ();
     }
     
-    public static String doMessageEscaping (String insertions,String stored_ack) throws Exception{
+    public static String doMessageEscaping (String insertions,String stored_ack){
         String url_tmp = stored_ack;
         String result = "";
         String tmp_1_val = "";

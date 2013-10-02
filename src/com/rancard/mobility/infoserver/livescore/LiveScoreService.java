@@ -11,6 +11,8 @@ package com.rancard.mobility.infoserver.livescore;
 
 import com.rancard.mobility.infoserver.common.services.UserService;
 import java.sql.Timestamp;
+import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -34,7 +36,8 @@ public class LiveScoreService extends UserService {
     
     public LiveScoreService (String serviceType, String keyword, String accountId, String serviceid, String defaultMessage, String command, String allowedShortcodes, String allowedSiteTypes,
             String pricing, boolean isBasic, String[] liveScoreServiceIds) {
-        super (serviceType, keyword, accountId, serviceid, defaultMessage, command, allowedShortcodes, allowedSiteTypes, pricing, isBasic);
+        super (serviceType, keyword, accountId, serviceid, defaultMessage, command, Arrays.asList(allowedShortcodes.split(",")), 
+                Arrays.asList(allowedSiteTypes.split(",")), pricing, isBasic);
         this.liveScoreServiceIds = liveScoreServiceIds;
     }
     

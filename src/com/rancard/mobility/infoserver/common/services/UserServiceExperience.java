@@ -21,15 +21,15 @@ public class UserServiceExperience {
     private int subscriptionInterval;
     private String url;
     private int urlTimeout;
-    private String metaData;
-    private static final int DEFAULT_URL_CALL_TIMEOUT = 5000;
+    private ServiceExperienceMetaDataOptions metaData;
+    public static final int DEFAULT_URL_CALL_TIMEOUT = 5000;
 
     public UserServiceExperience(String accountID, String siteID, String keyword, String promoMsg, String promoID, String promoRespCode,
             String welcomeMsg, String alreadySubscribedMsg, String unsubscriptionConfirmationMsg, String promoMsgSender,
-            String welcomeMsgSender, String alreadySubscribedMsgSender, String unsubscriptionConfirmationMsgSender, 
-            int pushMsgWaitTime, int subscriptionInterval, String url, int urlTimeout, String metaData){
-        this.accountId=accountID;
-        this.siteId =siteID;
+            String welcomeMsgSender, String alreadySubscribedMsgSender, String unsubscriptionConfirmationMsgSender,
+            int pushMsgWaitTime, int subscriptionInterval, String url, int urlTimeout, ServiceExperienceMetaDataOptions metaData) {
+        this.accountId = accountID;
+        this.siteId = siteID;
         this.keyword = keyword;
         this.promoMsg = promoMsg;
         this.promoId = promoID;
@@ -48,27 +48,30 @@ public class UserServiceExperience {
         this.metaData = metaData;
     }
     
-    
-    public UserServiceExperience() {
-        this.accountId = "";
-        this.siteId = "";
-        this.keyword = "";
-        this.promoMsg = "";
-        this.promoId = "";
-        this.promoRespCode = "";
-        this.welcomeMsg = "";
-        this.alreadySubscribedMsg = "";
-        this.unsubscriptionConfirmationMsg = "";
-        this.promoMsgSender = "";
-        this.welcomeMsgSender = "";
-        this.alreadySubscribedMsgSender = "";
-        this.unsubscriptionConfirmationMsgSender = "";
-        this.pushMsgWaitTime = 0;
-        this.subscriptionInterval = 0;
-        this.url = "";
-        this.urlTimeout = DEFAULT_URL_CALL_TIMEOUT;
-        this.metaData = "";
+   /* public UserServiceExperience(String accountID, String siteID, String keyword, String promoMsg, String promoID, String promoRespCode,
+            String welcomeMsg, String alreadySubscribedMsg, String unsubscriptionConfirmationMsg, String promoMsgSender,
+            String welcomeMsgSender, String alreadySubscribedMsgSender, String unsubscriptionConfirmationMsgSender,
+            int pushMsgWaitTime, int subscriptionInterval, String url, int urlTimeout, ServiceExperienceMetaData metaData) {
+        this.accountId = accountID;
+        this.siteId = siteID;
+        this.keyword = keyword;
+        this.promoMsg = promoMsg;
+        this.promoId = promoID;
+        this.promoRespCode = promoRespCode;
+        this.welcomeMsg = welcomeMsg;
+        this.alreadySubscribedMsg = alreadySubscribedMsg;
+        this.unsubscriptionConfirmationMsg = unsubscriptionConfirmationMsg;
+        this.promoMsgSender = promoMsgSender;
+        this.welcomeMsgSender = welcomeMsgSender;
+        this.alreadySubscribedMsgSender = alreadySubscribedMsgSender;
+        this.unsubscriptionConfirmationMsgSender = unsubscriptionConfirmationMsgSender;
+        this.pushMsgWaitTime = pushMsgWaitTime;
+        this.subscriptionInterval = subscriptionInterval;
+        this.url = url;
+        this.urlTimeout = urlTimeout;
+        this.metaData = metaData;
     }
+*/
 
     public String getAccountId() {
         return accountId;
@@ -138,7 +141,7 @@ public class UserServiceExperience {
         return urlTimeout;
     }
 
-    public String getMetaData() {
+    public ServiceExperienceMetaDataOptions getMetaData() {
         return metaData;
     }
 
@@ -210,30 +213,25 @@ public class UserServiceExperience {
         this.urlTimeout = urlTimeout;
     }
 
-    public void setMetaData(String metaData) {
+    public void setMetaData(ServiceExperienceMetaDataOptions metaData) {
         this.metaData = metaData;
     }
 
-    public boolean exists() {
-        if (this.getAccountId().equals("") || this.getSiteId().equals("") ||
-                this.getKeyword().equals("")) {
-            return false;
+
+    /*private Map<String, String> getMetaDataMap(String metaData) {
+        Map<String, String> map = new HashMap<String, String>();
+        
+        if (metaData == null || metaData.equals("")) {
+            return map;
         }
-        return true;
-    }
 
-    public Map<String, String> getMetaDataMap() {
-        HashMap<String, String> mdMap = new HashMap<String, String>();
-
-        if (!metaData.equals("")) {
-            ArrayList<String> mDataPairs = new ArrayList();
-            mDataPairs.addAll(Arrays.asList(metaData.split("&")));
-
-            for (String pair : mDataPairs) {
-                String[] parts = pair.split("=");
-                mdMap.put(parts[0].toUpperCase(), parts[1]);
-            }
+        List<String> mDataPairs = new ArrayList();
+        mDataPairs.addAll(Arrays.asList(metaData.split("&")));
+        for (String pair : mDataPairs) {
+            String[] parts = pair.split("=");
+            map.put(parts[0].toUpperCase(), parts[1]);
         }
-        return mdMap;
-    }
+
+        return map;
+    }*/
 }

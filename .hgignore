@@ -1,10 +1,4 @@
-syntax: glob
-
-*.class
+[syntax: glob]
 nbproject/*
-build/*
-dist/*
 build.xml
 manifest.mf
-.*
-*.iml

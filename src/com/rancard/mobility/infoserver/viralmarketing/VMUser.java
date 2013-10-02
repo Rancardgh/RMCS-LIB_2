@@ -14,15 +14,14 @@ import java.util.Date;
 public class VMUser {
 
     private String msisdn;
-    private String accountId;
+    private String accountID;
     private String keyword;
     private String username;
     private Date regDate;
     private int points;
 
-
-    public VMUser(String msisdn, String accountId, String keyword, String username, Date regDate, int points) {
-        this.accountId = accountId;
+    public VMUser(Date regDate, String msisdn, String accountID, String keyword, String username, int points) {
+        this.accountID = accountID;
         this.msisdn = msisdn;
         this.keyword = keyword;
         this.username = username;
@@ -30,8 +29,8 @@ public class VMUser {
         this.regDate = regDate;
     }
 
-    public String getAccountId() {
-        return accountId;
+    public String getAccountID() {
+        return accountID;
     }
 
     public String getMsisdn() {
@@ -54,8 +53,8 @@ public class VMUser {
         return points;
     }
 
-    public void setAccountId(String accountId) {
-        this.accountId = accountId;
+    public void setAccountID(String accountID) {
+        this.accountID = accountID;
     }
 
     public void setMsisdn(String msisdn) {

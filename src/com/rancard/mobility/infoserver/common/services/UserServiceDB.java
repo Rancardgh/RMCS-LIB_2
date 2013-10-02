@@ -6,8 +6,10 @@ import com.rancard.common.DConnect;
 import com.rancard.common.Feedback;
 import com.rancard.common.uidGen;
 import com.rancard.mobility.common.ThreadedPostman;
+import com.rancard.mobility.infoserver.feeds.CPUserFeeds;
 import com.rancard.util.DateUtil;
 import com.rancard.util.Page;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -16,6 +18,7 @@ import java.sql.Statement;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -24,6 +27,10 @@ import java.util.List;
 import java.util.Map;
 
 public class UserServiceDB {
+
+    private static void log(String level, String message) {
+        System.out.println(new Date() + "\t" + UserServiceDB.class.getName() + "\t" + level + "\t" + message);
+    }
 
     public static void createService(UserService service) throws Exception {
         Connection conn = null;
@@ -37,11 +44,11 @@ public class UserServiceDB {
                     + "'" + service.getServiceName() + "', '" + service.getDefaultMessage() + "', '" + service.getCommand() + "', "
                     + "'" + service.getAllowedShortcodes() + "', '" + service.getAllowedSiteTypes() + "', " + ((service.isBasic()) ? 1 : 0) + ", "
                     + "'" + service.getPricing() + "', " + ((service.isSubscription()) ? 1 : 0) + " , '" + service.getServiceResponseSender() + "')";
-            System.out.println(new Date() + ": " + UserServiceDB.class + ":DEBUG About to create service: " + sql);
+
+            log("DEBUG", "About to create service: " + sql);
             conn.createStatement().execute(sql);
-            System.out.println(new Date() + ": " + UserServiceDB.class + ":INFO Service created");
         } catch (Exception ex) {
-            System.out.println(new Date() + ": " + UserServiceDB.class + ":ERROR Problem creating service: " + ex.getMessage());
+            log("ERROR", "Problem creating service: " + ex.getMessage());
             throw new Exception(ex.getMessage());
         } finally {
             if (conn != null) {
@@ -58,13 +65,14 @@ public class UserServiceDB {
             conn = DConnect.getConnection();
             String sql = "UPDATE service_definition SET default_message = '" + defaultMessage + "', service_name = '" + serviceName + "' , "
                     + "last_updated = '" + DateUtil.convertToMySQLTimeStamp(new Date()) + "' "
-                    + "WHERE keyword = '" + keyword + "' and account_id = '" + accountId + "'";
+                    + "WHERE keyword = '" + keyword + "' and account_id = '" + accountId + "' and service_type = '" + serviceType + "'";
 
-            System.out.println(new Date() + ": " + UserServiceDB.class + ":DEBUG About to update service: " + sql);
+
+            log("DEBUG", "About to update service: " + sql);
             conn.createStatement().executeUpdate(sql);
-            System.out.println(new Date() + ": " + UserServiceDB.class + ":INFO Service updated");
+            log("INFO", "Service updated");
         } catch (Exception ex) {
-            System.out.println(new Date() + ": " + UserServiceDB.class + ":ERROR Problem updating service: " + ex.getMessage());
+            log("ERROR", "Problem updating service: " + ex.getMessage());
             throw new Exception(ex.getMessage());
         } finally {
             if (conn != null) {
@@ -83,11 +91,11 @@ public class UserServiceDB {
                     + "last_updated = '" + DateUtil.convertToMySQLTimeStamp(new Date()) + "' "
                     + "WHERE keyword = '" + keyword + "' and account_id = '" + accountId + "'";
 
-            System.out.println(new Date() + ": " + UserServiceDB.class + ":DEBUG About to update service: " + sql);
+            log("DEBUG", "About to update service: " + sql);
             conn.createStatement().executeUpdate(sql);
-            System.out.println(new Date() + ": " + UserServiceDB.class + ":INFO Service updated");
+            log("INFO", "Service updated");
         } catch (Exception ex) {
-            System.out.println(new Date() + ": " + UserServiceDB.class + ":ERROR Problem updating service: " + ex.getMessage());
+            log("ERROR", "Problem updating service: " + ex.getMessage());
             throw new Exception(ex.getMessage());
         } finally {
             if (conn != null) {
@@ -103,11 +111,11 @@ public class UserServiceDB {
             conn = DConnect.getConnection();
             String sql = "delete from service_definition where keyword = '" + keyword + "' and account_id = '" + accountId + "'";
 
-            System.out.println(new Date() + ": " + UserServiceDB.class + ":DEBUG About to delete service: " + sql);
+            log("DEBUG", "About to delete service: " + sql);
             conn.createStatement().execute(sql);
-            System.out.println(new Date() + ": " + UserServiceDB.class + ":INFO Service deleted");
+            log("INFO", "Service deleted");
         } catch (Exception ex) {
-            System.out.println(new Date() + ": " + UserServiceDB.class + ":ERROR Problem deleting service: " + ex.getMessage());
+            log("ERROR", "Problem deleting service: " + ex.getMessage());
             throw new Exception(ex.getMessage());
         } finally {
             if (conn != null) {
@@ -116,7 +124,7 @@ public class UserServiceDB {
         }
     }
 
-    public static void deleteService(List keywords, String accountId) throws Exception {
+    public static void deleteService(List<String> keywords, String accountId) throws Exception {
         if (keywords.isEmpty()) {
             return;
         }
@@ -124,8 +132,8 @@ public class UserServiceDB {
         Connection conn = null;
 
         StringBuilder keywordStr = new StringBuilder();
-        for (int i = 0; i < keywords.size(); i++) {
-            keywordStr.append("'").append(keywords.get(i).toString()).append("',");
+        for (String keyword : keywords) {
+            keywordStr.append("'").append(keyword).append("',");
         }
         keywordStr.deleteCharAt(keywordStr.toString().lastIndexOf(","));
 
@@ -133,11 +141,11 @@ public class UserServiceDB {
             conn = DConnect.getConnection();
             String sql = "delete from service_definition where keyword in (" + keywordStr + ") and account_id = '" + accountId + "'";
 
-            System.out.println(new Date() + ": " + UserServiceDB.class + ":DEBUG About to delete service: " + sql);
+            log("DEBUG", "About to delete service: " + sql);
             conn.createStatement().execute(sql);
-            System.out.println(new Date() + ": " + UserServiceDB.class + ":INFO Service deleted");
+            log("INFO", "Service deleted");
         } catch (Exception ex) {
-            System.out.println(new Date() + ": " + UserServiceDB.class + ":ERROR Problem deleting service: " + ex.getMessage());
+            log("ERROR", "Problem deleting service: " + ex.getMessage());
             throw new Exception(ex.getMessage());
         } finally {
             if (conn != null) {
@@ -158,19 +166,17 @@ public class UserServiceDB {
             String sql = "select count(*) as 'access_count' from subscriber_request_history where msisdn = '" + msisdn + "' "
                     + "and account_id = '" + accountId + "' and keyword = '" + keyword + "' and date(log_time) = CURRENT_DATE order by log_time desc";
 
-            System.out.println(new Date() + ": " + UserServiceDB.class + ":DEBUG Getting last access count: " + sql);
+            log("DEBUG", "Getting last access count: " + sql);
             rs = conn.createStatement().executeQuery(sql);
-            System.out.println(new Date() + ": " + UserServiceDB.class + ":INFO Got last access count");
-            while (rs.next()) {
-                System.out.println(new java.util.Date() + ": " + UserServiceDB.class + ":INFO access count for last service (" + accountId + ", " + keyword + ") by " + msisdn);
+            log("INFO", "Got last access count");
+            if (rs.next()) {
+                log("INFO", "Access count for last service (" + accountId + ", " + keyword + ") by " + msisdn);
                 accessCount = rs.getInt("access_count");
-                break;
             }
             return accessCount;
 
         } catch (Exception ex) {
-            System.out.println(new java.util.Date() + ": " + UserServiceDB.class + ":ERROR retrieving access count for last service ("
-                    + accountId + ", " + keyword + ") by " + msisdn + " :: " + ex.getMessage());
+            log("ERROR", "retrieving access count for last service (" + accountId + ", " + keyword + ") by " + msisdn + " :: " + ex.getMessage());
             throw new Exception(ex.getMessage());
         } finally {
             if (rs != null) {
@@ -192,17 +198,18 @@ public class UserServiceDB {
             String sql = "select * from subscriber_request_history where msisdn = '" + msisdn + "' and account_id = '" + accountId + "' "
                     + "and site_id = '" + siteId + "' order by log_time desc limit 1";
 
-            System.out.println(new Date() + ": " + UserServiceDB.class + ":DEBUG Getting last requested keyword: " + sql);
+            log("DEBUG", "Getting last requested keyword: " + sql);
             rs = conn.createStatement().executeQuery(sql);
 
-            while (rs.next()) {
-                System.out.println(new Date() + ": " + UserServiceDB.class + ":INFO Got last requested keyword");
+            if (rs.next()) {
+                log("INFO", "Got last requested keyword");
                 return rs.getString("keyword");
             }
 
+            log("INFO", "Keyword not found");
             return null;
         } catch (Exception ex) {
-            System.out.println(new Date() + ": " + UserServiceDB.class + ":ERROR retrieving last requested keyword (" + msisdn + ", " + accountId + ", " + siteId + "): " + ex.getMessage());
+            log("ERROR", "Retrieving last requested keyword (" + msisdn + ", " + accountId + ", " + siteId + "): " + ex.getMessage());
             throw new Exception(ex.getMessage());
         } finally {
             if (rs != null) {
@@ -227,20 +234,19 @@ public class UserServiceDB {
             String sql = "select * from service_subscription where msisdn = '" + msisdn + "' and account_id = '" + accountId + "' "
                     + "order by subscription_date desc limit 1";
 
-            System.out.println(new Date() + ": " + UserServiceDB.class + ":DEBUG retrieving last subscribed keyword for (" + msisdn + ", " + accountId + ")...");
+            log("DEBUG", "Retrieving last subscribed keyword for (" + msisdn + ", " + accountId + ")...");
             rs = conn.createStatement().executeQuery(sql);
 
-            while (rs.next()) {
-                System.out.println(new Date() + ": " + UserServiceDB.class + ":INFO Got last subscribed keyword");
+            if (rs.next()) {
+                log("INFO", "Got last requested keyword");
                 return rs.getString("keyword");
             }
 
-            System.out.println(new java.util.Date() + ": " + UserServiceDB.class + "INFO: Keyword not found");
+            log("INFO", "Keyword not found");
             return null;
         } catch (Exception ex) {
-            //error log
-            System.out.println(new java.util.Date() + ": error retrieving last requested keyword (" + msisdn + ", " + accountId + "): " + ex.getMessage());
-            throw new Exception();
+            log("ERROR", "Retrieving last requested keyword (" + msisdn + ", " + accountId + "): " + ex.getMessage());
+            throw new Exception(ex.getMessage());
         } finally {
             if (rs != null) {
                 rs.close();
@@ -261,21 +267,22 @@ public class UserServiceDB {
             String query = "select d.* from service_definition d inner join service_subscription s on d.account_id=s.account_id and d.keyword=s.keyword"
                     + " where msisdn='" + msisdn + "' order by s.subscription_date desc limit 1;";
 
-            System.out.println(new java.util.Date() + ": " + UserServiceDB.class + "DEBUG: SQL Query for last service subscribed to: " + query);
+            log("DEBUG", "SQL Query for last service subscribed to: " + query);
             rs = conn.createStatement().executeQuery(query);
 
             if (rs.next()) {
-                System.out.println(new java.util.Date() + ": " + UserServiceDB.class + "INFO: Service found");
+                log("INFO", "Service found");
                 return new UserService(rs.getString("service_type"), rs.getString("keyword"), rs.getString("account_id"),
-                        rs.getString("service_name"), rs.getString("default_message"), rs.getString("command"), rs.getString("allowed_shortcodes"),
-                        rs.getString("allowed_site_types"), rs.getString("pricing"), rs.getBoolean("is_basic"),
-                        rs.getBoolean("is_subscription"), rs.getString("service_response_sender"));
+                        rs.getString("service_name"), rs.getString("default_message"), rs.getString("command"),
+                        Arrays.asList(rs.getString("allowed_shortcodes").split(",")), Arrays.asList(rs.getString("allowed_site_types").split(",")),
+                        rs.getString("pricing"), rs.getBoolean("is_basic"), rs.getBoolean("is_subscription"),
+                        rs.getString("service_response_sender"), DateUtil.convertFromMySQLTimeStamp(rs.getString("last_updated")));
             }
 
-            System.out.println(new java.util.Date() + ": " + UserServiceDB.class + "INFO: Service not found");
+            log("INFO", "Service not found");
             return null;
         } catch (Exception e) {
-            System.out.println(new Date() + ": " + UserServiceDB.class + ": Error retrieving service: " + e.getMessage());
+            log("ERROR", "Retrieving service: " + e.getMessage());
             throw new Exception(e.getMessage());
         } finally {
             if (rs != null) {
@@ -299,21 +306,22 @@ public class UserServiceDB {
 
             String sql = "select * from keyword_aliases ka inner join service_definition sd on sd.keyword = ka.keyword and sd.account_id = ka.account_id "
                     + "where ka.key_alias = '" + alias + "' and ka.account_id = '" + accountId + "'";
-            System.out.println(new java.util.Date() + ": " + UserServiceDB.class + "DEBUG: SQL Query to get service by alias: " + sql);
+            log("DEBUG", "SQL Query for last service subscribed to: " + sql);
             rs = conn.createStatement().executeQuery(sql);
 
-            while (rs.next()) {
-                System.out.println(new java.util.Date() + ": " + UserServiceDB.class + "INFO: Service found");
+            if (rs.next()) {
+                log("INFO", "Service found");
                 return new UserService(rs.getString("service_type"), rs.getString("keyword"), rs.getString("account_id"),
-                        rs.getString("service_name"), rs.getString("default_message"), rs.getString("command"), rs.getString("allowed_shortcodes"),
-                        rs.getString("allowed_site_types"), rs.getString("pricing"), rs.getBoolean("is_basic"),
-                        rs.getBoolean("is_subscription"), rs.getString("service_response_sender"));
+                        rs.getString("service_name"), rs.getString("default_message"), rs.getString("command"),
+                        Arrays.asList(rs.getString("allowed_shortcodes").split(",")), Arrays.asList(rs.getString("allowed_site_types").split(",")),
+                        rs.getString("pricing"), rs.getBoolean("is_basic"), rs.getBoolean("is_subscription"),
+                        rs.getString("service_response_sender"), DateUtil.convertFromMySQLTimeStamp("s.last_updated"));
             }
 
-            System.out.println(new java.util.Date() + ": " + UserServiceDB.class + "INFO: Service not found");
+            log("INFO", "Service not found");
             return null;
         } catch (Exception ex) {
-            System.out.println(new Date() + ": " + UserServiceDB.class + ": Error retrieving service: " + ex.getMessage());
+            log("ERROR", "Retrieving service: " + ex.getMessage());
             throw new Exception(ex.getMessage());
         } finally {
             if (rs != null) {
@@ -339,11 +347,12 @@ public class UserServiceDB {
 
             rs = conn.createStatement().executeQuery(sql);
             while (rs.next()) {
-                System.out.println(new java.util.Date() + ": " + UserServiceDB.class + "INFO: Service found");
+                log("INFO", "Service found");
                 return new UserService(rs.getString("service_type"), rs.getString("keyword"), rs.getString("account_id"),
-                        rs.getString("service_name"), rs.getString("default_message"), rs.getString("command"), rs.getString("allowed_shortcodes"),
-                        rs.getString("allowed_site_types"), rs.getString("pricing"), rs.getBoolean("is_basic"),
-                        rs.getBoolean("is_subscription"), rs.getString("service_response_sender"));
+                        rs.getString("service_name"), rs.getString("default_message"), rs.getString("command"),
+                        Arrays.asList(rs.getString("allowed_shortcodes").split(",")), Arrays.asList(rs.getString("allowed_site_types").split(",")),
+                        rs.getString("pricing"), rs.getBoolean("is_basic"), rs.getBoolean("is_subscription"),
+                        rs.getString("service_response_sender"), DateUtil.convertFromMySQLTimeStamp(rs.getString("last_updated")));
             }
 
             System.out.println(new java.util.Date() + ": " + UserServiceDB.class + ":INFO: Service not found");
@@ -351,6 +360,45 @@ public class UserServiceDB {
 
         } catch (Exception ex) {
             System.out.println(new java.util.Date() + ": " + UserServiceDB.class + ": error viewing service (" + keyword + ", " + accountId + "): " + ex.getMessage());
+            throw new Exception(ex.getMessage());
+
+        } finally {
+            if (rs != null) {
+                rs.close();
+            }
+            if (conn != null) {
+                conn.close();
+            }
+        }
+
+    }
+
+    public static List<UserService> viewService(List<String> keywords, String accountId) throws Exception {
+        List<UserService> services = new ArrayList<UserService>();
+        ResultSet rs = null;
+        Connection conn = null;
+
+        try {
+            conn = DConnect.getConnection();
+
+            String sql = "select * from service_definition where keyword IN (" + stitchKeywords(keywords) + ") and account_id = '" + accountId + "'";
+            System.out.println(new java.util.Date() + ": " + UserServiceDB.class + "DEBUG: SQL Query to get services: " + sql);
+
+
+            rs = conn.createStatement().executeQuery(sql);
+            while (rs.next()) {
+                System.out.println(new java.util.Date() + ": " + UserServiceDB.class + "INFO: Service found");
+                services.add(new UserService(rs.getString("service_type"), rs.getString("keyword"), rs.getString("account_id"),
+                        rs.getString("service_name"), rs.getString("default_message"), rs.getString("command"),
+                        Arrays.asList(rs.getString("allowed_shortcodes").split(",")), Arrays.asList(rs.getString("allowed_site_types").split(",")),
+                        rs.getString("pricing"), rs.getBoolean("is_basic"), rs.getBoolean("is_subscription"),
+                        rs.getString("service_response_sender"), DateUtil.convertFromMySQLTimeStamp(rs.getString("last_updated"))));
+            }
+
+            return services;
+
+        } catch (Exception ex) {
+            System.out.println(new java.util.Date() + ": " + UserServiceDB.class + ": error viewing services (" + stitchKeywords(keywords) + ", " + accountId + "): " + ex.getMessage());
             throw new Exception(ex.getMessage());
 
         } finally {
@@ -377,9 +425,10 @@ public class UserServiceDB {
             rs = conn.createStatement().executeQuery(sql);
             while (rs.next()) {
                 serviceList.add(new UserService(rs.getString("service_type"), rs.getString("keyword"), rs.getString("account_id"),
-                        rs.getString("service_name"), rs.getString("default_message"), rs.getString("command"), rs.getString("allowed_shortcodes"),
-                        rs.getString("allowed_site_types"), rs.getString("pricing"), rs.getBoolean("is_basic"),
-                        rs.getBoolean("is_subscription"), rs.getString("service_response_sender")));
+                        rs.getString("service_name"), rs.getString("default_message"), rs.getString("command"),
+                        Arrays.asList(rs.getString("allowed_shortcodes").split(",")), Arrays.asList(rs.getString("allowed_site_types").split(",")),
+                        rs.getString("pricing"), rs.getBoolean("is_basic"), rs.getBoolean("is_subscription"),
+                        rs.getString("service_response_sender"), DateUtil.convertFromMySQLTimeStamp(rs.getString("last_updated"))));
             }
             return serviceList;
         } catch (Exception ex) {
@@ -410,9 +459,10 @@ public class UserServiceDB {
 
             while (rs.next()) {
                 serviceList.add(new UserService(rs.getString("service_type"), rs.getString("keyword"), rs.getString("account_id"),
-                        rs.getString("service_name"), rs.getString("default_message"), rs.getString("command"), rs.getString("allowed_shortcodes"),
-                        rs.getString("allowed_site_types"), rs.getString("pricing"), rs.getBoolean("is_basic"),
-                        rs.getBoolean("is_subscription"), rs.getString("service_response_sender")));
+                        rs.getString("service_name"), rs.getString("default_message"), rs.getString("command"),
+                        Arrays.asList(rs.getString("allowed_shortcodes").split(",")), Arrays.asList(rs.getString("allowed_site_types").split(",")),
+                        rs.getString("pricing"), rs.getBoolean("is_basic"), rs.getBoolean("is_subscription"), rs.getString("service_response_sender"),
+                        DateUtil.convertFromMySQLTimeStamp(rs.getString("last_updated"))));
             }
 
             return serviceList;
@@ -443,9 +493,10 @@ public class UserServiceDB {
             rs = conn.createStatement().executeQuery(sql);
             while (rs.next()) {
                 serviceList.add(new UserService(rs.getString("service_type"), rs.getString("keyword"), rs.getString("account_id"),
-                        rs.getString("service_name"), rs.getString("default_message"), rs.getString("command"), rs.getString("allowed_shortcodes"),
-                        rs.getString("allowed_site_types"), rs.getString("pricing"), rs.getBoolean("is_basic"),
-                        rs.getBoolean("is_subscription"), rs.getString("service_response_sender")));
+                        rs.getString("service_name"), rs.getString("default_message"), rs.getString("command"),
+                        Arrays.asList(rs.getString("allowed_shortcodes").split(",")), Arrays.asList(rs.getString("allowed_site_types").split(",")),
+                        rs.getString("pricing"), rs.getBoolean("is_basic"), rs.getBoolean("is_subscription"), rs.getString("service_response_sender"),
+                        DateUtil.convertFromMySQLTimeStamp(rs.getString("last_updated"))));
             }
             return serviceList;
         } catch (Exception ex) {
@@ -478,9 +529,10 @@ public class UserServiceDB {
 
             while (rs.next()) {
                 serviceList.add(new UserService(rs.getString("service_type"), rs.getString("keyword"), rs.getString("account_id"),
-                        rs.getString("service_name"), rs.getString("default_message"), rs.getString("command"), rs.getString("allowed_shortcodes"),
-                        rs.getString("allowed_site_types"), rs.getString("pricing"), rs.getBoolean("is_basic"),
-                        rs.getBoolean("is_subscription"), rs.getString("service_response_sender")));
+                        rs.getString("service_name"), rs.getString("default_message"), rs.getString("command"),
+                        Arrays.asList(rs.getString("allowed_shortcodes").split(",")), Arrays.asList(rs.getString("allowed_site_types").split(",")),
+                        rs.getString("pricing"), rs.getBoolean("is_basic"), rs.getBoolean("is_subscription"),
+                        rs.getString("service_response_sender"), DateUtil.convertFromMySQLTimeStamp(rs.getString("last_updated"))));
             }
             return serviceList;
         } catch (Exception ex) {
@@ -512,9 +564,10 @@ public class UserServiceDB {
 
             while (rs.next()) {
                 serviceList.add(new UserService(rs.getString("service_type"), rs.getString("keyword"), rs.getString("account_id"),
-                        rs.getString("service_name"), rs.getString("default_message"), rs.getString("command"), rs.getString("allowed_shortcodes"),
-                        rs.getString("allowed_site_types"), rs.getString("pricing"), rs.getBoolean("is_basic"),
-                        rs.getBoolean("is_subscription"), rs.getString("service_response_sender")));
+                        rs.getString("service_name"), rs.getString("default_message"), rs.getString("command"),
+                        Arrays.asList(rs.getString("allowed_shortcodes").split(",")), Arrays.asList(rs.getString("allowed_site_types").split(",")),
+                        rs.getString("pricing"), rs.getBoolean("is_basic"), rs.getBoolean("is_subscription"),
+                        rs.getString("service_response_sender"), DateUtil.convertFromMySQLTimeStamp(rs.getString("last_updated"))));
             }
             return serviceList;
         } catch (Exception ex) {
@@ -539,7 +592,7 @@ public class UserServiceDB {
         try {
             conn = DConnect.getConnection();
             String sql = "select service_type, service_url from service_route";
-            System.out.println(new java.util.Date() + ": " + UserServiceDB.class + "DEBUG: Getting routing table: " + sql);
+            System.out.println(new Date() + "\t[" + UserServiceDB.class + "]\tDEBUG\tGetting routing table: " + sql);
 
             rs = conn.createStatement().executeQuery(sql);
             while (rs.next()) {
@@ -547,7 +600,7 @@ public class UserServiceDB {
             }
             return routingTable;
         } catch (Exception ex) {
-            System.out.println(new java.util.Date() + ": " + UserServiceDB.class + ":ERROR getting routing table: " + ex.getMessage());
+            System.out.println(new Date() + "\t[" + UserServiceDB.class + "]\tERROR\tGetting routing table: " + ex.getMessage());
             throw new Exception(ex.getMessage());
         } finally {
             if (rs != null) {
@@ -801,7 +854,7 @@ public class UserServiceDB {
 
             conn = DConnect.getConnection();
 
-            String sql = "Insert into service_subscription (subscription_date,msisdn,keyword,account_id,status) values(?,?,?,?,?)";
+            String sql = "INSERT INTO service_subscription (subscription_date,msisdn,keyword,account_id,status) VALUES(?,?,?,?,?)";
             prepstat = conn.prepareStatement(sql);
 
 
@@ -820,7 +873,7 @@ public class UserServiceDB {
                 Map<String, String> params = new HashMap<String, String>();
                 params.put("msisdn", msisdn.substring(msisdn.indexOf("+") + 1));
                 params.put("keyword", keyword);
-                new ThreadedPostman(ThreadedPostman.RNDVU_BUY_USER_ACTION_API_TMPLT, params).run();
+                new Thread(new ThreadedPostman(ThreadedPostman.RNDVU_BUY_USER_ACTION_API_TMPLT, params)).start();
             } else {
                 System.out.println(new Date() + ": " + UserServiceDB.class + "ERROR: Creating service. Service does not exist: " + accountId + "-" + keyword);
                 throw new Exception(Feedback.NO_SUCH_SERVICE);
@@ -852,7 +905,7 @@ public class UserServiceDB {
 
             conn = DConnect.getConnection();
 
-            String sql = "Insert into service_subscription (subscription_date,msisdn,keyword,account_id,status) values(?,?,?,?,?)";
+            String sql = "INSERT INTO service_subscription (subscription_date,msisdn,keyword,account_id,status) VALUES(?,?,?,?,?)";
             prepstat = conn.prepareStatement(sql);
 
             for (String keyword : keywords) {
@@ -871,7 +924,7 @@ public class UserServiceDB {
                     Map<String, String> params = new HashMap<String, String>();
                     params.put("msisdn", msisdn.substring(msisdn.indexOf("+") + 1));
                     params.put("keyword", keyword);
-                    new ThreadedPostman(ThreadedPostman.RNDVU_BUY_USER_ACTION_API_TMPLT, params).run();
+                    new Thread(new ThreadedPostman(ThreadedPostman.RNDVU_BUY_USER_ACTION_API_TMPLT, params)).start();
                 } else {
                     System.out.println(new Date() + ": " + UserServiceDB.class + "ERROR: Creating service. Service does not exist: " + accountId + "-" + keyword);
                     throw new Exception(Feedback.NO_SUCH_SERVICE);
@@ -904,7 +957,7 @@ public class UserServiceDB {
 
             conn = DConnect.getConnection();
 
-            String sql = "Insert into service_subscription (subscription_date,msisdn,keyword,account_id,status,next_subscription_date) values(?,?,?,?,?,?)";
+            String sql = "INSERT INTO service_subscription (subscription_date,msisdn,keyword,account_id,status,next_subscription_date) VALUES(?,?,?,?,?,?)";
             prepstat = conn.prepareStatement(sql);
 
             for (String keyword : keywords) {
@@ -924,7 +977,7 @@ public class UserServiceDB {
                     HashMap<String, String> params = new HashMap<String, String>();
                     params.put("msisdn", msisdn.substring(msisdn.indexOf("+") + 1));
                     params.put("keyword", keyword);
-                    new ThreadedPostman(ThreadedPostman.RNDVU_BUY_USER_ACTION_API_TMPLT, params).run();
+                    new Thread(new ThreadedPostman(ThreadedPostman.RNDVU_BUY_USER_ACTION_API_TMPLT, params)).start();
                 } else {
                     System.out.println(new Date() + ": " + UserServiceDB.class + "ERROR: Creating service. Service does not exist: " + accountId + "-" + keyword);
                     throw new Exception(Feedback.NO_SUCH_SERVICE);
@@ -968,7 +1021,7 @@ public class UserServiceDB {
 
             if (!rs.next()) {
                 //has not registered. Register him and continue
-                SQL = "Insert into address_book (account_id,msisdn,registration_id) values(?,?,?)";
+                SQL = "INSERT INTO address_book (account_id,msisdn,registration_id) VALUES(?,?,?)";
                 prepstat = con.prepareStatement(SQL);
                 regId[0] = uidGen.generateNumberID(6);
                 prepstat.setString(1, accountId);
@@ -997,7 +1050,7 @@ public class UserServiceDB {
                 rs = prepstat.executeQuery();
 
                 if (rs.next()) {
-                    SQL = "Insert into service_subscription (subscription_date,msisdn,keyword,account_id,status,next_subscription_date,billing_type) values(?,?,?,?,?,?,?)";
+                    SQL = "INSERT INTO service_subscription (subscription_date,msisdn,keyword,account_id,status,next_subscription_date,billing_type) VALUES(?,?,?,?,?,?,?)";
                     prepstat = con.prepareStatement(SQL);
                     prepstat.setTimestamp(1, new java.sql.Timestamp(java.util.Calendar.getInstance().getTime().getTime()));
                     prepstat.setString(2, msisdn);
@@ -1012,7 +1065,7 @@ public class UserServiceDB {
                     HashMap<String, String> params = new HashMap<String, String>();
                     params.put("msisdn", msisdn.substring(msisdn.indexOf("+") + 1));
                     params.put("keyword", keyword);
-                    new ThreadedPostman(ThreadedPostman.RNDVU_BUY_USER_ACTION_API_TMPLT, params).run();
+                    new Thread(new ThreadedPostman(ThreadedPostman.RNDVU_BUY_USER_ACTION_API_TMPLT, params)).start();
                 } else {
                     failedCheck = true;
                 }
@@ -1086,7 +1139,7 @@ public class UserServiceDB {
                 rs = prepstat.executeQuery();
 
                 if (rs.next()) {
-                    SQL = "Insert into service_subscription (subscription_date,msisdn,keyword,account_id,status,next_subscription_date) values(?,?,?,?,?,?)";
+                    SQL = "INSERT INTO service_subscription (subscription_date,msisdn,keyword,account_id,status,next_subscription_date) VALUES(?,?,?,?,?,?)";
                     prepstat = con.prepareStatement(SQL);
                     prepstat.setTimestamp(1, new java.sql.Timestamp(subscriptionDate.getTime()));
                     prepstat.setString(2, msisdn);
@@ -1099,7 +1152,7 @@ public class UserServiceDB {
                     HashMap<String, String> params = new HashMap<String, String>();
                     params.put("msisdn", msisdn.substring(msisdn.indexOf("+") + 1));
                     params.put("keyword", keyword);
-                    new ThreadedPostman(ThreadedPostman.RNDVU_BUY_USER_ACTION_API_TMPLT, params).run();
+                    new Thread(new ThreadedPostman(ThreadedPostman.RNDVU_BUY_USER_ACTION_API_TMPLT, params)).start();
                 } else {
                     failedCheck = true;
                 }
@@ -1297,61 +1350,32 @@ public class UserServiceDB {
     }
 
     public static boolean verifyUser(String msisdn, String regId, String acctId, String keyword) throws Exception {
-        boolean isRegistered = false;
-        String SQL;
         ResultSet rs = null;
-        Connection con = null;
-        PreparedStatement prepstat = null;
-        UserService service = new UserService();
+        Connection conn = null;
+
         try {
-            con = DConnect.getConnection();
-            SQL = "select * from address_book ab inner join service_subscription ss on ab.msisdn=ss.msisdn and ab.account_id=ss.account_id where ab.msisdn='"
+            conn = DConnect.getConnection();
+            String sql = "select ab.registration_id from address_book ab inner join service_subscription ss on ab.msisdn=ss.msisdn and ab.account_id=ss.account_id where ab.msisdn='"
                     + msisdn + "' and ab.account_id='" + acctId + "' and ss.keyword='" + keyword + "'";
-            prepstat = con.prepareStatement(SQL);
-            rs = prepstat.executeQuery();
+            System.out.println(new Date() + "\t[" + UserServiceDB.class + "]\tDEBUG\tVerifying user: " + sql);
+            conn.createStatement().execute(sql);
 
             if (rs.next() && rs.getString("ab.registration_id").equals(regId)) {
-                isRegistered = true;
-            } else {
-                isRegistered = false;
+                return true;
             }
 
+            return false;
         } catch (Exception ex) {
-            if (con != null) {
-                try {
-                    con.close();
-                } catch (SQLException ex1) {
-                    System.out.println(ex1.getMessage());
-                }
-                con = null;
-            }
+            System.out.println(new Date() + "\t[" + UserServiceDB.class + "]\tERROR\tVerifying user: " + ex.getMessage());
+            throw new Exception(ex.getMessage());
         } finally {
             if (rs != null) {
-                try {
-                    rs.close();
-                } catch (SQLException e) {
-                    ;
-                }
-                rs = null;
+                rs.close();
             }
-            if (prepstat != null) {
-                try {
-                    prepstat.close();
-                } catch (SQLException e) {
-                    ;
-                }
-                prepstat = null;
-            }
-            if (con != null) {
-                try {
-                    con.close();
-                } catch (SQLException e) {
-                    ;
-                }
-                con = null;
+            if (conn != null) {
+                conn.close();
             }
         }
-        return isRegistered;
     }
 
     public static boolean isRegistered(String msisdn, String accountId) throws Exception {
@@ -1540,6 +1564,7 @@ public class UserServiceDB {
                 subscription.put("next_subscription_date", rs.getTimestamp("next_subscription_date"));
                 subscription.put("status", rs.getInt("status"));
                 subscription.put("billing_type", rs.getInt("billing_type"));
+
             }
         } catch (Exception ex) {
             throw new Exception(ex.getMessage());
@@ -1591,9 +1616,7 @@ public class UserServiceDB {
     }
 
     public static boolean hasRecentUnsubscription(String msisdn, String keyword, String accountID) throws Exception {
-        boolean flag = false;
         Connection conn = null;
-        DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         ResultSet rs = null;
         String sql = "SELECT * FROM service_subscription_deleted where keyword = '" + keyword + "' and account_id = '" + accountID
                 + "' and msisdn = '" + msisdn + "' order by unsubscription_date DESC limit 1";
@@ -1604,8 +1627,10 @@ public class UserServiceDB {
 
             rs = conn.createStatement().executeQuery(sql);
             if (rs.next()) {
-                flag = true;
+                return true;
             }
+
+            return false;
         } catch (Exception e) {
             throw new Exception(e.getMessage());
         } finally {
@@ -1617,7 +1642,7 @@ public class UserServiceDB {
             }
         }
 
-        return flag;
+
     }
 
     //deprecated as of Friday August 31, 2007
@@ -1672,106 +1697,6 @@ public class UserServiceDB {
             }
             return isRegistered;
         }
-    }
-
-    public static ArrayList getKeywordsOfServices(String accountId) throws Exception {
-        ArrayList keywords = new ArrayList();
-        String SQL;
-        ResultSet rs = null;
-        Connection con = null;
-        PreparedStatement prepstat = null;
-        try {
-            con = DConnect.getConnection();
-            SQL = "select keyword from service_definition where account_id='" + accountId + "'";
-            prepstat = con.prepareStatement(SQL);
-            rs = prepstat.executeQuery();
-
-            while (rs.next()) {
-                keywords.add(rs.getString("keyword"));
-            }
-        } catch (Exception ex) {
-            if (con != null) {
-                try {
-                    con.close();
-                } catch (SQLException ex1) {
-                    System.out.println(ex1.getMessage());
-                }
-                con = null;
-            }
-        } finally {
-            if (rs != null) {
-                try {
-                    rs.close();
-                } catch (SQLException e) {
-                }
-                rs = null;
-            }
-            if (prepstat != null) {
-                try {
-                    prepstat.close();
-                } catch (SQLException e) {
-                }
-                prepstat = null;
-            }
-            if (con != null) {
-                try {
-                    con.close();
-                } catch (SQLException e) {
-                }
-                con = null;
-            }
-        }
-        return keywords;
-    }
-
-    public static ArrayList getKeywordsOfServices(String accountId, String type) throws Exception {
-        ArrayList keywords = new ArrayList();
-        String SQL;
-        ResultSet rs = null;
-        Connection con = null;
-        PreparedStatement prepstat = null;
-        try {
-            con = DConnect.getConnection();
-            SQL = String.format("select keyword from service_definition where account_id='%s' and service_type='%s'", accountId, type);
-            prepstat = con.prepareStatement(SQL);
-            rs = prepstat.executeQuery();
-
-            while (rs.next()) {
-                keywords.add(rs.getString("keyword"));
-            }
-        } catch (Exception ex) {
-            if (con != null) {
-                try {
-                    con.close();
-                } catch (SQLException ex1) {
-                    System.out.println(ex1.getMessage());
-                }
-                con = null;
-            }
-        } finally {
-            if (rs != null) {
-                try {
-                    rs.close();
-                } catch (SQLException e) {
-                }
-                rs = null;
-            }
-            if (prepstat != null) {
-                try {
-                    prepstat.close();
-                } catch (SQLException e) {
-                }
-                prepstat = null;
-            }
-            if (con != null) {
-                try {
-                    con.close();
-                } catch (SQLException e) {
-                }
-                con = null;
-            }
-        }
-        return keywords;
     }
 
     public static ArrayList getKeywordsOfBasicServices(String accountId) throws Exception {
@@ -2100,50 +2025,43 @@ public class UserServiceDB {
         return page;
     }
 
-    public static ArrayList viewServiceRSSFeeds(String accountId, String keyword) throws Exception {
+    public static List<CPUserFeeds> viewServiceRSSFeeds(String accountId, String keyword) throws Exception {
 
-        java.util.ArrayList feedsList = new java.util.ArrayList();
-        Page page = null;
-
-        int y = 0;
-        int i = 0;
-        int numResults = 0;
-        boolean hasNext = false;
-
-        String query;
+        List<CPUserFeeds> feedsList = new ArrayList<CPUserFeeds>();
         ResultSet rs = null;
-        Connection con = null;
-        PreparedStatement prepstat = null;
+        Connection conn = null;
+
 
         try {
-            con = DConnect.getConnection();
+            conn = DConnect.getConnection();
 
-            query = "select * from cp_user_feeds where account_id='" + accountId + "' and  keyword='" + keyword + "'";
+            String query = "select * from cp_user_feeds where account_id='" + accountId + "' and  keyword='" + keyword + "'";
 
-            prepstat = con.prepareStatement(query);
-            rs = prepstat.executeQuery();
+
+            rs = conn.createStatement().executeQuery(query);
 
             // get the total number of records
 
             while (rs.next()) {
-                com.rancard.mobility.infoserver.feeds.CPUserFeeds feed = new com.rancard.mobility.infoserver.feeds.CPUserFeeds();
-                feed.setFeedId(rs.getString("feed_id"));
-                feed.setCpUserId(rs.getString("account_id"));
-                feed.setKeyword(rs.getString("keyword"));
+                CPUserFeeds feed = new CPUserFeeds(rs.getString("account_id"), rs.getString("keyword"), rs.getString("feed_id"),
+                        Integer.parseInt(rs.getString("allowed_age")), rs.getString("regex_reject"), rs.getInt("msg_dlr_priority"));
+
                 feedsList.add(feed);
             }
 
-
+            return feedsList;
         } catch (Exception ex) {
-            if (con != null) {
-                con.close();
-            }
+
             throw new Exception(ex.getMessage());
+        } finally {
+            if (rs != null) {
+                rs.close();
+            }
+            if (conn != null) {
+                conn.close();
+            }
+
         }
-        if (con != null) {
-            con.close();
-        }
-        return feedsList;
     }
 
     public static String[] viewAllSubscribers(String csid, String keyword) throws Exception {
@@ -2599,7 +2517,7 @@ public class UserServiceDB {
                 //get count subscribers from a selected network
                 query = "select count(distinct(msisdn)) as num_subs from service_subscription where keyword in(select d.keyword from service_definition d where d.is_basic=1 and d.account_id='" + accountId
                         + "' and d.service_type=15 and d.command=2) and account_id='" + accountId + "' and next_subscription_date='" + nextSubscriptionDate + "'"
-                        + " and billing_type='" + ServiceSubscriber.MONTHLY_BILLING + "' and status='" + status + "' and (" + prefixQuery + ")";
+                        + " and billing_type='" + ServiceSubscription.MONTHLY_BILLING + "' and status='" + status + "' and (" + prefixQuery + ")";
 
 
                 prepstat = con.prepareStatement(query);
@@ -2615,7 +2533,7 @@ public class UserServiceDB {
                 //get subscribers from a selected network
                 query = "select distinct(msisdn) from service_subscription where keyword in(select d.keyword from service_definition d where d.is_basic=1 and d.account_id='" + accountId
                         + "' and d.service_type=15 and d.command=2) and account_id='" + accountId + "' and next_subscription_date='" + nextSubscriptionDate + "'"
-                        + " and billing_type='" + ServiceSubscriber.MONTHLY_BILLING + "' and status='" + status + "' and (" + prefixQuery + ")";
+                        + " and billing_type='" + ServiceSubscription.MONTHLY_BILLING + "' and status='" + status + "' and (" + prefixQuery + ")";
 
 
                 prepstat = con.prepareStatement(query);
@@ -2661,58 +2579,33 @@ public class UserServiceDB {
     }
 
     public static String findKeywordForMapping(String mapping, String accountId) throws Exception {
-        String SQL;
-        String keyword = new String();
-        ;
         ResultSet rs = null;
-        Connection con = null;
-        PreparedStatement prepstat = null;
-        UserService service = new UserService();
-        try {
-            con = DConnect.getConnection();
+        Connection conn = null;
 
-            SQL = "select * from keyword_mapping where mapping='" + mapping + "' and account_id='" + accountId + "'";
-            prepstat = con.prepareStatement(SQL);
-            rs = prepstat.executeQuery();
+        try {
+            conn = DConnect.getConnection();
+            String sql = "select keyword from keyword_mapping where mapping='" + mapping + "' and account_id='" + accountId + "'";
+            System.out.println(new Date() + "\t[" + UserServiceDB.class + "]\tDEBUG\tFind keyword for mapping: " + sql);
+
+            rs = conn.createStatement().executeQuery(sql);
 
             if (rs.next()) {
-                keyword = rs.getString("keyword");
-            } else {
+                return rs.getString("keyword");
             }
+            return null;
         } catch (Exception ex) {
-            if (con != null) {
-                try {
-                    con.close();
-                } catch (SQLException ex1) {
-                    System.out.println(ex1.getMessage());
-                }
-                con = null;
-            }
+            System.out.println(new Date() + "\t[" + UserServiceDB.class + "]\tERROR\tFind keyword for mapping: " + ex.getMessage());
+            throw new Exception(ex.getMessage());
         } finally {
             if (rs != null) {
-                try {
-                    rs.close();
-                } catch (SQLException e) {
-                }
-                rs = null;
+                rs.close();
             }
-            if (prepstat != null) {
-                try {
-                    prepstat.close();
-                } catch (SQLException e) {
-                }
-                prepstat = null;
-            }
-            if (con != null) {
-                try {
-                    con.close();
-                } catch (SQLException e) {
-                }
-                con = null;
+            if (conn != null) {
+                conn.close();
             }
         }
 
-        return keyword;
+
     }
 
     public static void deleteTempSubscriptionRecord(String msisdn, String accountId, String processId) throws Exception {
@@ -2788,7 +2681,7 @@ public class UserServiceDB {
         try {
             con = DConnect.getConnection();
 
-            SQL = "select next_subscription_date from service_subscription where msisdn = ? and account_id = ? and keyword = ? ";
+            SQL = "SELECT next_subscription_date FROM service_subscription WHERE msisdn = ? AND account_id = ? AND keyword = ? ";
 
             prepstat = con.prepareStatement(SQL);
 
@@ -2861,8 +2754,8 @@ public class UserServiceDB {
 
         try {
             con = DConnect.getConnection();
-            SQL = "insert into feeds (feed_id, feed_name, feed_url, is_active, username, password) "
-                    + "values(?, ?, ?, ?, ?, ?)";
+            SQL = "INSERT INTO feeds (feed_id, feed_name, feed_url, is_active, username, password) "
+                    + "VALUES(?, ?, ?, ?, ?, ?)";
 
             prepstat = con.prepareStatement(SQL);
 
@@ -2922,7 +2815,7 @@ public class UserServiceDB {
         try {
             con = DConnect.getConnection();
 
-            SQL = "select * from feeds where feed_id = ?";
+            SQL = "SELECT * FROM feeds WHERE feed_id = ?";
 
             prepstat = con.prepareStatement(SQL);
 
@@ -2990,7 +2883,7 @@ public class UserServiceDB {
         try {
             con = DConnect.getConnection();
 
-            SQL = "delete from feeds where feed_id = ?";
+            SQL = "DELETE FROM feeds WHERE feed_id = ?";
 
             prepstat = con.prepareStatement(SQL);
 
@@ -3163,8 +3056,8 @@ public class UserServiceDB {
 
         try {
             con = DConnect.getConnection();
-            SQL = "insert into cp_user_feeds (account_id, keyword, feed_id, allowed_age, regex_reject, msg_dlr_priority) "
-                    + "values(?, ?, ?, ?, ?, ?)";
+            SQL = "INSERT INTO cp_user_feeds (account_id, keyword, feed_id, allowed_age, regex_reject, msg_dlr_priority) "
+                    + "VALUES(?, ?, ?, ?, ?, ?)";
 
             prepstat = con.prepareStatement(SQL);
 
@@ -3224,7 +3117,7 @@ public class UserServiceDB {
         try {
             con = DConnect.getConnection();
 
-            SQL = "select * from cp_user_feeds where account_id = ? and keyword = ? ";
+            SQL = "SELECT * FROM cp_user_feeds WHERE account_id = ? AND keyword = ? ";
 
             prepstat = con.prepareStatement(SQL);
 
@@ -3292,7 +3185,7 @@ public class UserServiceDB {
         try {
             con = DConnect.getConnection();
 
-            SQL = "delete from cp_user_feeds where account_id = ? and keyword = ?";
+            SQL = "DELETE FROM cp_user_feeds WHERE account_id = ? AND keyword = ?";
 
             prepstat = con.prepareStatement(SQL);
 
@@ -3467,8 +3360,8 @@ public class UserServiceDB {
 
         try {
             con = DConnect.getConnection();
-            SQL = "insert into service_labels (account_id, keyword, header, footer)"
-                    + "values(?, ?, ?, ?)";
+            SQL = "INSERT INTO service_labels (account_id, keyword, header, footer)"
+                    + "VALUES(?, ?, ?, ?)";
 
             prepstat = con.prepareStatement(SQL);
 
@@ -3526,7 +3419,7 @@ public class UserServiceDB {
         try {
             con = DConnect.getConnection();
 
-            SQL = "select * from service_labels where account_id = ? and keyword = ? ";
+            SQL = "SELECT * FROM service_labels WHERE account_id = ? AND keyword = ? ";
 
             prepstat = con.prepareStatement(SQL);
 
@@ -3592,7 +3485,7 @@ public class UserServiceDB {
         try {
             con = DConnect.getConnection();
 
-            SQL = "delete from service_labels where account_id = ? and keyword = ?";
+            SQL = "DELETE FROM service_labels WHERE account_id = ? AND keyword = ?";
 
             prepstat = con.prepareStatement(SQL);
 
@@ -3820,7 +3713,7 @@ public class UserServiceDB {
     }
 
     public static void updateServiceForwarding(String update_account_id, String update_keyword, String new_account_id,
-            String new_keyword, String new_url, String new_timeout, String new_listen_status) throws Exception {
+                                               String new_keyword, String new_url, String new_timeout, String new_listen_status) throws Exception {
         Connection conn = null;
 
         try {
@@ -3838,5 +3731,16 @@ public class UserServiceDB {
                 conn.close();
             }
         }
+    }
+
+    private static String stitchKeywords(List<String> keywords) {
+        StringBuilder sb = new StringBuilder();
+
+        for (String keyword : keywords) {
+            sb.append("'").append(keyword).append("',");
+        }
+        sb.deleteCharAt(sb.length() - 1);
+
+        return sb.toString();
     }
 }
