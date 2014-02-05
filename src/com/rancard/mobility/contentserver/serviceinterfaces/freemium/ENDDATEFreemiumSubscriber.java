@@ -4,7 +4,7 @@
  */
 package com.rancard.mobility.contentserver.serviceinterfaces.freemium;
 
-import com.rancard.mobility.infoserver.common.services.ServiceSubscriberDB;
+import com.rancard.mobility.infoserver.common.services.ServiceSubscriptionDB;
 import com.rancard.util.DateUtil;
 import java.util.Date;
 
@@ -21,7 +21,7 @@ class ENDDATEFreemiumSubscriber implements IFreemiumSubscriber {
         } else {
             
             try {
-                ServiceSubscriberDB.addSubscription(new Date(), freemium.getLength(), msisdn, freemium.getAccountID(), freemium.getKeyword(), 1, 0);
+                ServiceSubscriptionDB.addSubscription(new Date(), freemium.getLength(), msisdn, freemium.getAccountID(), freemium.getKeyword(), 1, 0);
                 return true;
             } catch (Exception e) {
                 throw new Exception(e.getMessage());

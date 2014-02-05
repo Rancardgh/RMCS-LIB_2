@@ -4,8 +4,6 @@
  */
 package com.rancard.mobility.rendezvous.discovery.viral_marketing;
 
-import com.rancard.mobility.infoserver.InfoServiceDB;
-import com.rancard.mobility.infoserver.common.services.ServiceManager;
 import com.rancard.mobility.infoserver.common.services.UserService;
 import com.rancard.util.SubscriberManager;
 import java.util.*;
@@ -120,6 +118,7 @@ public class VMServiceManager {
         return shareMessage;
     }
     
+    /*
     public static String embedShareLink (String accountId, String keyword, String content, String msisdn) throws Exception {
         String outgoingContent = "";
         UserService srvc = ServiceManager.viewService (keyword, accountId);
@@ -137,7 +136,7 @@ public class VMServiceManager {
         }
         
         return outgoingContent;
-    }
+    }*/
     
     public static String generateShareLink (UserService srvc, VMCampaign campaign, String msisdn) throws Exception {
         String shareUrl = "";

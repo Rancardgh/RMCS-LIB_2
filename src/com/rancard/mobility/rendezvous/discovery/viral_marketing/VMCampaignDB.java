@@ -24,7 +24,7 @@ public class VMCampaignDB {
 
         try {
             con = DConnect.getConnection ();
-            SQL = "insert into vm_campaigns (last_updated, campaign_id, account_id, keyword, message_sender, message, "
+            SQL = "insert into vm_campaigns_temp (last_updated, campaign_id, account_id, keyword, message_sender, message, "
                     + "how_to_msg, follow_up_msg_success, follow_up_msg_error) values(?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
             prepstat = con.prepareStatement (SQL);
@@ -89,7 +89,7 @@ public class VMCampaignDB {
         try {
             con = DConnect.getConnection ();
 
-            SQL = "select * from vm_campaigns where campaign_id = ?";
+            SQL = "select * from vm_campaigns_temp where campaign_id = ?";
 
             prepstat = con.prepareStatement (SQL);
 
@@ -165,7 +165,7 @@ public class VMCampaignDB {
         try {
             con = DConnect.getConnection ();
 
-            SQL = "select * from vm_campaigns where account_id = ? and keyword = ?";
+            SQL = "select * from vm_campaigns_temp where account_id = ? and keyword = ?";
 
             prepstat = con.prepareStatement (SQL);
 
@@ -239,7 +239,7 @@ public class VMCampaignDB {
         try {
             con = DConnect.getConnection ();
 
-            SQL = "select * from vm_campaigns where account_id = ? and keyword = ? and network_id=?";
+            SQL = "select * from vm_campaigns_temp where account_id = ? and keyword = ? and network_id=?";
 
             prepstat = con.prepareStatement (SQL);
 
@@ -313,7 +313,7 @@ public class VMCampaignDB {
         try {
             con = DConnect.getConnection ();
 
-            SQL = "select * from vm_campaigns where account_id = ? and campaign_id = ?";
+            SQL = "select * from vm_campaigns_temp where account_id = ? and campaign_id = ?";
 
             prepstat = con.prepareStatement (SQL);
 
@@ -386,7 +386,7 @@ public class VMCampaignDB {
         try {
             con = DConnect.getConnection ();
 
-            SQL = "select * from vm_campaigns where campaign_id = ? and network_id = ?";
+            SQL = "select * from vm_campaigns_temp where campaign_id = ? and network_id = ?";
 
             prepstat = con.prepareStatement (SQL);
 
@@ -458,7 +458,7 @@ public class VMCampaignDB {
         try {
             con = DConnect.getConnection ();
             SQL =
-                    "UPDATE vm_campaigns SET message = ? "
+                    "UPDATE vm_campaigns_temp SET message = ? "
                     + "WHERE campaign_id = ?";
 
             prepstat = con.prepareStatement (SQL);

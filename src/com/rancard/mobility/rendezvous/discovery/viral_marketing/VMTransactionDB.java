@@ -245,7 +245,7 @@ public class VMTransactionDB {
         try {
             con = DConnect.getConnection ();
 
-            SQL = "select * from vm_campaigns INNER JOIN vm_transactions ON vm_campaigns.campaign_id = vm_transactions.campaign_id  "
+            SQL = "select * from vm_campaigns_temp INNER JOIN vm_transactions ON vm_campaigns_temp.campaign_id = vm_transactions.campaign_id  "
                     + "where account_id = ? and keyword = ? and recipient_msisdn = ? and recruiter_msisdn=?";
 
             prepstat = con.prepareStatement (SQL);
@@ -321,7 +321,7 @@ public class VMTransactionDB {
         try {
             con = DConnect.getConnection ();
 
-            SQL = "select * from vm_campaigns INNER JOIN vm_transactions ON vm_campaigns.campaign_id = vm_transactions.campaign_id  "
+            SQL = "select * from vm_campaigns_temp INNER JOIN vm_transactions ON vm_campaigns_temp.campaign_id = vm_transactions.campaign_id  "
                     + "where account_id = ? and keyword = ? and recipient_msisdn = ? order by trans_date desc limit 1";
 
             prepstat = con.prepareStatement (SQL);
@@ -467,7 +467,7 @@ public class VMTransactionDB {
             
             SQL_points =
                     "UPDATE vm_users vmu "
-                    + "INNER JOIN vm_campaigns vmc ON vmu.account_id = vmc.account_id AND vmu.keyword = vmc.keyword "
+                    + "INNER JOIN vm_campaigns_temp vmc ON vmu.account_id = vmc.account_id AND vmu.keyword = vmc.keyword "
                     + "INNER JOIN vm_transactions vmt ON vmt.campaign_id = vmc.campaign_id "
                     + "SET vmu.points = vmu.points + ? "
                     + "WHERE vmt.recipient_msisdn = ? AND vmt.campaign_id = ? "

@@ -204,66 +204,6 @@ public class Validator {
 
     }
 
-    public static void main(String[] args)throws Exception {
-        System.out.println(Validator.isNumber("233276176997"));
-        /*Validator v = new Validator();
-        ArrayList a = new ArrayList();
-        a.add("0");
-        a.add("1");
-        a.add("2");
-        a.add("3");
-        a.add("4");
-        a.add("5");
-        a.add("6");
-        a.add("7");
-        a.add("8");
-        a.add("9");
-        a.add("+");
-        v.setValidCharSet(a);
-
-        String[] numbers = {"+803","+233244954413","23327617q6997","++78787878788","+7878787878+8","2332778890t8w","++++++++++997"};
-        ArrayList result = Validator.validateNumbers(numbers,13,"+0123456789");*/
-        /*System.out.println(Validator.isNumber("000+++++++997"));
-        System.out.println(Validator.stripLeadingPlus("000+++++++997"));*/
-    }
-
-
-
-
-
-
-
-
-
-
-    /*public static ArrayList validateNumbers(String[] numbers, int numLen,String[] validTokens) throws
-            Exception {
-        ArrayList all = new ArrayList();
-        String[] valids = new String[numbers.length];
-        String[] invalids = new String[numbers.length];
-        for (int i = 0; i < numbers.length; i++) {
-            String number = numbers[i];
-            number = Validator.stripLeadingPlus(number);
-            System.out.println("DOING validation on " + numbers.length +
-                               " numbers. number[i] " + number);
-            if (Validator.isNumber(number)) {
-
-                if (Validator.isLengthValid(number, numLen)) {
-                    valids[i] = number;
-                    System.out.println("Done valid number: " + number +
-                                       " valids.length=" + valids.length);
-                }
-            } else {
-                invalids[i] = number;
-                System.out.println("Done invalid number: " + number);
-            }
-        }
-        String reply = buildMultipleSendResultMessage(valids, invalids);
-        all.add(valids);
-        all.add(invalids);
-        all.add(reply);
-
-        return all;
-    }*/
+    
 
 }

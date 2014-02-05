@@ -198,7 +198,7 @@ public class forwardservice extends HttpServlet implements RequestDispatcher {
         //end of logging
         
         //determine whether to do a message push or pull depending on the service type
-        ForwardedService fs = new ForwardedService();
+        ForwardedService fs = null;
         
         try{
             fs = ForwardedServiceManager.viewForwardedService(kw, accountId);

@@ -2,14 +2,13 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-
 package com.rancard.mobility.infoserver.viralmarketing;
 
 import com.rancard.common.DConnect;
+import com.rancard.util.DateUtil;
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.util.Date;
 
 /**
  *
@@ -18,431 +17,142 @@ import java.sql.SQLException;
 public class VMTransactionDB {
 
     public static void createTransaction(VMTransaction transaction) throws Exception {
-        String SQL;
-        ResultSet rs = null;
-        Connection con = null;
-        PreparedStatement prepstat = null;
+        Connection conn = null;
 
         try {
-            con = DConnect.getConnection();
-            SQL = "insert into vm_transactions(trans_date, campaign_id, recruiter_msisdn, recipient_msisdn, status) " +
-                    "values(?, ?, ?, ?, ?)";
+            conn = DConnect.getConnection();
+            String sql = "insert into vm_transactions(trans_date, campaign_id, recruiter_msisdn, recipient_msisdn, status, item_id, "
+                    + "category, short_url) values('" + DateUtil.convertToMySQLTimeStamp(transaction.getTransactionDate()) + "', '"
+                    + transaction.getCampaignID() + "', '" + transaction.getRecruiterMsisdn() + "', '" + transaction.getRecipientMsisdn() + "', '"
+                    + transaction.getStatus().getValue() + "', '" + transaction.getItemID()+ "', "
+                    + (transaction.getCategory() == null ? "NULL " : "'" + transaction.getCategory() + "'")+ ", "
+                    + (transaction.getShortURL() == null ? "NULL" : "'" + transaction.getShortURL() + "'") + ")";
+            System.out.println(new Date() + "\t[" + VMTransactionDB.class + "]\tDEBUG\tCreate VMTransaction: " + sql);
 
-            prepstat = con.prepareStatement(SQL);
-
-            prepstat.setTimestamp(1, new java.sql.Timestamp(new java.util.Date().getTime()));
-            prepstat.setString(2, transaction.getCampaignId());
-            prepstat.setString(3, transaction.getRecruiterMsisdn());
-            prepstat.setString(4, transaction.getRecipientMsisdn());
-            prepstat.setString(5, transaction.getStatus());
-
-            prepstat.execute();
+            conn.createStatement().execute(sql);
 
         } catch (Exception ex) {
-            if (con != null) {
-                try {
-                    con.close();
-                } catch (SQLException ex1) {
-                    System.out.println(ex1.getMessage());
-                }
-                con = null;
-            }
+            System.out.println(new Date() + "\t[" + VMTransactionDB.class + "]\tERROR\tCreating VMTransaction: " + ex.getMessage());
+            throw new Exception(ex.getMessage());
         } finally {
-            if (rs != null) {
-                try {
-                    rs.close();
-                } catch (SQLException e) {
-                    ;
-                }
-                rs = null;
-            }
-            if (prepstat != null) {
-                try {
-                    prepstat.close();
-                } catch (SQLException e) {
-                    ;
-                }
-                prepstat = null;
-            }
-            if (con != null) {
-                try {
-                    con.close();
-                } catch (SQLException e) {
-                    ;
-                }
-                con = null;
+            if (conn != null) {
+                conn.close();
             }
         }
 
     }
 
-    public static VMTransaction viewTransaction(String campaignId, String recipientMsisdn) throws Exception {
-
-        String SQL;
+    public static VMTransaction viewTransaction(String campaignID, String recipientMsisdn) throws Exception {
         ResultSet rs = null;
-        Connection con = null;
-        PreparedStatement prepstat = null;
-        VMTransaction transaction = new VMTransaction();
+        Connection conn = null;
+
+        VMTransaction transaction = null;
 
         try {
-            con = DConnect.getConnection();
+            conn = DConnect.getConnection();
+            String sql = "select * from vm_transactions where campaign_id = '" + campaignID + "' and recipient_msisdn = '" + recipientMsisdn + "'";
+            System.out.println(new Date() + "\t[" + VMTransactionDB.class + "]\tDEBUG\tViewing VMTransaction: " + sql);
 
-            SQL = "select * from vm_transactions where campaign_id = ? and recipient_msisdn = ?";
+            rs = conn.createStatement().executeQuery(sql);
 
-            prepstat = con.prepareStatement(SQL);
-
-            prepstat.setString(1, campaignId);
-            prepstat.setString(2, recipientMsisdn);
-
-            rs = prepstat.executeQuery();
-
-            while (rs.next()) {
-                transaction.setCampaignId(rs.getString("campaign_id"));
-                transaction.setRecruiterMsisdn(rs.getString("recruiter_msisdn"));
-                transaction.setRecipientMsisdn(rs.getString("recipient_msisdn"));
-                transaction.setStatus(rs.getString("status"));
-                java.text.SimpleDateFormat df = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                String transactionDate = df.format(new java.util.Date(rs.getTimestamp("trans_date").getTime()));
-                transaction.setTransactionDate(transactionDate);
+            if (rs.next()) {
+                transaction = new VMTransaction(DateUtil.convertFromMySQLTimeStamp(rs.getString("trans_date")), rs.getString("campaign_id"),
+                        rs.getString("recruiter_msisdn"), rs.getString("recipient_msisdn"), VMTransactionStatus.valueOf(rs.getString("status").toUpperCase()),
+                        rs.getString("item_id"), rs.getString("category"), rs.getString("short_url"));
             }
-
+            return transaction;
         } catch (Exception ex) {
-            if (con != null) {
-                try {
-                    con.close();
-                } catch (SQLException ex1) {
-                    System.out.println(ex1.getMessage());
-                }
-                con = null;
-            }
-
-            //error log
-            System.out.println(new java.util.Date()+ ": error viewing vm_transaction ("+ campaignId +", "+recipientMsisdn + "): " + ex.getMessage() );
-
+            System.out.println(new Date() + "\t[" + VMTransactionDB.class + "]\tERROR\tViewing VMTransaction: " + ex.getMessage());
+            throw new Exception(ex.getMessage());
         } finally {
             if (rs != null) {
-                try {
-                    rs.close();
-                } catch (SQLException e) {
-                    ;
-                }
-                rs = null;
+                rs.close();
             }
-            if (prepstat != null) {
-                try {
-                    prepstat.close();
-                } catch (SQLException e) {
-                    ;
-                }
-                prepstat = null;
-            }
-            if (con != null) {
-                try {
-                    con.close();
-                } catch (SQLException e) {
-                    ;
-                }
-                con = null;
+            if (conn != null) {
+                conn.close();
             }
         }
-
-        return transaction;
-    }
-    
-    public static VMTransaction viewTransaction(String campaignId, String recipientMsisdn, String recruiterMsisdn, boolean sendReminderIfExists) throws Exception {
-
-        String SQL;
-        ResultSet rs = null;
-        Connection con = null;
-        PreparedStatement prepstat = null;
-        VMTransaction transaction = new VMTransaction();
-
-        try {
-            con = DConnect.getConnection();
-
-            SQL = "select * from vm_transactions where campaign_id = ? and recipient_msisdn = ? and recruiter_msisdn = ?";
-
-            prepstat = con.prepareStatement(SQL);
-
-            prepstat.setString(1, campaignId);
-            prepstat.setString(2, recipientMsisdn);
-            prepstat.setString(3, recruiterMsisdn);
-
-            rs = prepstat.executeQuery();
-
-            while (rs.next()) {
-                transaction.setCampaignId(rs.getString("campaign_id"));
-                transaction.setRecruiterMsisdn(rs.getString("recruiter_msisdn"));
-                transaction.setRecipientMsisdn(rs.getString("recipient_msisdn"));
-                transaction.setStatus(rs.getString("status"));
-                java.text.SimpleDateFormat df = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                String transactionDate = df.format(new java.util.Date(rs.getTimestamp("trans_date").getTime()));
-                transaction.setTransactionDate(transactionDate);
-            }
-
-        } catch (Exception ex) {
-            if (con != null) {
-                try {
-                    con.close();
-                } catch (SQLException ex1) {
-                    System.out.println(ex1.getMessage());
-                }
-                con = null;
-            }
-
-            //error log
-            System.out.println(new java.util.Date()+ ": error viewing vm_transaction ("+ campaignId +", "+recipientMsisdn + "): " + ex.getMessage() );
-
-        } finally {
-            if (rs != null) {
-                try {
-                    rs.close();
-                } catch (SQLException e) {
-                    ;
-                }
-                rs = null;
-            }
-            if (prepstat != null) {
-                try {
-                    prepstat.close();
-                } catch (SQLException e) {
-                    ;
-                }
-                prepstat = null;
-            }
-            if (con != null) {
-                try {
-                    con.close();
-                } catch (SQLException e) {
-                    ;
-                }
-                con = null;
-            }
-        }
-
-        return transaction;
     }
 
-    public static VMTransaction viewTransaction(String accountId, String keyword, String recipientMsisdn) throws Exception {
-
-        String SQL;
+    public static VMTransaction viewTransaction(String campaignID, String recipientMsisdn, String recruiterMsisdn) throws Exception {
         ResultSet rs = null;
-        Connection con = null;
-        PreparedStatement prepstat = null;
-        VMTransaction transaction = new VMTransaction();
+        Connection conn = null;
 
+        VMTransaction transaction = null;
         try {
-            con = DConnect.getConnection();
+            conn = DConnect.getConnection();
 
-            SQL = "select * from vm_campaigns INNER JOIN vm_transactions ON vm_campaigns.campaign_id = vm_transactions.campaign_id  " +
-                    "where account_id = ? and keyword = ? and recipient_msisdn = ?";
+            String sql = "select * from vm_transactions where campaign_id = '" + campaignID + "' and recipient_msisdn = '" + recipientMsisdn + "' and recruiter_msisdn = '";
+            System.out.println(new Date() + "\t[" + VMTransactionDB.class + "]\tDEBUG\tViewing VMTransaction: " + sql);
 
-            prepstat = con.prepareStatement(SQL);
+            rs = conn.createStatement().executeQuery(sql);
 
-            prepstat.setString(1, accountId);
-            prepstat.setString(2, keyword);
-            prepstat.setString(3, recipientMsisdn);
-
-            rs = prepstat.executeQuery();
-
-            while (rs.next()) {
-                transaction.setCampaignId(rs.getString("campaign_id"));
-                transaction.setRecruiterMsisdn(rs.getString("recruiter_msisdn"));
-                transaction.setRecipientMsisdn(rs.getString("recipient_msisdn"));
-                transaction.setStatus(rs.getString("status"));
-                java.text.SimpleDateFormat df = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                String transactionDate = df.format(new java.util.Date(rs.getTimestamp("trans_date").getTime()));
-                transaction.setTransactionDate(transactionDate);
+            if (rs.next()) {
+                transaction = new VMTransaction(DateUtil.convertFromMySQLTimeStamp(rs.getString("trans_date")), rs.getString("campaign_id"),
+                        rs.getString("recruiter_msisdn"), rs.getString("recipient_msisdn"), VMTransactionStatus.valueOf(rs.getString("status")),
+                        rs.getString("item_id"), rs.getString("category"), rs.getString("short_url"));
             }
-
+            return transaction;
         } catch (Exception ex) {
-            if (con != null) {
-                try {
-                    con.close();
-                } catch (SQLException ex1) {
-                    System.out.println(ex1.getMessage());
-                }
-                con = null;
-            }
-
-            //error log
-            System.out.println(new java.util.Date()+ ": error viewing vm_transaction ("+ accountId +","+keyword+","+recipientMsisdn + "): " + ex.getMessage() );
-
+            System.out.println(new Date() + "\t[" + VMTransactionDB.class + "]\tERROR\tViewing VMTransaction: " + ex.getMessage());
+            throw new Exception(ex.getMessage());
         } finally {
             if (rs != null) {
-                try {
-                    rs.close();
-                } catch (SQLException e) {
-                    ;
-                }
-                rs = null;
+                rs.close();
             }
-            if (prepstat != null) {
-                try {
-                    prepstat.close();
-                } catch (SQLException e) {
-                    ;
-                }
-                prepstat = null;
+            if (conn != null) {
+                conn.close();
             }
-            if (con != null) {
-                try {
-                    con.close();
-                } catch (SQLException e) {
-                    ;
-                }
-                con = null;
+        }
+    }
+
+    public static void updateTransactionStatus(String campaignId, String recipientID, VMTransactionStatus status) throws Exception {
+        Connection conn = null;       
+
+        try {
+            conn = DConnect.getConnection();
+            String sql = "UPDATE vm_transactions SET status = '"+status.getValue()+"' "
+                    + "WHERE campaign_id = '"+campaignId+"'  and recipient_msisdn = '"+recipientID+"'";
+            System.out.println(new Date() + "\t[" + VMTransactionDB.class + "]\tDEBUG\tUpdating VMTransaction: " + sql);
+
+            conn.createStatement().executeUpdate(sql);
+
+        } catch (Exception ex) {
+            System.out.println(new Date() + "\t[" + VMTransactionDB.class + "]\tERROR\tUpdating VMTransaction: " + ex.getMessage());
+            throw new Exception(ex.getMessage());
+        } finally {
+            if (conn != null) {
+                conn.close();
             }
         }
 
-        return transaction;
-    } 
-    
-    public static void updateTransactionStatus(String campaignId, String recipientId, String status) throws Exception {
+    }
 
-        String SQL;
-        ResultSet rs = null;
-        Connection con = null;
-        PreparedStatement prepstat = null;
+    public static void updateTransactionStatus(String campaignID, String recipientMSISDN, VMTransactionStatus status, 
+            int points) throws Exception {       
+        Connection conn = null;       
 
         try {
-            con = DConnect.getConnection();
-            SQL =
-                    "UPDATE vm_transactions SET status = ? " +
-                    "WHERE campaign_id = ?  and recipient_msisdn = ?";
+            updateTransactionStatus(campaignID, recipientMSISDN, status);
 
-            prepstat = con.prepareStatement(SQL);
+            conn = DConnect.getConnection();
+            String sql = "UPDATE vm_users vmu INNER JOIN vm_campaigns_temp vmc ON vmu.account_id = vmc.account_id AND "
+                    + "vmu.keyword = vmc.keyword INNER JOIN vm_transactions vmt ON vmt.campaign_id = vmc.campaign_id "
+                    + "SET vmu.points = vmu.points + "+points+" WHERE vmt.recipient_msisdn = '"+recipientMSISDN+"' "
+                    + "AND vmt.campaign_id = '"+campaignID+"' AND vmt.status = ? AND vmu.msisdn = vmt.recruiter_msisdn";
 
-            prepstat.setString(1, status);
-            prepstat.setString(2, campaignId);
-            prepstat.setString(3, recipientId);
+            System.out.println(new Date() + "\t[" + VMTransactionDB.class + "]\tDEBUG\tUpdating VMUser points: " + sql);
             
-            prepstat.execute();
+            conn.createStatement().executeQuery(sql);
 
         } catch (Exception ex) {
-            if (con != null) {
-                try {
-                    con.close();
-                } catch (SQLException ex1) {
-                    System.out.println(ex1.getMessage());
-                }
-                con = null;
-            }
+            System.out.println(new Date() + "\t[" + VMTransactionDB.class + "]\tERROR\tUpdating VMUser points: " + ex.getMessage());
+            throw new Exception(ex.getMessage());
         } finally {
-            if (rs != null) {
-                try {
-                    rs.close();
-                } catch (SQLException e) {
-                    ;
-                }
-                rs = null;
-            }
-            if (prepstat != null) {
-                try {
-                    prepstat.close();
-                } catch (SQLException e) {
-                    ;
-                }
-                prepstat = null;
-            }
-            if (con != null) {
-                try {
-                    con.close();
-                } catch (SQLException e) {
-                    ;
-                }
-                con = null;
+            if (conn != null) {
+                conn.close();
             }
         }
 
     }
-
-    public static void updateTransactionStatus(String campaignId, String recipientId, String status, int points) throws Exception {
-
-        String SQL;
-        String SQL_points;
-        ResultSet rs = null;
-        Connection con = null;
-        PreparedStatement prepstat = null;
-        PreparedStatement prepstat_points = null;
-
-        try {
-            con = DConnect.getConnection();
-            SQL =
-                    "UPDATE vm_transactions SET status = ? " +
-                    "WHERE campaign_id = ?  and recipient_msisdn = ?";
-
-            prepstat = con.prepareStatement(SQL);
-
-            prepstat.setString(1, status);
-            prepstat.setString(2, campaignId);
-            prepstat.setString(3, recipientId);
-
-            prepstat.execute();
-
-            /*SQL_points =
-                    "UPDATE vm_users vmu " +
-                    "INNER JOIN vm_transactions vmt " +
-                    "ON vmu.msisdn = vmt.recruiter_msisdn " +
-                    "INNER join vm_campaigns vmc " +
-                    "ON vmu.keyword = vmc.keyword AND vmu.account_id = vmc.account_id " +
-                    "SET vmu.points = vmu.points + ? " +
-                    "WHERE vmt.recipient_msisdn = ? AND vmt.campaign_id = ? AND vmt.status = ?";*/
-            SQL_points =
-                    "UPDATE vm_users vmu " +
-                    "INNER JOIN vm_campaigns vmc ON vmu.account_id = vmc.account_id AND vmu.keyword = vmc.keyword " +
-                    "INNER JOIN vm_transactions vmt ON vmt.campaign_id = vmc.campaign_id " +
-                    "SET vmu.points = vmu.points + ? " +
-                    "WHERE vmt.recipient_msisdn = ? AND vmt.campaign_id = ? " +
-                    "AND vmt.status = ? AND vmu.msisdn = vmt.recruiter_msisdn";
-
-            prepstat_points = con.prepareStatement(SQL_points);
-
-            prepstat_points.setInt(1, points);
-            prepstat_points.setString(2, recipientId);
-            prepstat_points.setString(3, campaignId);
-            prepstat_points.setString(4, status);
-
-            prepstat_points.execute();
-
-        } catch (Exception ex) {
-            if (con != null) {
-                try {
-                    con.close();
-                } catch (SQLException ex1) {
-                    System.out.println(ex1.getMessage());
-                }
-                con = null;
-            }
-        } finally {
-            if (rs != null) {
-                try {
-                    rs.close();
-                } catch (SQLException e) {
-                    ;
-                }
-                rs = null;
-            }
-            if (prepstat != null) {
-                try {
-                    prepstat.close();
-                    prepstat_points.close();
-                } catch (SQLException e) {
-                    ;
-                }
-                prepstat = null;
-                prepstat_points = null;
-            }
-            if (con != null) {
-                try {
-                    con.close();
-                } catch (SQLException e) {
-                    ;
-                }
-                con = null;
-            }
-        }
-
-    }
-
 }

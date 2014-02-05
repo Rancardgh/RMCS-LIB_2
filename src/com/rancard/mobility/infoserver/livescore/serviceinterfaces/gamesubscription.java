@@ -21,10 +21,12 @@ import javax.servlet.*;
 public class gamesubscription extends HttpServlet implements RequestDispatcher {
     
     //Initialize global variables
+    @Override
     public void init () throws ServletException {
     }
     
     //Process the HTTP Get request
+    @Override
     public void doGet (HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         //get reeponse writer
         PrintWriter out = response.getWriter ();
@@ -107,7 +109,7 @@ public class gamesubscription extends HttpServlet implements RequestDispatcher {
                 throw new Exception (Feedback.NO_SUCH_SERVICE);
             }
             
-            UserService us = new UserService ();
+            UserService us = null;
             if (msg != null && !msg.equals ("")) {
                 try{
                     us = ServiceManager.viewService (keyword, provId);

@@ -87,7 +87,7 @@ public class sendeventnotification extends HttpServlet {
                     ArrayList pairing = LiveScoreServiceManager.getAccount_KeywordPairForService(key);
                     for (int j = 0; j < pairing.size(); j++) {//for each CP
                         String messageTemplate = "";
-                        String from = "";
+                        List<String> from = null;
                         
                         String pair = (String) pairing.get(j);
                         String accountId = pair.split("-")[0];
@@ -122,7 +122,7 @@ public class sendeventnotification extends HttpServlet {
                             
                             
                             
-                            UserService us = new UserService();
+                            UserService us = null;
                             try {
                                 us = ServiceManager.viewService(kw, accountId);
                             }catch (Exception e) {
@@ -130,12 +130,12 @@ public class sendeventnotification extends HttpServlet {
                                 messageTemplate = "Send @@gameId@@ to 406 for @@homeTeam@@ vs @@awayTeam@@ on @@date@@";
                             }
                             
-                            UserService lsHeadSrvc = new UserService();
+                            UserService lsHeadSrvc = null;
                             try {
                                 lsHeadSrvc = LiveScoreServiceManager.viewHeadLiveScoreService(accountId);
                                 from = lsHeadSrvc.getAllowedShortcodes();
                             }catch (Exception e) {
-                                from = "";
+                                from = new ArrayList<String>();
                             }
                             
                             messageTemplate = us.getDefaultMessage();
@@ -189,7 +189,7 @@ public class sendeventnotification extends HttpServlet {
                                     //end-message composition
                                     
                                     try{
-                                        Driver.getDriver(cnxn.getDriverType(), cnxn.getGatewayURL()).sendSMSTextMessage(subscribers, from, message, cnxn.getUsername(),
+                                        Driver.getDriver(cnxn.getDriverType(), cnxn.getGatewayURL()).sendSMSTextMessage(subscribers, from.isEmpty() ? "": from.get(0), message, cnxn.getUsername(),
                                                 cnxn.getPassword(), cnxn.getConnection(), "", "0");
                                     }catch(Exception e){
                                         System.out.println(new java.util.Date()+"Error sending notification: Feedback.TRANSPORT_ERROR:"+e.getMessage());

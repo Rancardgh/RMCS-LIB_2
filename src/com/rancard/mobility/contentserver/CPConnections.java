@@ -168,10 +168,24 @@ public class CPConnections {
         this.language = language;
     }
 
+    public static CPConnections getConnection(String providerID) throws Exception{
+        try {
+            List<CPConnections> connections = CPConnDB.viewConnections(providerID);
+            if (connections == null || connections.isEmpty()) {
+                return null;
+            } else{
+                return connections.get(0);
+            }
+        } catch (Exception e) {
+            System.out.println(new Date() + ": " + CPConnections.class + ":ERROR " + e.getMessage());
+            throw new Exception(com.rancard.common.Feedback.NO_CONNECTIONS_FOUND);
+        }
+    }
+
     public static CPConnections getConnection(String providerID, String msisdn) throws
             Exception {
         CPConnections cnxn = null;
-        List connections = null;
+        List connections;
 
         //get list of connections
         try {

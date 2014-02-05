@@ -16,7 +16,8 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 import com.rancard.util.*;
-import com.rancard.mobility.infoserver.common.services.ServiceSubscriber;
+import com.rancard.mobility.infoserver.common.services.ServiceSubscription;
+import java.util.Arrays;
 /**
  *
  * @author Messenger
@@ -57,7 +58,7 @@ public abstract class LiveScoreServiceDB {
                 }else{
                     prepstat.setInt (6, 0);
                 }
-                prepstat.setString (7, service.getLastUpdated ());
+                prepstat.setString (7, DateUtil.convertToMySQLTimeStamp(service.getLastUpdated ()));
                 prepstat.setString (8, service.getCommand ());
                 prepstat.execute ();
             }
@@ -207,7 +208,7 @@ public abstract class LiveScoreServiceDB {
                 service.setAccountId (rs.getString ("s.account_id"));
                 service.setDefaultMessage (rs.getString ("s.default_message"));
                 service.setKeyword (rs.getString ("s.keyword"));
-                service.setLastUpdated (rs.getString ("s.last_updated"));
+                service.setLastUpdated (DateUtil.convertFromMySQLTimeStamp(rs.getString ("s.last_updated")));
                 mappings[i] = rs.getString ("k.mapping");
                 service.setServiceName (rs.getString ("s.service_name"));
                 service.setServiceType (rs.getString ("s.service_type"));
@@ -264,7 +265,7 @@ public abstract class LiveScoreServiceDB {
                     service.setAccountId (rs2.getString ("s.account_id"));
                     service.setDefaultMessage (rs2.getString ("s.default_message"));
                     service.setKeyword (rs2.getString ("s.keyword"));
-                    service.setLastUpdated (rs2.getString ("s.last_updated"));
+                    service.setLastUpdated (DateUtil.convertFromMySQLTimeStamp(rs2.getString ("s.last_updated")));
                     mappings[i] = rs2.getString ("k.mapping");
                     service.setServiceName (rs2.getString ("s.service_name"));
                     service.setServiceType (rs2.getString ("s.service_type"));
@@ -429,7 +430,7 @@ public abstract class LiveScoreServiceDB {
         return struct;
     }
      public static int getBillingTypeForSubscriber(String msisdn, String accountId) throws Exception {
-        int billingType = ServiceSubscriber.BILLING_TYPE_NON;
+        int billingType = ServiceSubscription.BILLING_TYPE_NON;
         
         String SQL;
         ResultSet rs = null;
@@ -903,7 +904,7 @@ public abstract class LiveScoreServiceDB {
         String nextSubDate = new java.sql.Date (c.getTimeInMillis ()).toString ();
         
        //set nextSubDate to null if billing type is OnDemand
-        nextSubDate = (billingType==ServiceSubscriber.ON_DEMAND_BILLING) ? "" : nextSubDate;
+        nextSubDate = (billingType==ServiceSubscription.ON_DEMAND_BILLING) ? "" : nextSubDate;
         
         try {
             con = DConnect.getConnection ();
@@ -941,7 +942,7 @@ public abstract class LiveScoreServiceDB {
                 prepstat.setString (2, msisdn);
                 prepstat.setString (3, rs.getString ("d.keyword"));
                 prepstat.setString (4, accountId);
-                prepstat.setInt (5, ServiceSubscriber.STATUS_ACTIVE); 
+                prepstat.setInt (5, ServiceSubscription.STATUS_ACTIVE); 
                 prepstat.setString (6, nextSubDate); 
                 prepstat.setInt(7, billingType);
                 
@@ -1046,14 +1047,14 @@ public abstract class LiveScoreServiceDB {
                 
                 SQL = "select distinct(msisdn) from service_subscription where keyword in (select d.keyword from service_definition d where d.is_basic=1 and d.account_id='" + accountId +
                         "' and d.service_type=15 and d.command=2) and account_id='" + accountId + "' and next_subscription_date='" + nextSubscriptionDate + "'"+
-                        " and billing_type='" + ServiceSubscriber.MONTHLY_BILLING + "'";
+                        " and billing_type='" + ServiceSubscription.MONTHLY_BILLING + "'";
                 
                 prepstat = con.prepareStatement (SQL);
                 subscriptionLevelRS = prepstat.executeQuery ();
                 
                 SQL = "delete from service_subscription where keyword in (select d.keyword from service_definition d where d.is_basic=1 and d.account_id='" + accountId +
                         "' and d.service_type=15 and d.command=2) and account_id='" + accountId + "' and next_subscription_date='" + nextSubscriptionDate + "'" +
-                         " and billing_type='" + ServiceSubscriber.MONTHLY_BILLING + "'";
+                         " and billing_type='" + ServiceSubscription.MONTHLY_BILLING + "'";
                 
                 prepstat = con.prepareStatement (SQL);
                 prepstat.execute ();
@@ -1067,7 +1068,7 @@ public abstract class LiveScoreServiceDB {
                     prepstat.setString (3, accountId);
                     prepstat.setString (4, processId);
                     prepstat.setString (5, nextSubscriptionDate);
-                    prepstat.setInt(6, ServiceSubscriber.MONTHLY_BILLING);//added for new monthly subscription update 31st Aug. 2007
+                    prepstat.setInt(6, ServiceSubscription.MONTHLY_BILLING);//added for new monthly subscription update 31st Aug. 2007
                     
                     prepstat.execute ();
                 }
@@ -1117,7 +1118,7 @@ public abstract class LiveScoreServiceDB {
       
                 SQL = "update service_subscription set status='0' where keyword in (select d.keyword from service_definition d where d.is_basic=1 and d.account_id='" + accountId +
                         "' and d.service_type=15 and d.command=2) and account_id='" + accountId + "' and next_subscription_date='" + nextSubscriptionDate + "'" +
-                         " and billing_type='" + ServiceSubscriber.MONTHLY_BILLING + "' and status='1'";
+                         " and billing_type='" + ServiceSubscription.MONTHLY_BILLING + "' and status='1'";
                 
                 prepstat = con.prepareStatement (SQL);
                 status = prepstat.executeUpdate();
@@ -1162,13 +1163,11 @@ public abstract class LiveScoreServiceDB {
                 service.setServiceType (rs.getString ("service_type"));
                 service.setAccountId (rs.getString ("account_id"));
                 service.setServiceName (rs.getString ("service_name"));
-                service.setDefaultMessage (rs.getString ("default_message"));
-                java.text.SimpleDateFormat df=new java.text.SimpleDateFormat ("dd-MMM-yyyy HH.mm.ss");
-                String publishTime = df.format (new java.util.Date (rs.getTimestamp ("last_updated").getTime ()));
-                service.setLastUpdated (publishTime);
+                service.setDefaultMessage (rs.getString ("default_message"));                
+                service.setLastUpdated (DateUtil.convertFromMySQLTimeStamp(rs.getString("last_updated")));
                 service.setCommand (rs.getString ("command"));
-                service.setAllowedShortcodes (rs.getString ("allowed_shortcodes"));
-                service.setAllowedSiteTypes (rs.getString ("allowed_site_types"));
+                service.setAllowedShortcodes (Arrays.asList(rs.getString ("allowed_shortcodes").split(",")));
+                service.setAllowedSiteTypes (Arrays.asList(rs.getString ("allowed_site_types").split(",")));
                 //service.setAllowedNetworks (rs.getString ("allowed_networks"));
                 service.setPricing (rs.getString ("pricing"));
                 if(rs.getInt ("is_basic") == 1){
@@ -1211,12 +1210,11 @@ public abstract class LiveScoreServiceDB {
                 service.setAccountId (rs.getString ("account_id"));
                 service.setServiceName (rs.getString ("service_name"));
                 service.setDefaultMessage (rs.getString ("default_message"));
-                java.text.SimpleDateFormat df=new java.text.SimpleDateFormat ("dd-MMM-yyyy HH.mm.ss");
-                String publishTime = df.format (new java.util.Date (rs.getTimestamp ("last_updated").getTime ()));
-                service.setLastUpdated (publishTime);
+                
+                service.setLastUpdated (DateUtil.convertFromMySQLTimeStamp(rs.getString("last_updated")));
                 service.setCommand (rs.getString ("command"));
-                service.setAllowedShortcodes (rs.getString ("allowed_shortcodes"));
-                service.setAllowedSiteTypes (rs.getString ("allowed_site_types"));
+                service.setAllowedShortcodes (Arrays.asList(rs.getString ("allowed_shortcodes").split(",")));
+                service.setAllowedSiteTypes (Arrays.asList(rs.getString ("allowed_site_types").split(",")));
                 //service.setAllowedNetworks (rs.getString ("allowed_networks"));
                 service.setPricing (rs.getString ("pricing"));
                 if(rs.getInt ("is_basic") == 1){

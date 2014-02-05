@@ -26,6 +26,15 @@ public class CPUserFeeds {
     /** Creates a new instance of CPUserFeeds */
     public CPUserFeeds() {
     }
+    
+    public CPUserFeeds(String cpUserID, String keyword, String feedID, int allowedAge, String regexReject, int msgDlrPrority){
+        this.cpUserId =cpUserID;
+        this.keyword = keyword;
+        this.feedId = feedID;
+        this.allowedAge = allowedAge;
+        this.regexReject = regexReject;
+        this.msgDlrPrority = msgDlrPrority;
+    }
 
     public String getFeedId() {
         return feedId;

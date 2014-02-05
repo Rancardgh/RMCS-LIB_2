@@ -1,5 +1,6 @@
 package com.rancard.mobility.infoserver.common.services;
 
+import com.rancard.mobility.infoserver.feeds.CPUserFeeds;
 import com.rancard.util.Page;
 import java.util.ArrayList;
 import java.util.Date;
@@ -17,8 +18,7 @@ public abstract class ServiceManager {
         UserServiceExperienceDB.createServiceExperience(serviceExperience);
     }
 
-    public static void updateService(String serviceType, String defaultMessage,
-            String serviceName, String keyword,
+    public static void updateService(String serviceType, String defaultMessage, String serviceName, String keyword,
             String accountId) throws Exception {
 
         UserServiceDB.updateService(serviceType, defaultMessage, serviceName,
@@ -273,7 +273,7 @@ public abstract class ServiceManager {
         return UserServiceDB.updateServiceRSSFeeds(accountId, keyword, feedIds);
     }
 
-    public static ArrayList viewServiceRSSFeeds(String accountId, String keyword) throws Exception {
+    public static List<CPUserFeeds> viewServiceRSSFeeds(String accountId, String keyword) throws Exception {
         return UserServiceDB.viewServiceRSSFeeds(accountId, keyword);//(accountId ,keyword,feedIds);
     }
 

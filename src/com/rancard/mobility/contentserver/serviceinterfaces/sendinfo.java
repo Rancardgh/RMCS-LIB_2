@@ -12,19 +12,17 @@ import com.rancard.common.Feedback;
 import com.rancard.mobility.contentserver.CPConnections;
 import com.rancard.mobility.contentserver.CPSite;
 import com.rancard.mobility.infoserver.InfoService;
+import com.rancard.mobility.infoserver.common.services.ServiceManager;
+import com.rancard.mobility.infoserver.common.services.UserServiceTransaction;
 import com.rancard.util.payment.PaymentManager;
 import com.rancard.util.payment.PricePoint;
-import com.rancard.mobility.infoserver.common.services.UserServiceTransaction;
-import com.rancard.mobility.infoserver.common.services.ServiceManager;
-import com.rancard.util.GsmCharset;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URLEncoder;
-import javax.servlet.ServletException;
+import javax.servlet.*;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.*;
 
 /**
  *
@@ -40,10 +38,11 @@ public class sendinfo extends HttpServlet implements RequestDispatcher {
     //Process the HTTP Get request
     @Override
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        
+
         try {
-            request.setCharacterEncoding ("UTF-8");
-        } catch (Exception e) {}
+            request.setCharacterEncoding("UTF-8");
+        } catch (Exception e) {
+        }
 
         String fullContextPath = "http://192.168.1.243:81" + request.getContextPath();
         boolean skipMessagingFromCallBack = false; //used to communicate with handler who implements the callback functionality whether to send notification or not
@@ -57,7 +56,7 @@ public class sendinfo extends HttpServlet implements RequestDispatcher {
 
         // find out what type of site is requesting this content i.e look this up from cp_sites
         String siteType = (String) request.getAttribute("site_type");
-        siteType = (siteType == null) ? request.getParameter("site_type") : siteType;               
+        siteType = (siteType == null) ? request.getParameter("site_type") : siteType;
         // get default language of the service
         String lang = (String) request.getAttribute("default_lang");
         String override_msg = (String) request.getAttribute("override_msg");
@@ -101,9 +100,11 @@ public class sendinfo extends HttpServlet implements RequestDispatcher {
             }
         }
 
-        /***********************************************************************************************************
+        /**
+         * *********************************************************************************************************
          * Begin validations
-         ***********************************************************************************************************/
+         **********************************************************************************************************
+         */
         // check for site ID
         String message = "";
         if (provId == null || provId.equals("")) {
@@ -119,12 +120,12 @@ public class sendinfo extends HttpServlet implements RequestDispatcher {
             } catch (Exception ex) {
                 message = ex.getMessage();
             }
-            boolean isAsciiPrintable = org.apache.commons.lang.StringUtils.isAsciiPrintable (message);
+            boolean isAsciiPrintable = org.apache.commons.lang.StringUtils.isAsciiPrintable(message);
             if (!isAsciiPrintable) {
-                System.out.println ("Setting request attribute for Kannel Header: X-Kannel-Coding ...");
-                request.setAttribute ("X-Kannel-Coding", "2");
-                if (request.getAttribute ("X-Kannel-Coding") != null) {
-                    System.out.println ("Request contains X-Kannel-Coding attribute");
+                System.out.println("Setting request attribute for Kannel Header: X-Kannel-Coding ...");
+                request.setAttribute("X-Kannel-Coding", "2");
+                if (request.getAttribute("X-Kannel-Coding") != null) {
+                    System.out.println("Request contains X-Kannel-Coding attribute");
                 }
             }
             out.println(message);
@@ -148,12 +149,13 @@ public class sendinfo extends HttpServlet implements RequestDispatcher {
                 System.out.println(new java.util.Date() + ":error: " + message);
 
             }
-            boolean isAsciiPrintable = org.apache.commons.lang.StringUtils.isAsciiPrintable (message);
+            boolean isAsciiPrintable = org.apache.commons.lang.StringUtils.isAsciiPrintable(message);
             if (!isAsciiPrintable) {
-                System.out.println ("Setting request attribute for Kannel Header: X-Kannel-Coding ...");
-                request.setAttribute ("X-Kannel-Coding", "2");
-                if (request.getAttribute ("X-Kannel-Coding") != null)
-                    System.out.println ("Request contains X-Kannel-Coding attribute");
+                System.out.println("Setting request attribute for Kannel Header: X-Kannel-Coding ...");
+                request.setAttribute("X-Kannel-Coding", "2");
+                if (request.getAttribute("X-Kannel-Coding") != null) {
+                    System.out.println("Request contains X-Kannel-Coding attribute");
+                }
             }
             out.println(message);
             return;
@@ -199,12 +201,13 @@ public class sendinfo extends HttpServlet implements RequestDispatcher {
                 System.out.println(new java.util.Date() + ":error: " + message);
             }
 
-            boolean isAsciiPrintable = org.apache.commons.lang.StringUtils.isAsciiPrintable (message);
+            boolean isAsciiPrintable = org.apache.commons.lang.StringUtils.isAsciiPrintable(message);
             if (!isAsciiPrintable) {
-                System.out.println ("Setting request attribute for Kannel Header: X-Kannel-Coding ...");
-                request.setAttribute ("X-Kannel-Coding", "2");
-                if (request.getAttribute ("X-Kannel-Coding") != null)
-                    System.out.println ("Request contains X-Kannel-Coding attribute");
+                System.out.println("Setting request attribute for Kannel Header: X-Kannel-Coding ...");
+                request.setAttribute("X-Kannel-Coding", "2");
+                if (request.getAttribute("X-Kannel-Coding") != null) {
+                    System.out.println("Request contains X-Kannel-Coding attribute");
+                }
             }
             out.println(message);
             return;
@@ -252,12 +255,12 @@ public class sendinfo extends HttpServlet implements RequestDispatcher {
                     System.out.println(new java.util.Date() + ":error: " + message);
                 }
 
-                boolean isAsciiPrintable = org.apache.commons.lang.StringUtils.isAsciiPrintable (message);
+                boolean isAsciiPrintable = org.apache.commons.lang.StringUtils.isAsciiPrintable(message);
                 if (!isAsciiPrintable) {
-                    System.out.println ("Setting request attribute for Kannel Header: X-Kannel-Coding ...");
-                    request.setAttribute ("X-Kannel-Coding", "2");
-                    if (request.getAttribute ("X-Kannel-Coding") != null){
-                        System.out.println ("Request contains X-Kannel-Coding attribute");
+                    System.out.println("Setting request attribute for Kannel Header: X-Kannel-Coding ...");
+                    request.setAttribute("X-Kannel-Coding", "2");
+                    if (request.getAttribute("X-Kannel-Coding") != null) {
+                        System.out.println("Request contains X-Kannel-Coding attribute");
                     }
                 }
                 out.println(message);
@@ -285,13 +288,14 @@ public class sendinfo extends HttpServlet implements RequestDispatcher {
                     System.out.println(new java.util.Date() + ":" + message);
 
                 }
-                
-                boolean isAsciiPrintable = org.apache.commons.lang.StringUtils.isAsciiPrintable (message);
+
+                boolean isAsciiPrintable = org.apache.commons.lang.StringUtils.isAsciiPrintable(message);
                 if (!isAsciiPrintable) {
-                    System.out.println ("Setting request attribute for Kannel Header: X-Kannel-Coding ...");
-                    request.setAttribute ("X-Kannel-Coding", "2");
-                    if (request.getAttribute ("X-Kannel-Coding") != null)
-                        System.out.println ("Request contains X-Kannel-Coding attribute");
+                    System.out.println("Setting request attribute for Kannel Header: X-Kannel-Coding ...");
+                    request.setAttribute("X-Kannel-Coding", "2");
+                    if (request.getAttribute("X-Kannel-Coding") != null) {
+                        System.out.println("Request contains X-Kannel-Coding attribute");
+                    }
                 }
                 out.println(message);
                 return;
@@ -353,13 +357,13 @@ public class sendinfo extends HttpServlet implements RequestDispatcher {
                         throw new Exception(Feedback.BILLING_MECH_FAILURE);
                     }
                     /* retry implemented inside initiatePayment:doOTBilling()
-                    int count = 0;
-                    while(!billed && count < NUM_OF_RETRIES) {
-                    billed = PaymentManager.initiatePayment(pricePoint, cnxn, msisdn, "", "");
-                    //pause for 1 second
-                    Thread.sleep(MILLISECONDS_BETWEEN_RETRY);
-                    count++;
-                    }*/
+                     int count = 0;
+                     while(!billed && count < NUM_OF_RETRIES) {
+                     billed = PaymentManager.initiatePayment(pricePoint, cnxn, msisdn, "", "");
+                     //pause for 1 second
+                     Thread.sleep(MILLISECONDS_BETWEEN_RETRY);
+                     count++;
+                     }*/
                     System.out.println(new java.util.Date() + ": " + kw + ": " + msisdn + ": Entering initiatePayment from sendinfo");
 
                     String transactionId = "";
@@ -376,7 +380,7 @@ public class sendinfo extends HttpServlet implements RequestDispatcher {
                     //-----insert transacton------------
                     //URL used to complete the transaction after billing has been completed
                     String completeTransnxnUrl = fullContextPath + "/sendinfo_push.jsp?msisdn=" + URLEncoder.encode(msisdn, "UTF-8")
-                            + "&keyword=" + URLEncoder.encode(kw.toUpperCase(), "UTF-8")  + "&alert_count=" + is.getMsgId() + "&dest=" + URLEncoder.encode(shortcode, "UTF-8")
+                            + "&keyword=" + URLEncoder.encode(kw.toUpperCase(), "UTF-8") + "&alert_count=" + is.getMsgId() + "&dest=" + URLEncoder.encode(shortcode, "UTF-8")
                             + "&siteId=" + URLEncoder.encode(siteId, "UTF-8") + "&transId=" + URLEncoder.encode(transactionId, "UTF-8");
 
                     if (pricePoint.getBillingMech().equals(PaymentManager.OT_BILL)) {
@@ -411,7 +415,7 @@ public class sendinfo extends HttpServlet implements RequestDispatcher {
 
                     if (transactionCreated) {
                         try {
-                            billed = PaymentManager.initiatePayment(pricePoint, cnxn, msisdn, transactionId, "", completeTransnxnUrl, shortcode, trans.getKeyword ());
+                            billed = PaymentManager.initiatePayment(pricePoint, cnxn, msisdn, transactionId, "", completeTransnxnUrl, shortcode, trans.getKeyword());
                         } catch (Exception e) {
                             if (e.getMessage().equals("READ_TIMEOUT")) {
                                 message = "We've received your request for a " + is.getServiceName() + " item. Please be patient while we process it.";
@@ -431,10 +435,10 @@ public class sendinfo extends HttpServlet implements RequestDispatcher {
                         }
 
                         /*if (skipMessagingFromCallBack) {
-                        compleTransnxnUrl = completeTransnxnUrl + "&push=FALSE";
-                        } else {
-                        completeTransnxnUrl = completeTransnxnUrl + "&push=TRUE";
-                        }*/
+                         compleTransnxnUrl = completeTransnxnUrl + "&push=FALSE";
+                         } else {
+                         completeTransnxnUrl = completeTransnxnUrl + "&push=TRUE";
+                         }*/
 
                         request.setAttribute("x-kannel-header-binfo", transactionId);
                         System.out.println(new java.util.Date() + ": " + kw + ": " + msisdn + ": Completed initiatePayment from sendinfo with result: " + billed);
@@ -467,13 +471,14 @@ public class sendinfo extends HttpServlet implements RequestDispatcher {
                     } catch (Exception ex) {
                         message = ex.getMessage();
                     }
-                    
-                    boolean isAsciiPrintable = org.apache.commons.lang.StringUtils.isAsciiPrintable (message);
+
+                    boolean isAsciiPrintable = org.apache.commons.lang.StringUtils.isAsciiPrintable(message);
                     if (!isAsciiPrintable) {
-                        System.out.println ("Setting request attribute for Kannel Header: X-Kannel-Coding ...");
-                        request.setAttribute ("X-Kannel-Coding", "2");
-                        if (request.getAttribute ("X-Kannel-Coding") != null)
-                            System.out.println ("Request contains X-Kannel-Coding attribute");
+                        System.out.println("Setting request attribute for Kannel Header: X-Kannel-Coding ...");
+                        request.setAttribute("X-Kannel-Coding", "2");
+                        if (request.getAttribute("X-Kannel-Coding") != null) {
+                            System.out.println("Request contains X-Kannel-Coding attribute");
+                        }
                     }
                     out.println(message);
                     return;
@@ -491,23 +496,23 @@ public class sendinfo extends HttpServlet implements RequestDispatcher {
             System.out.println(new java.util.Date() + ": " + kw + ": " + msisdn + ": About to send content. billed: " + billed);
             if (billed) {
                 if (override_msg == null || override_msg.equals("")) {
-                    boolean isAsciiPrintable = org.apache.commons.lang.StringUtils.isAsciiPrintable (compactInfo);
+                    boolean isAsciiPrintable = org.apache.commons.lang.StringUtils.isAsciiPrintable(compactInfo);
                     if (!isAsciiPrintable) {
-                        System.out.println ("Setting request attribute for Kannel Header: X-Kannel-Coding ...");
-                        request.setAttribute ("X-Kannel-Coding", "2");
-                        if (request.getAttribute ("X-Kannel-Coding") != null){
-                            System.out.println ("Request contains X-Kannel-Coding attribute");
+                        System.out.println("Setting request attribute for Kannel Header: X-Kannel-Coding ...");
+                        request.setAttribute("X-Kannel-Coding", "2");
+                        if (request.getAttribute("X-Kannel-Coding") != null) {
+                            System.out.println("Request contains X-Kannel-Coding attribute");
                         }
                     }
                     out.println(compactInfo);
                     //request.setAttribute("dfltMsg", info);
                 } else {
-                    boolean isAsciiPrintable = org.apache.commons.lang.StringUtils.isAsciiPrintable (override_msg);
+                    boolean isAsciiPrintable = org.apache.commons.lang.StringUtils.isAsciiPrintable(override_msg);
                     if (!isAsciiPrintable) {
-                        System.out.println ("Setting request attribute for Kannel Header: X-Kannel-Coding ...");
-                        request.setAttribute ("X-Kannel-Coding", "2");
-                        if (request.getAttribute ("X-Kannel-Coding") != null){
-                            System.out.println ("Request contains X-Kannel-Coding attribute");
+                        System.out.println("Setting request attribute for Kannel Header: X-Kannel-Coding ...");
+                        request.setAttribute("X-Kannel-Coding", "2");
+                        if (request.getAttribute("X-Kannel-Coding") != null) {
+                            System.out.println("Request contains X-Kannel-Coding attribute");
                         }
                     }
                     out.println(override_msg);
@@ -515,12 +520,12 @@ public class sendinfo extends HttpServlet implements RequestDispatcher {
                 }
             } else {
                 //out.println(feedback.getUserFriendlyDescription(Feedback.INSUFFICIENT_CREDIT_ON_PIN));
-                boolean isAsciiPrintable = org.apache.commons.lang.StringUtils.isAsciiPrintable (message);
+                boolean isAsciiPrintable = org.apache.commons.lang.StringUtils.isAsciiPrintable(message);
                 if (!isAsciiPrintable) {
-                    System.out.println ("Setting request attribute for Kannel Header: X-Kannel-Coding ...");
-                    request.setAttribute ("X-Kannel-Coding", "2");
-                    if (request.getAttribute ("X-Kannel-Coding") != null){
-                        System.out.println ("Request contains X-Kannel-Coding attribute");
+                    System.out.println("Setting request attribute for Kannel Header: X-Kannel-Coding ...");
+                    request.setAttribute("X-Kannel-Coding", "2");
+                    if (request.getAttribute("X-Kannel-Coding") != null) {
+                        System.out.println("Request contains X-Kannel-Coding attribute");
                     }
                 }
                 out.println(message);
@@ -528,15 +533,15 @@ public class sendinfo extends HttpServlet implements RequestDispatcher {
 
             //log request; temporarily disabled info request logging
             /*
-            try{
-            String shortcode = request.getParameter("dest");
-            InfoService.logInfoRequest(is.getOwnerId(), info, is.getAccountId(),
-            is.getKeyword(), msisdn, shortcode);
+             try{
+             String shortcode = request.getParameter("dest");
+             InfoService.logInfoRequest(is.getOwnerId(), info, is.getAccountId(),
+             is.getKeyword(), msisdn, shortcode);
 
-            }catch(Exception ex){
-            System.out.println(new java.util.Date()+":@sendinfo:Error logging request:"+ ex.getMessage());
+             }catch(Exception ex){
+             System.out.println(new java.util.Date()+":@sendinfo:Error logging request:"+ ex.getMessage());
 
-            }*/
+             }*/
 
             //set service_usage_log extra params
             request.setAttribute("log_thirdPartyCPId", is.getOwnerId());
@@ -561,50 +566,52 @@ public class sendinfo extends HttpServlet implements RequestDispatcher {
                 System.out.println(new java.util.Date() + ":error: " + message);
             }
 
-            boolean isAsciiPrintable = org.apache.commons.lang.StringUtils.isAsciiPrintable (message);
+            boolean isAsciiPrintable = org.apache.commons.lang.StringUtils.isAsciiPrintable(message);
             if (!isAsciiPrintable) {
-                System.out.println ("Setting request attribute for Kannel Header: X-Kannel-Coding ...");
-                request.setAttribute ("X-Kannel-Coding", "2");
-                if (request.getAttribute ("X-Kannel-Coding") != null)
-                    System.out.println ("Request contains X-Kannel-Coding attribute");
+                System.out.println("Setting request attribute for Kannel Header: X-Kannel-Coding ...");
+                request.setAttribute("X-Kannel-Coding", "2");
+                if (request.getAttribute("X-Kannel-Coding") != null) {
+                    System.out.println("Request contains X-Kannel-Coding attribute");
+                }
             }
             out.println(message);
             return;
             //do message push - Alert
             /*try {
-            System.out.println ("Info: " + compactInfo);
-            HashMap groupedSubscribers = ServiceManager.viewSubscribersGroupByNetworkPrefix (provId, kw, 1);
-            Object[] keys = groupedSubscribers.keySet ().toArray ();
-            for (int i = 0; i < keys.length; i++) {
-            String[] subscribers = (String[]) groupedSubscribers.get (keys[i].toString ());
-            if (subscribers != null && subscribers.length > 0) {
-            //get connection to requesting network for this provider
-            try {
-            cnxn = CPConnections.getConnection (provId, subscribers[0]);
-            } catch (Exception e) {
-            throw new Exception (Feedback.UNSUPPORTED_NETWORK);
-            }
+             System.out.println ("Info: " + compactInfo);
+             HashMap groupedSubscribers = ServiceManager.viewSubscribersGroupByNetworkPrefix (provId, kw, 1);
+             Object[] keys = groupedSubscribers.keySet ().toArray ();
+             for (int i = 0; i < keys.length; i++) {
+             String[] subscribers = (String[]) groupedSubscribers.get (keys[i].toString ());
+             if (subscribers != null && subscribers.length > 0) {
+             //get connection to requesting network for this provider
+             try {
+             cnxn = CPConnections.getConnection (provId, subscribers[0]);
+             } catch (Exception e) {
+             throw new Exception (Feedback.UNSUPPORTED_NETWORK);
+             }
 
-            try{
-            Driver.getDriver (cnxn.getDriverType (), cnxn.getGatewayURL ()).sendSMSTextMessage (subscribers, from, info, cnxn.getUsername (),
-            cnxn.getPassword (), cnxn.getConnection (), "", "0");
-            }catch(Exception e){
-            System.out.println (Feedback.TRANSPORT_ERROR + " Response from gateway: " + e.getMessage ());
-            throw new Exception (Feedback.TRANSPORT_ERROR);
-            }
-            } else {
-            System.out.println ("No subscribers found for " + keys[i].toString ());
-            }
-            is = null;
-            }
-            } catch (Exception e) {
-            out.println (e.getMessage ().substring (e.getMessage ().indexOf (":") + 1));
-            return ;
-            }*/
+             try{
+             Driver.getDriver (cnxn.getDriverType (), cnxn.getGatewayURL ()).sendSMSTextMessage (subscribers, from, info, cnxn.getUsername (),
+             cnxn.getPassword (), cnxn.getConnection (), "", "0");
+             }catch(Exception e){
+             System.out.println (Feedback.TRANSPORT_ERROR + " Response from gateway: " + e.getMessage ());
+             throw new Exception (Feedback.TRANSPORT_ERROR);
+             }
+             } else {
+             System.out.println ("No subscribers found for " + keys[i].toString ());
+             }
+             is = null;
+             }
+             } catch (Exception e) {
+             out.println (e.getMessage ().substring (e.getMessage ().indexOf (":") + 1));
+             return ;
+             }*/
         }
     }
 
     //Process the HTTP Post request
+    @Override
     public void doPost(HttpServletRequest request,
             HttpServletResponse response) throws
             ServletException, IOException {
@@ -612,9 +619,11 @@ public class sendinfo extends HttpServlet implements RequestDispatcher {
     }
 
     //Clean up resources
+    @Override
     public void destroy() {
     }
 
+    @Override
     public void forward(ServletRequest request,
             ServletResponse response) throws ServletException, IOException {
         HttpServletRequest req = (HttpServletRequest) request;
@@ -622,6 +631,7 @@ public class sendinfo extends HttpServlet implements RequestDispatcher {
         doGet(req, resp);
     }
 
+    @Override
     public void include(ServletRequest request,
             ServletResponse response) throws ServletException, IOException {
         HttpServletRequest req = (HttpServletRequest) request;
@@ -630,14 +640,11 @@ public class sendinfo extends HttpServlet implements RequestDispatcher {
     }
 
     public void updateOTTransaction(String kw, String provId, String alertCount, String msisdn, String pricePointId, int isBilled, int isCompleted, String transId) {
-        String svrAddr = "";
         String transactionId = transId;
-        UserServiceTransaction trans = null;
-
 
         //creat transaction
-        trans = new UserServiceTransaction();
-        svrAddr = "http://msg.rancardmobility.com:8080/ot.rms/sendsms?to=%2b2000&text=" + kw + "&conn=OT:5511&username=otsms&password=o1t1s1m1s1&serviceId=&price=0&from=" + com.rancard.util.URLUTF8Encoder.encode(msisdn);
+        UserServiceTransaction trans = new UserServiceTransaction();
+        String svrAddr = "http://msg.rancardmobility.com:8080/ot.rms/sendsms?to=%2b2000&text=" + kw + "&conn=OT:5511&username=otsms&password=o1t1s1m1s1&serviceId=&price=0&from=" + com.rancard.util.URLUTF8Encoder.encode(msisdn);
         //transactionId = com.rancard.common.uidGen.getUId();
         trans.setAccountId(provId);
         trans.setKeyword(kw);

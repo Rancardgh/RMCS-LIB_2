@@ -11,19 +11,20 @@ package com.rancard.mobility.contentprovider;
 
 import com.rancard.common.DConnect;
 import com.rancard.mobility.infoserver.common.services.UserService;
+import com.rancard.util.DateUtil;
 import java.sql.Connection;
-import java.sql.Statement;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 /**
  *
  * @author Messenger
  */
 public abstract class ThirdPartyUserDB {
-    public static void create3rdPartyUser(String accountId, ThirdPartyUser user) throws Exception {
-        
+    public static void create3rdPartyUser(String accountId, ThirdPartyUser user) throws Exception {        
         String SQL;
         ResultSet rs = null;
         Connection con = null;
@@ -163,21 +164,12 @@ public abstract class ThirdPartyUserDB {
                     userPermission.setCanSubmit(1==rs.getInt("can_add"));
                     
                     // create service associated with these permission
-                    UserService service = new UserService();
+                    UserService service = new UserService(rs.getString("service_type"), rs.getString("keyword"), rs.getString("account_id"),
+                            rs.getString("service_name"), rs.getString("default_message"), rs.getString("command"), Arrays.asList(rs.getString("allowed_shortcodes").split(",")),
+                            Arrays.asList(rs.getString("allowed_site_types").split(",")), rs.getString("pricing"), rs.getBoolean("is_basic"), 
+                            rs.getBoolean("is_subscription"), rs.getString("service_response_sender"), DateUtil.convertFromMySQLTimeStamp("s.last_updated"));
                     
-                    service.setKeyword(rs.getString("keyword"));
-                    service.setServiceType(rs.getString("service_type"));
-                    service.setAccountId(rs.getString("account_id"));
-                    service.setServiceName(rs.getString("service_name"));
-                    service.setDefaultMessage(rs.getString("default_message"));
                     
-                   
-                    java.text.SimpleDateFormat df=new java.text.SimpleDateFormat("dd-MMM-yyyy HH.mm.ss");
-                    String publishTime = df.format(new java.util.Date(rs.getTimestamp("last_updated").getTime()));
-                    service.setLastUpdated(publishTime);
-                    service.setCommand(rs.getString("command"));
-                    service.setAllowedShortcodes(rs.getString("allowed_shortcodes"));
-                    service.setAllowedSiteTypes(rs.getString("allowed_site_types"));
                    
                     // set the service associated with this permission
                     userPermission.setService(service);
@@ -358,19 +350,11 @@ public abstract class ThirdPartyUserDB {
                     
                     
                     while (rs2.next()) {
-                        UserService service = new UserService();
-                        
-                        service.setKeyword(rs2.getString("keyword"));
-                        service.setServiceType(rs2.getString("service_type"));
-                        service.setAccountId(rs2.getString("account_id"));
-                        service.setServiceName(rs2.getString("service_name"));
-                        service.setDefaultMessage(rs2.getString("default_message"));
-                        java.text.SimpleDateFormat df=new java.text.SimpleDateFormat("dd-MMM-yyyy HH.mm.ss");
-                        String publishTime = df.format(new java.util.Date(rs2.getTimestamp("last_updated").getTime()));
-                        service.setLastUpdated(publishTime);
-                        service.setCommand(rs2.getString("command"));
-                        service.setAllowedShortcodes(rs2.getString("allowed_shortcodes"));
-                        service.setAllowedSiteTypes(rs2.getString("allowed_site_types"));
+                        UserService service = new UserService(rs.getString("service_type"), rs.getString("keyword"), rs.getString("account_id"),
+                            rs.getString("service_name"), rs.getString("default_message"), rs.getString("command"), Arrays.asList(rs.getString("allowed_shortcodes").split(",")),
+                            Arrays.asList(rs.getString("allowed_site_types").split(",")), rs.getString("pricing"), rs.getBoolean("is_basic"), 
+                            rs.getBoolean("is_subscription"), rs.getString("service_response_sender"), DateUtil.convertFromMySQLTimeStamp("s.last_updated"));
+                       
                         
                         myServices.add(service);
                     }

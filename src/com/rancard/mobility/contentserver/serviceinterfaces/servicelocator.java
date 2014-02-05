@@ -1,310 +1,141 @@
 package com.rancard.mobility.contentserver.serviceinterfaces;
 
 import com.rancard.common.DConnect;
+import com.rancard.common.Feedback;
+import com.rancard.mobility.contentprovider.User;
+import com.rancard.mobility.contentserver.CPSite;
+import com.rancard.mobility.infoserver.common.services.ServiceManager;
 import com.rancard.mobility.infoserver.common.services.UserService;
 import java.io.*;
-import java.util.Arrays;
-import java.util.HashMap;
-import com.rancard.mobility.infoserver.common.services.ServiceManager;
-import javax.servlet.*;
-import javax.servlet.http.*;
-import com.rancard.common.Feedback;
-import com.rancard.mobility.contentserver.CPSite;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
+import java.util.Date;
 import java.util.Map;
-
+import javax.servlet.*;
+import javax.servlet.http.*;
 
 public class servicelocator extends HttpServlet implements Filter {
+
     private FilterConfig filterConfig;
-    private Map routingTable = null;
-    private static final String FROM = "RMCS";
     public static final String BY_SHORTCODE = "1";
     public static final String BY_PROVIDER = "2";
     public static final String EX_NO_SERVICE = "1";
     public static final String EX_HELP_SERVICE = "2";
-    //Handle the passed-in FilterConfig
-    String baseUrl;
 
+    @Override
     public void init(FilterConfig filterConfig) {
         this.filterConfig = filterConfig;
-        /*try{
-        routingTable = (HashMap) filterConfig.getServletContext().getAttribute("routingTable");
-        System.out.println(routingTable.toString());
-        }catch(Exception e){
-        System.out.println("Could not initialize routing table");
-        }*/
-        try {
-            this.routingTable = ServiceManager.populateRoutingTable();
-        } catch (Exception e) {
-            //cannot initializ e routing table
-        }
     }
 
     //Process the request/response pair
+    @Override
     public void doFilter(ServletRequest req, ServletResponse res,
             FilterChain filterChain) {
-
         ServletContext context = filterConfig.getServletContext();
-        // setup base path.
         HttpServletRequest request = (HttpServletRequest) req;
         HttpServletResponse response = (HttpServletResponse) res;
-        String s = request.getProtocol().toLowerCase();
-        s = s.substring(0, s.indexOf("/")).toLowerCase();
-        String baseUrl = s + "://" + request.getServerName() + ":" + request.getServerPort() + request.getContextPath() + "/";
-        
-        try {
-            req.setCharacterEncoding("UTF-8");
-            request.setCharacterEncoding ("UTF-8");
-        } catch (Exception e) {}
 
-        //ensure that the session is created if not present already
-        HttpSession session = request.getSession(true);
-        PrintWriter out = null;
-        try {
-            out = response.getWriter();
-        } catch (IOException ex1) {
-            //could not initialize reponse writer
-        }
-
-        Feedback feedback = (Feedback) context.getAttribute("feedback_en");
-        if (feedback == null) {
-            try {
-                feedback = new Feedback();
-            } catch (Exception e) {
-            }
-        }
-
-        String accountId = new String();
-        CPSite site = null;
-        com.rancard.mobility.contentprovider.User sp = null;
-
-        String entireText = "";
-        String searchParam = "";
-        String defaultLang = "";
+        System.out.println(new Date() + "\t[" + servicelocator.class + "]\tDEBUG\tEntered Service Locator with Query String: " + request.getQueryString());
 
         // get required request parameters
         String kw = request.getParameter("keyword");
         String msgBody = request.getParameter("msg");
-        String dest = request.getParameter("dest");
         String msisdn = request.getParameter("msisdn");
-        String date = request.getParameter("date");
-        String phoneId = request.getParameter("phoneId");
-        String ua = request.getParameter("ua");
-        String siteId = request.getParameter("siteId");
-        String regId = request.getParameter("regId");
+        String siteID = request.getParameter("siteId");
         String smscId = req.getParameter("smsc");
         String timeSent = req.getParameter("time");
         String flag = req.getParameter("routeBy");
-        String promoId = "";
-        String promoRespCode = "";
-        String defaultSrvc = "";
+        String dest = request.getParameter("dest");
 
-        //Removing all white spaces in msisdn
-        msisdn = msisdn.replaceAll(" ", "");
-        boolean msisdn_ok = checkMsisdn(msisdn);
-        //log request parameters
-        System.out.println(new java.util.Date() + ":@com.rancard.mobility.contentserver.serviceinterfaces.servicelocator..");
-        System.out.println(new java.util.Date() + ": Service reqest params: "
-                + "keyword=" + kw + ", "
-                + "msg=" + msgBody + ", "
-                + "dest=" + dest + ", "
-                + "msisdn=" + msisdn + ", "
-                + "date=" + date + ", "
-                + "phoneId=" + phoneId + ", "
-                + "ua=" + ua + ", "
-                + "siteId=" + siteId + ", "
-                + "regId=" + regId + ", "
-                + "smsc=" + smscId + ", "
-                + "time=" + timeSent + ", "
-                + "routeBy=" + flag + ", ");
+        CPSite site = null;
+        Feedback feedback = null;
 
 
-        if (msgBody == null) {
-            msgBody = "";
-        }
-        if (dest == null) {
-            dest = "";
-        }
-        if (msisdn == null) {
-            msisdn = "";
-        }
-        if (date == null) {
-            date = "";
-        }
-        if (phoneId == null) {
-            phoneId = "";
-        }
-        if (ua == null) {
-            ua = "";
-        }
-        if (regId == null) {
-            regId = "";
-        }
-        if (smscId == null) {
-            smscId = "";
-        }
-        if (timeSent == null) {
-            timeSent = "";
-        }
-        if (siteId == null) {
-            siteId = "";
-        }
-        if (flag == null) {
-            flag = "";
-        }
-        if (kw == null) {
-            kw = "";
-        }
-        //if(promoId == null){promoId = "";}
-
+        String searchParam = "";
+        String accountID = "";
         try {
-            
-            try {
-                site = CPSite.viewSite(siteId);
-                if (site.getCpSiteId() == null || site.getCpSiteId().equals("")) {
-                    throw new Exception(Feedback.INVALID_REQUEST_CREDENTIALS);
-                }
-                if (!msisdn_ok) {
-                    throw new Exception(Feedback.MISSING_INVALID_MSISDN);
-                }
-                accountId = site.getCpId();
-                request.setAttribute("site_type", site.getSiteType());
-            } catch (Exception e) {
-                //throw new Exception(Feedback.INVALID_REQUEST_CREDENTIALS);
-                if (!msisdn_ok) {
-                    throw new Exception(Feedback.MISSING_INVALID_MSISDN);
-                }else
-                throw new Exception(Feedback.INVALID_REQUEST_CREDENTIALS);
+            request.setCharacterEncoding("UTF-8");
+
+            if (!checkMsisdn(msisdn)) {
+                throw new Exception(Feedback.MISSING_INVALID_MSISDN);
             }
 
-            try {
-                sp = new com.rancard.mobility.contentprovider.User().viewDealer(accountId);
-                defaultSrvc = sp.getDefaultService();
-
-                String sp_lang = "";
-                if (sp.getDefaultLanguage() == null || sp.getDefaultLanguage().equals("")) {
-                    sp_lang = "en";
-                } else {
-                    sp_lang = sp.getDefaultLanguage();
-                }
-                feedback = (Feedback) context.getAttribute("feedback_" + sp_lang);
-                if (feedback == null) {
-                    feedback = new Feedback();
-                }
-                request.setAttribute("default_lang", feedback.getLanguage());
-            } catch (Exception e) {
+            site = CPSite.viewSite(siteID);
+            if (site == null) {
                 throw new Exception(Feedback.INVALID_REQUEST_CREDENTIALS);
             }
+            request.setAttribute("site", site);
 
-            if (flag.equals(BY_SHORTCODE)) {
-                //kw = dest.substring (dest.indexOf ("+") + 1);
-                searchParam = dest.substring(dest.indexOf("+") + 1);
-            } else if (flag.equals(BY_PROVIDER)) {
-                //kw = accountId;
-                searchParam = accountId;
-            } else {
+            User sp = new User().viewDealer(site.getCpId());
+            request.setAttribute("user", sp);
+            if (sp.getDefaultLanguage() == null || sp.getDefaultLanguage().equals("")) {
+                sp.setDefaultLanguage("en");
+            }
+
+            feedback = (Feedback) context.getAttribute("feedback_" + sp.getDefaultLanguage());
+            if (feedback == null) {
+                feedback = new Feedback();
+            }
+            request.setAttribute("default_lang", feedback.getLanguage());
+
+            if (flag == null) {
                 searchParam = kw;
-            }
-
-            if (searchParam == null) {
-                throw new Exception(Feedback.NO_SUCH_SERVICE);
-            }
-
-            //no site ID specified
-            if (siteId == null || siteId.equals("")) {
-                throw new Exception(Feedback.INVALID_REQUEST_CREDENTIALS);
-            }
-
-            //search for service
-            com.rancard.mobility.infoserver.common.services.UserService srvc = null;
-            String serviceExeptionFlag = EX_NO_SERVICE;
-            try {
-                srvc = com.rancard.mobility.infoserver.common.services.ServiceManager.viewService(searchParam, accountId);
-                if (srvc.getKeyword() == null || srvc.getKeyword().equals("")) {
-                    // carry out internet search//
-
-                    if (sp.getDefaultService().startsWith("HELP")) {
-                        serviceExeptionFlag = EX_HELP_SERVICE;
-                        throw new Exception(com.rancard.util.DefaultService.getHelp(accountId, msisdn, dest, searchParam));
-                    } else {
-                        // if nothing then return  no such service error
-                        serviceExeptionFlag = EX_NO_SERVICE;
-                        throw new Exception(com.rancard.common.Feedback.NO_SUCH_SERVICE);
-                    }
+            } else {
+                if (flag.equals(BY_SHORTCODE)) {
+                    searchParam = dest.substring(dest.indexOf("+") + 1);
+                } else if (flag.equals(BY_PROVIDER)) {
+                    searchParam = site.getCpId();
+                } else {
+                    searchParam = kw;
                 }
-                request.setAttribute("thisService", srvc);
-            } catch (Exception e) {
-                if (serviceExeptionFlag.equals(EX_HELP_SERVICE)) {
-                    throw new Exception(e.getMessage());
+            }
+
+            accountID = site.getCpId();
+            UserService srvc = ServiceManager.viewService(searchParam, accountID);
+            request.setAttribute("user_service", srvc);
+
+            if (srvc == null) {
+                if (sp.getDefaultService().startsWith("HELP")) {
+                    throw new Exception(com.rancard.util.DefaultService.getHelp(accountID, msisdn, dest, searchParam));
                 } else {
                     throw new Exception(com.rancard.common.Feedback.NO_SUCH_SERVICE);
                 }
             }
 
-            //access valdation
-            if (srvc.getAllowedSiteTypes() != null && !srvc.getAllowedSiteTypes().equals("")) {
-                java.util.List allowedSites = java.util.Arrays.asList(srvc.getAllowedSiteTypes().split(","));
+            //Will have to comment out this checck for now. Not currently observed.
+            /*if (!srvc.getAllowedSiteTypes().contains(site.getSiteType())) {
+                System.out.println(new Date() + "\t[" + servicelocator.class + "]\tERROR\tRequesting site (" + site.getCpSiteId() + ") not in allowed list.");
+                throw new Exception(Feedback.INVALID_REQUEST_CREDENTIALS);
 
-                if (!allowedSites.contains("" + site.getSiteType())) {
+            }*/
 
-                    System.out.println(new java.util.Date() + ": requesting site (" + site.getCpSiteId() + ") not in allowed list.");
-                    throw new Exception(Feedback.INVALID_REQUEST_CREDENTIALS);
-
-                }
-
-                if (site.getSiteType().equals(CPSite.SMS)) {
-                    String allowedShortcodes = srvc.getAllowedShortcodes();
-                    String tempDest = dest.substring(dest.indexOf("+") + 1);
-
-                    if (allowedShortcodes != null && !allowedShortcodes.equals("")) {
-                        java.util.List as = java.util.Arrays.asList(allowedShortcodes.split(","));
-
-                        if (!as.contains(tempDest)) {
-                            //log statment
-                            System.out.println(new java.util.Date() + ": requested shortcode (" + tempDest + ") not in allowed list.");
-
-                            throw new Exception(Feedback.INVALID_SERVICE_REQUEST);
-                        }
-                    }
-                }
-            }
-            
-            String acknowledgement = srvc.getDefaultMessage();
-
-            request.setAttribute("acctId", accountId);
-            request.setAttribute("ack", acknowledgement);
+            request.setAttribute("acctId", srvc.getAccountId());
+            request.setAttribute("ack", srvc.getDefaultMessage());
             request.setAttribute("cmd", srvc.getCommand());
             request.setAttribute("attr_keyword", searchParam);
+            request.setAttribute("siteId", siteID);
 
-            //get service url
+            Map routingTable = ServiceManager.populateRoutingTable();
             String srvcUrl = (String) routingTable.get(srvc.getServiceType());
             if (srvcUrl == null || srvcUrl.equals("")) {
-
-                System.out.println(new java.util.Date() + ": no URL (routing) found for requested service (" + searchParam + ", " + accountId + ")");
-
+                System.out.println(new Date() + "\t[" + servicelocator.class + "]\tERROR\tNo URL (routing) found for requested service (" + searchParam + ", " + srvc.getAccountId() + ")");
                 throw new Exception(Feedback.NO_URL_FOR_SERVICE);
             }
 
             //using request dispatcher
-            RequestDispatcher dispatch = null;
+            RequestDispatcher dispatch;
             try {
                 dispatch = request.getRequestDispatcher(srvcUrl);
             } catch (Exception e) {
+                System.out.println(new Date() + "\t[" + servicelocator.class + "]\tERROR\tRoute notification failed: " + e.getMessage());
                 throw new Exception(Feedback.ROUTE_NOTIFICATION_FAILED);
             }
 
             dispatch.include(request, response);
-
             request.setAttribute("dfltMsg", "");
 
-            //Retrieving promoId and promo_response_code for the purpose of logging
-            promoId = (String) request.getAttribute("promoId");
-            promoRespCode = (String) request.getAttribute("promoRespCode");
-
             //finally set the x-kannel-from http header if necessary
-            if ((request.getAttribute("x-kannel-header-from") != null) && !((String) request.getAttribute("x-kannel-header-from")).equals("")) {
+            if ((request.getAttribute("x-kannel-header-from") != null) && !request.getAttribute("x-kannel-header-from").equals("")) {
                 response.addHeader("X-Kannel-From", (String) request.getAttribute("x-kannel-header-from"));
             } else if (srvc.getServiceResponseSender() != null && !srvc.getServiceResponseSender().equals("")) {
                 System.out.println(new java.util.Date() + ": Setting X-Kannel-From header (" + srvc.getServiceResponseSender() + ")");
@@ -312,21 +143,21 @@ public class servicelocator extends HttpServlet implements Filter {
             }
 
             //set X-Kannel-BInfo http header if available
-            if ((request.getAttribute("x-kannel-header-binfo") != null) && !((String) request.getAttribute("x-kannel-header-binfo")).equals("")) {
+            if ((request.getAttribute("x-kannel-header-binfo") != null) && !request.getAttribute("x-kannel-header-binfo").equals("")) {
                 response.addHeader("X-Kannel-BInfo", (String) request.getAttribute("x-kannel-header-binfo"));
             }
-            
-            if ((request.getAttribute("X-Kannel-Coding") != null) && !((String) request.getAttribute("X-Kannel-Coding")).equals("")) {
-                response.addHeader ("X-Kannel-Coding", (String) request.getAttribute("X-Kannel-Coding"));
-                response.addHeader ("Content-Type", "text/html;charset=UTF-8");
+
+            if ((request.getAttribute("X-Kannel-Coding") != null) && !request.getAttribute("X-Kannel-Coding").equals("")) {
+                response.addHeader("X-Kannel-Coding", (String) request.getAttribute("X-Kannel-Coding"));
+                response.addHeader("Content-Type", "text/html;charset=UTF-8");
             }
 
             filterChain.doFilter(request, response);
 
         } catch (Exception e) {
-            String message = "";
+            String message;
             try {
-                if (site.getSiteType().equals(site.SMS)) {
+                if (site.getSiteType().equals(CPSite.SMS)) {
                     message = feedback.getUserFriendlyDescription(e.getMessage());
 
                     if (message == null || message.equals("")) {
@@ -343,9 +174,8 @@ public class servicelocator extends HttpServlet implements Filter {
                 String insertions = "shortcode=" + dest;
                 message = com.rancard.util.URLUTF8Encoder.doMessageEscaping(insertions, message);
 
-
                 //log statement
-                System.out.println(new java.util.Date() + ": error: " + message + ":" + e.getMessage());
+                System.out.println(new Date() + "\t[" + servicelocator.class + "]\tERROR\tMessage: " + message + " error: " + e.getMessage());
 
 
                 request.setAttribute("dfltMsg", message);
@@ -357,15 +187,11 @@ public class servicelocator extends HttpServlet implements Filter {
             } catch (Exception ex) {
                 filterConfig.getServletContext().log(ex.getMessage());
             }
-            //return;
         } finally {
-
-            //get extra service loging params
             String fwdReqKw = (String) request.getAttribute("log_fwdReq_kw");
-            //String thirdPartyCPId = (String)request.getAttribute("log_thirdPartyCPId");
-
 
             try {
+                String entireText;
                 if (kw.equals("")) {
                     entireText = msgBody;
                 } else {
@@ -373,7 +199,7 @@ public class servicelocator extends HttpServlet implements Filter {
                 }
 
 
-                this.logServiceRequest(searchParam, accountId, msisdn, dest, timeSent, entireText, siteId, smscId, fwdReqKw, promoId, promoRespCode);
+                this.logServiceRequest(searchParam, accountID, msisdn, dest, timeSent, entireText, site.getCpSiteId(), smscId, fwdReqKw, "", "");
             } catch (Exception ex) {
                 log(ex.getMessage());
             }
@@ -382,35 +208,24 @@ public class servicelocator extends HttpServlet implements Filter {
     } //Clean up resources
 
     public void logServiceRequest(String keyword, String accountId, String origin, String dest, String timeSent, String msg, String siteId, String smscId, String fwd_req_kw) throws Exception {
-
-        String query;
-        ResultSet rs = null;
-        Connection con = null;
+        Connection conn = null;
         PreparedStatement prepstat = null;
 
         //log statements
-        System.out.println(new java.util.Date() + ": updating service_usage_log with request details..");
-        System.out.println(new java.util.Date() + ": service_usage_log details: "
-                + "keyword=" + keyword + ", "
-                + "account_id=" + accountId + ", "
-                + "origin=" + origin + ", "
-                + "dest=" + dest + ", "
-                + "timeSent=" + ("".equals(timeSent) ? new java.util.Date() : timeSent) + ", "
-                + "msg=" + msg + ", "
-                + "siteId=" + siteId + ", "
-                + "smsc=" + smscId + ", "
-                + "fwd_req_kw=" + fwd_req_kw);
+        System.out.println(new Date() + "\t[" + servicelocator.class + "]\tINFO\tUpdating service_usage_log with request details. keyword=" + keyword + ", "
+                + "account_id=" + accountId + ", origin=" + origin + ", dest=" + dest + ", timeSent=" + ("".equals(timeSent) ? new java.util.Date() : timeSent) + ", "
+                + "msg=" + msg + ", siteId=" + siteId + ", smsc=" + smscId + ", fwd_req_kw=" + fwd_req_kw);
+
 
         if (fwd_req_kw != null && !"".equals(fwd_req_kw)) {
             keyword = fwd_req_kw;
         }
 
         try {
-            con = DConnect.getConnection();
+            conn = DConnect.getConnection();
+            String query = "insert into service_usage_log (keyword, account_id, to_number, time_received, from_number, msg, site_id, smscId, time_sent) values (?,?,?,?,?,?,?,?,?)";
 
-            query = "insert into service_usage_log (keyword, account_id, to_number, time_received, from_number, msg, site_id, smscId, time_sent) values (?,?,?,?,?,?,?,?,?)";
-
-            prepstat = con.prepareStatement(query);
+            prepstat = conn.prepareStatement(query);
 
             prepstat.setString(1, keyword);
             prepstat.setString(2, accountId);
@@ -423,90 +238,49 @@ public class servicelocator extends HttpServlet implements Filter {
             try {
                 prepstat.setTimestamp(9, java.sql.Timestamp.valueOf(timeSent));
             } catch (Exception e) {
+                System.out.println(new Date() + "\t[" + servicelocator.class + "]\tERROR\tProblem converting timesent: " + e.getMessage());
                 prepstat.setTimestamp(9, new java.sql.Timestamp(new java.util.Date().getTime()));
             }
-
-
             prepstat.execute();
 
             //log update success statement
-            System.out.println(new java.util.Date() + ": service_usage_log updated successfully!");
+            System.out.println(new Date() + "\t[" + servicelocator.class + "]\tINFO\tservice_usage_log updated successfully!");
 
 
         } catch (Exception ex) {
-            if (con != null) {
-                try {
-                    con.close();
-                } catch (Exception ex1) {
-                    log(ex.getMessage());
-                }
-                con = null;
-            }
-
-            System.out.println(new java.util.Date() + ": error updating service_usage_log: " + ex.getMessage());
-
+            System.out.println(new java.util.Date() + "\t[" + servicelocator.class + "]\tINFO\tError updating service_usage_log: " + ex.getMessage());
         } finally {
-            if (rs != null) {
-                try {
-                    rs.close();
-                } catch (Exception e) {
-                    log(e.getMessage());
-                }
-                rs = null;
-            }
             if (prepstat != null) {
-                try {
-                    prepstat.close();
-                } catch (Exception e) {
-                    log(e.getMessage());
-                    ;
-                }
-                prepstat = null;
+                prepstat.close();
             }
-            if (con != null) {
-                try {
-                    con.close();
-                } catch (Exception e) {
-                    log(e.getMessage());
-                    ;
-                }
-                con = null;
+            if (conn != null) {
+                conn.close();
             }
         }
     }
 
-    public void logServiceRequest(String keyword, String accountId, String origin, String dest, String timeSent, String msg, String siteId, String smscId, String fwd_req_kw, String promoId, String promoRespCode) throws Exception {
-
-        String query;
-        ResultSet rs = null;
-        Connection con = null;
+    public void logServiceRequest(String keyword, String accountId, String origin, String dest, String timeSent, String msg, String siteId,
+            String smscId, String fwd_req_kw, String promoId, String promoRespCode) throws Exception {
+        Connection conn = null;
         PreparedStatement prepstat = null;
 
         //log statements
-        System.out.println(new java.util.Date() + ": updating service_usage_log with request details..");
-        System.out.println(new java.util.Date() + ": service_usage_log details: "
-                + "keyword=" + keyword + ", "
-                + "account_id=" + accountId + ", "
-                + "origin=" + origin + ", "
-                + "dest=" + dest + ", "
-                + "timeSent=" + ("".equals(timeSent) ? new java.util.Date() : timeSent) + ", "
-                + "msg=" + msg + ", "
-                + "promoId=" + promoId + ", "
-                + "promoRespCode=" + promoRespCode + ", "
-                + "siteId=" + siteId + ", "
-                + "smsc=" + smscId + ", "
-                + "fwd_req_kw=" + fwd_req_kw);
+        //log statements
+        System.out.println(new Date() + "\t[" + servicelocator.class + "]\tINFO\tUpdating service_usage_log with request details. keyword=" + keyword + ", "
+                + "account_id=" + accountId + ", origin=" + origin + ", dest=" + dest + ", timeSent=" + ("".equals(timeSent) ? new java.util.Date() : timeSent) + ", "
+                + "msg=" + msg + ", siteId=" + siteId + ", smsc=" + smscId + ", fwd_req_kw=" + fwd_req_kw);
+
 
         if (fwd_req_kw != null && !"".equals(fwd_req_kw)) {
             keyword = fwd_req_kw;
         }
 
         try {
-            con = DConnect.getConnection();
+            conn = DConnect.getConnection();
 
-            query = "insert into service_usage_log (keyword, account_id, to_number, time_received, from_number, msg, site_id, smscId, time_sent,promo_id,promo_response_code) values (?,?,?,?,?,?,?,?,?,?,?)";
+            String query = "insert into service_usage_log (keyword, account_id, to_number, time_received, from_number, msg, site_id, smscId, time_sent,promo_id,promo_response_code) values (?,?,?,?,?,?,?,?,?,?,?)";
 
-            prepstat = con.prepareStatement(query);
+            prepstat = conn.prepareStatement(query);
 
             prepstat.setString(1, keyword);
             prepstat.setString(2, accountId);
@@ -527,51 +301,24 @@ public class servicelocator extends HttpServlet implements Filter {
             prepstat.execute();
 
             //log update success statement
-            System.out.println(new java.util.Date() + ": service_usage_log updated successfully!");
+            System.out.println(new Date() + "\t[" + servicelocator.class + "]\tINFO\tservice_usage_log updated successfully!");
 
 
         } catch (Exception ex) {
-            if (con != null) {
-                try {
-                    con.close();
-                } catch (Exception ex1) {
-                    log(ex.getMessage());
-                }
-                con = null;
-            }
 
             System.out.println(new java.util.Date() + ": error updating service_usage_log: " + ex.getMessage());
 
         } finally {
-            if (rs != null) {
-                try {
-                    rs.close();
-                } catch (Exception e) {
-                    log(e.getMessage());
-                }
-                rs = null;
-            }
             if (prepstat != null) {
-                try {
-                    prepstat.close();
-                } catch (Exception e) {
-                    log(e.getMessage());
-                    ;
-                }
-                prepstat = null;
+                prepstat.close();
             }
-            if (con != null) {
-                try {
-                    con.close();
-                } catch (Exception e) {
-                    log(e.getMessage());
-                    ;
-                }
-                con = null;
+            if (conn != null) {
+                conn.close();
             }
         }
     }
 
+    @Override
     public void log(String msg) {
         filterConfig.getServletContext().log(msg);
     }
@@ -587,7 +334,7 @@ public class servicelocator extends HttpServlet implements Filter {
             Long.parseLong(msisdn);
         } catch (Exception e) {
             msisdn_ok = false;
-            System.out.println(new java.util.Date() + ": error in msisdn : " + msisdn + " .Request would be terminated.");
+            System.out.println(new java.util.Date() + ": error in msisdn : " + msisdn + " .Request would be terminated: " + e.getMessage());
         }
         return msisdn_ok;
     }

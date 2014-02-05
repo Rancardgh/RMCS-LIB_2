@@ -9,231 +9,184 @@
 package com.rancard.mobility.contentserver.serviceinterfaces;
 
 import com.rancard.common.Feedback;
+import com.rancard.mobility.common.ThreadedMessageSender;
+import com.rancard.mobility.contentprovider.User;
 import com.rancard.mobility.contentserver.CPConnections;
 import com.rancard.mobility.contentserver.CPSite;
-import com.rancard.mobility.infoserver.common.services.ServiceManager;
+import com.rancard.mobility.contentserver.CPSiteDB;
+import com.rancard.mobility.infoserver.common.services.ServiceSubscriptionDB;
 import com.rancard.mobility.infoserver.common.services.UserService;
+import com.rancard.mobility.infoserver.common.services.UserServiceDB;
+import com.rancard.mobility.infoserver.common.services.UserServiceExperience;
+import com.rancard.mobility.infoserver.common.services.UserServiceExperienceDB;
 import java.io.IOException;
 import java.io.PrintWriter;
-import javax.servlet.ServletException;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import javax.servlet.*;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.*;
-import com.rancard.util.URLUTF8Encoder;
-import org.apache.commons.httpclient.*;
-import org.apache.commons.httpclient.methods.*;
-import java.io.*;
-import java.util.ArrayList;
+
 /**
  *
  * @author Messenger
  */
 public class processunsubscriberequest extends HttpServlet implements RequestDispatcher {
-    //Initialize global variables
-    public void init() throws ServletException {
-    }
+
     //Process the HTTP Get request
+    @Override
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         //get reeponse writer
         PrintWriter out = response.getWriter();
-        CPConnections cnxn = new CPConnections();
-        final String ACTION_UNSUBSCRIBE_KW = "1";
-        final String ACTION_UNSUBSCRIBE_ALL = "2";
-        String action = ACTION_UNSUBSCRIBE_KW;
-
         String ACK = (String) request.getAttribute("ack");
         String kw = request.getParameter("keyword");
         String msg = request.getParameter("msg");
         String msisdn = request.getParameter("msisdn");
         String provId = (String) request.getAttribute("acctId");
+        String dest = request.getParameter("dest");
 
-        String siteType = (String) request.getAttribute("site_type");
+        String siteID = (String) request.getAttribute("siteId");
         String lang = (String) request.getAttribute("default_lang");
         if (lang == null || lang.equals("")) {
             lang = "en";
         }
-        Feedback feedback = (Feedback) this.getServletContext().getAttribute("feedback_" + lang);
-        if (feedback == null) {
-            try {
+        CPSite site = null;
+        Feedback feedback = null;
+        try {
+            System.out.println(new Date() + "\t[" + processunsubscriberequest.class + "]\tDEBUG\tCancelling subscription to a service: " + request.getQueryString());
+            feedback = (Feedback) this.getServletContext().getAttribute("feedback_" + lang);
+            if (feedback == null) {
                 feedback = new Feedback();
-            } catch (Exception e) {
             }
-        }
 
-        String provName = "";
-        String message = "";
+            site = (CPSite) request.getAttribute("site");
+            if (site == null) {
+                site = CPSiteDB.viewSite(siteID);
+            }
 
-        if (provId == null || provId.equals("")) {
-            try {
-                if (siteType.equals(CPSite.SMS)) {
-                    message = feedback.getUserFriendlyDescription(Feedback.MISSING_INVALID_PROV_ID);
+            if (site == null) {
+                out.println(feedback.getUserFriendlyDescription(Feedback.INVALID_REQUEST_CREDENTIALS));
+                return;
+            }
+
+            if (provId == null || provId.equals("")) {
+                if (site.getSiteType().equals(CPSite.SMS)) {
+                    out.println(feedback.getUserFriendlyDescription(Feedback.MISSING_INVALID_PROV_ID));
                 } else {
-                    message = feedback.formDefaultMessage(Feedback.MISSING_INVALID_PROV_ID);
+                    out.println(feedback.formDefaultMessage(Feedback.MISSING_INVALID_PROV_ID));
                 }
-            } catch (Exception ex) {
-                message = ex.getMessage();
+                return;
             }
-            out.println(message);
-            return;
-        }
-        //no msisdn found
-        if (msisdn == null || msisdn.equals("")) {
-            try {
-                if (siteType.equals(CPSite.SMS)) {
-                    message = feedback.getUserFriendlyDescription(Feedback.MISSING_INVALID_MSISDN);
+
+            if (msisdn == null || msisdn.equals("")) {
+                if (site.getSiteType().equals(CPSite.SMS)) {
+                    out.println(feedback.getUserFriendlyDescription(Feedback.MISSING_INVALID_MSISDN));
                 } else {
-                    message = feedback.formDefaultMessage(Feedback.MISSING_INVALID_MSISDN);
+                    out.println(feedback.formDefaultMessage(Feedback.MISSING_INVALID_MSISDN));
                 }
-            } catch (Exception ex) {
-                message = ex.getMessage();
+                return;
             }
-            out.println(message);
-            return;
-        }
-        //message body
-        if (msg == null || msg.equals("")) {
-            msg = "";
-        }
-        //default message for acknowledgment
-        if (ACK == null || ACK.equals("")) {
-            ACK = "";
-        }
 
-        //logging statements
-        System.out.println("Cancelling subscription to a service");
-        System.out.println("Date received: " + java.util.Calendar.getInstance().getTime().toString());
-        System.out.println("Keyword: " + kw);
-        System.out.println("Message: " + msg);
-        System.out.println("Subscriber's number: " + msisdn);
-        System.out.println("Service privoder's ID: " + provId);
-        //end of logging
-
-        //validate number
-        String number = msisdn;
-        if (number.indexOf("+") != -1) {
-            StringBuffer sb = new StringBuffer(number);
-            sb.deleteCharAt(number.indexOf("+"));
-            number = sb.toString();
-
-            sb = null;
-        }
-        number = number.trim();
-
-        try {
-            //checks that number is a string of digits only
-            Long.parseLong(number);
-            msisdn = "+" + number;
-        } catch (NumberFormatException e) {
-            try {
-                if (siteType.equals(CPSite.SMS)) {
-                    message = feedback.getUserFriendlyDescription(Feedback.MISSING_INVALID_MSISDN);
+            msisdn = formatMSISDN(msisdn);
+            if (!checkMSISDN(msisdn.substring(1))) {
+                if (site.getSiteType().equals(CPSite.SMS)) {
+                    out.println(feedback.getUserFriendlyDescription(Feedback.MISSING_INVALID_MSISDN));
                 } else {
-                    message = feedback.formDefaultMessage(Feedback.MISSING_INVALID_MSISDN);
+                    out.println(feedback.formDefaultMessage(Feedback.MISSING_INVALID_MSISDN));
                 }
-            } catch (Exception ex) {
-                message = ex.getMessage();
+                return;
             }
-            out.println(message);
-            return;
-        }
 
-        //continue
-        try {
-      
-            provName = new com.rancard.mobility.contentprovider.User().viewDealer(provId).getName();
+            User user = (User) request.getAttribute("user");
+            if (user == null) {
+                user = new User().viewDealer(provId);
+            }
 
-            String serviceNames = "";
-            if (msg != null && !msg.equals("")) {
-                //process multiple unsubscriptions if required
-               String [] keywords = msg.split(",");
-               ArrayList<String> keywordList = new ArrayList<String>();
-               if(keywords.length > 1){
 
-                   for(int i =0 ; i < keywords.length ; i++){
-                       //trimming keywords
-                       keywordList.add(keywords[i].trim());
-                       System.out.print("Keyword #"+i+" = "+keywordList.get(i));
-                   }
-                  ServiceManager.forceUnsubscribe(msisdn, keywordList, provId);
-                   ACK = "You have successfully cancelled your subscriptions. Thank you for using our services.";
-                  action = "0";
-               }else{
-                  try {
-                    UserService service = ServiceManager.viewService(msg, provId);
-                    if (service == null || service.getAccountId() == null || service.getKeyword() == null || service.getAccountId().equals("") || service.getKeyword().equals("")) {
-                        // keyword not found so perform lookup by alias instead
-                        service = ServiceManager.viewServiceByAlias(msg, provId);
-                        if (service == null || service.getAccountId() == null || service.getKeyword() == null || service.getAccountId().equals("") || service.getKeyword().equals("")) {
-                            action = ACTION_UNSUBSCRIBE_ALL;
-                        //throw new Exception(Feedback.NO_SUCH_SERVICE);
-                        } else {//set msg to actual service KEYWORD
-                            msg = service.getKeyword();
-                        }
+            String insertions = "ack=" + ACK + "&keyword=" + kw + "&msg=" + msg + "&msisdn=" + msisdn + "&acctId=" + provId + "&provName=" + user.getName();
+
+            if (msg == null || msg.equals("")) {
+                out.println(unsubscribeAll(msisdn, provId, feedback, insertions));
+            } else {
+                List<String> keywords = Arrays.asList(msg.split(","));
+
+                if (keywords.size() == 1) {
+                    UserService service = UserServiceDB.viewService(keywords.get(0), provId);
+                    if (service == null) {
+                        out.println(unsubscribeAll(msisdn, provId, feedback, insertions));
+                        return;
                     }
 
-                    serviceNames = service.getServiceName();
-                    service = null;
-                } catch (Exception ex) {
-                    throw new Exception(Feedback.NO_SUCH_SERVICE);
+                    ServiceSubscriptionDB.deleteSubscription(msisdn, service.getAccountId(), service.getKeyword());
+                    insertions = insertions + "&srvcName=" + service.getServiceName();
+
+                    UserServiceExperience serviceExp = UserServiceExperienceDB.viewServiceExperience(service.getAccountId(),
+                            site.getCpSiteId(), service.getKeyword());
+
+                    if (serviceExp == null || serviceExp.getUnsubscriptionConfirmationMsg() == null || serviceExp.getUnsubscriptionConfirmationMsg().equals("")) {
+                        UserService stopService = UserServiceDB.viewService("STOP", service.getAccountId());
+                        if (stopService == null || stopService.getDefaultMessage() == null || stopService.getDefaultMessage().equals("")) {
+                            out.println("You have successfully cancelled your subscription. Thank you for using our service.");
+                            return;
+                        }
+
+                        String sender = stopService.getServiceResponseSender() == null
+                                || stopService.getServiceResponseSender().equals("") ? dest : stopService.getServiceResponseSender();
+                        request.setAttribute("x-kannel-header-from", sender);
+                        out.println(com.rancard.util.URLUTF8Encoder.doMessageEscaping(insertions, stopService.getDefaultMessage()));
+                        return;
+                    }
+
+                    String sender = serviceExp.getUnsubscriptionConfirmationMsgSender() == null || serviceExp.getUnsubscriptionConfirmationMsgSender().equals("")
+                            ? dest : serviceExp.getUnsubscriptionConfirmationMsgSender();
+                    request.setAttribute("x-kannel-header-from", sender);
+                    out.println(com.rancard.util.URLUTF8Encoder.doMessageEscaping(insertions, serviceExp.getUnsubscriptionConfirmationMsg()));
+                    return;
+
                 }
-               }
-            } else {
-                //serviceNames = "all services";
-                action = ACTION_UNSUBSCRIBE_ALL;
+
+                ServiceSubscriptionDB.deleteSubscription(msisdn, provId, keywords);
+                List<UserService> services = UserServiceDB.viewService(keywords, provId);
+                CPConnections cnxn = CPConnections.getConnection(provId, msisdn);
+                String stopMessage;
+                for (int i = 0; i < services.size(); i++) {
+
+                    UserServiceExperience serviceExp = UserServiceExperienceDB.viewServiceExperience(services.get(i).getAccountId(),
+                            site.getCpSiteId(), services.get(i).getKeyword());
+                    String sender = serviceExp.getUnsubscriptionConfirmationMsgSender() == null
+                            || serviceExp.getUnsubscriptionConfirmationMsgSender().equals("") ? dest : serviceExp.getUnsubscriptionConfirmationMsgSender();
+
+                    if (serviceExp == null || serviceExp.getUnsubscriptionConfirmationMsg() == null || serviceExp.getUnsubscriptionConfirmationMsg().equals("")) {
+                        UserService stopService = UserServiceDB.viewService("STOP", services.get(i).getAccountId());
+                        if (stopService == null || stopService.getDefaultMessage() == null || stopService.getDefaultMessage().equals("")) {
+                            stopMessage = "You have successfully cancelled your subscription. Thank you for using our service.";
+                        } else {
+                            stopMessage = com.rancard.util.URLUTF8Encoder.doMessageEscaping(insertions, stopService.getDefaultMessage());
+                        }
+                    } else {
+                        stopMessage = com.rancard.util.URLUTF8Encoder.doMessageEscaping(insertions, serviceExp.getUnsubscriptionConfirmationMsg());
+                    }
+
+                    if (i == services.size() - 1) {
+                        request.setAttribute("x-kannel-header-from", sender);
+                        out.println(stopMessage);
+                        return;
+                    } else {
+
+                        new Thread(new ThreadedMessageSender(cnxn, msisdn, sender, stopMessage, 0)).start();
+                    }
+                }
             }
 
-            //determine what action to take
-            if (action.equals(ACTION_UNSUBSCRIBE_ALL)) {
-                ServiceManager.unsubscribeToService(msisdn, "", provId);
-                //set response message
-                ACK = feedback.getValue("CANCEL_ALL_SUBSCRIPTIONS");
-            } else if(action.equals(ACTION_UNSUBSCRIBE_KW)){
-                /*
-                 This bit of code should be TEMPORARY. It's only implemented to fix the
-                 D2M problem where unsubscribing from the main service leaves a user
-                 still subscribed to the child service. Rectify by implementing choice on how
-                 many messages a subscriber can get a day per subscription
-                */
-                //--------------------------------------------------------------
-                ArrayList<String> keywords = new ArrayList<String>();
-                keywords.add (msg);
-                keywords.add (msg + "2");
-                ServiceManager.forceUnsubscribe (msisdn, keywords, provId);
-                //--------------------------------------------------------------
-
-                //This was the original code
-                //--------------------------------------------------------------
-                //ServiceManager.unsubscribeToService(msisdn, msg, provId);
-                //--------------------------------------------------------------
-            }
-
-            String insertions = "ack=" + ACK + "&keyword=" + kw + "&msg=" + msg + "&msisdn=" + msisdn + "&acctId=" + provId + "&srvcName=" + serviceNames + "&provName=" + provName;
-            ACK = com.rancard.util.URLUTF8Encoder.doMessageEscaping(insertions, ACK);
-
-            out.println(ACK);
-            /*String URL = "http://74.205.84.249/rms/sendsms?username=rsltest&password=rsltest&conn=myBuzz:801&to=" + URLUTF8Encoder.encode(msisdn) + "&text=" + URLUTF8Encoder.encode(ACK) + "&from=" + URLUTF8Encoder.encode("+801");
-            HttpClient client = new HttpClient();
-            GetMethod httpGETFORM = new GetMethod(URL);
-
-            try {
-                System.out.println(new java.util.Date() + ": " + kw + ": " + msisdn + ": Pushing unsubscribe confirmation message: " + URL);
-                client.executeMethod(httpGETFORM);
-                String resp = getResponse(httpGETFORM.getResponseBodyAsStream());
-                System.out.println(new java.util.Date() + ": " + kw + ": " + msisdn + ": Message push complete! Gateway response: " + resp);    
-            } catch (Exception e) {
-                System.out.println(new java.util.Date() + ":" + kw + ": " + msisdn + ":exception pushing unsubscribe confirmation message: " + e.getMessage());
-            } finally {
-                httpGETFORM.releaseConnection();
-                client = null;
-                httpGETFORM = null;
-            }*/
-
-            cnxn = null;
 
         } catch (Exception e) {
+            System.out.println(new Date() + "\t[" + processunsubscriberequest.class + "]\tERROR\tCancelling subscription to a service: " + e.getMessage());
+            String message;
             try {
-                if (siteType.equals(CPSite.SMS)) {
+
+                if (site.getSiteType().equals(CPSite.SMS)) {
                     message = feedback.getUserFriendlyDescription(e.getMessage());
                 } else {
                     message = feedback.formDefaultMessage(e.getMessage());
@@ -244,48 +197,19 @@ public class processunsubscriberequest extends HttpServlet implements RequestDis
             } catch (Exception ex) {
                 message = ex.getMessage();
             }
+
             out.println(message);
-            return;
         }
     }
-    
-    private String getResponse(java.io.InputStream in) throws Exception {
-    String status = "error";
-    String reply = "";
-    String error = "";
-    String responseString = "";
-    BufferedReader br = null;
-    try {
-        InputStream responseBody = in;
-        br = new BufferedReader(new InputStreamReader(
-                responseBody));
-        String line = br.readLine();
-        while(line != null){
-            responseString = responseString + line;
-            line = br.readLine();
-        }
-    } catch (IOException e) {
-        throw new Exception(Feedback.TRANSPORT_ERROR + ": " + e.getMessage());
-    } finally {
-        br.close();
-        in.close();
-        
-        br = null;
-        in = null;
-    }
-    
-    return responseString;
-}
-    //Process the HTTP Post request
+
+    @Override
     public void doPost(HttpServletRequest request,
             HttpServletResponse response) throws
             ServletException, IOException {
         doGet(request, response);
     }
-    //Clean up resources
-    public void destroy() {
-    }
 
+    @Override
     public void forward(ServletRequest request,
             ServletResponse response) throws ServletException, IOException {
         HttpServletRequest req = (HttpServletRequest) request;
@@ -293,10 +217,41 @@ public class processunsubscriberequest extends HttpServlet implements RequestDis
         doGet(req, resp);
     }
 
+    @Override
     public void include(ServletRequest request,
             ServletResponse response) throws ServletException, IOException {
         HttpServletRequest req = (HttpServletRequest) request;
         HttpServletResponse resp = (HttpServletResponse) response;
         doGet(req, resp);
+    }
+
+    private String formatMSISDN(String msisdn) {
+        if (msisdn.indexOf("+") == -1) {
+            return "+" + msisdn;
+        }
+
+        return msisdn;
+    }
+
+    private boolean checkMSISDN(String msisdn) {
+        try {
+            Long.parseLong(msisdn);
+            return true;
+
+
+        } catch (NumberFormatException nfe) {
+            System.out.println(new Date() + "\t[" + processunsubscriberequest.class
+                    + "]\tERROR\tMSISDN is not correct: " + nfe.getMessage());
+
+            return false;
+        }
+    }
+
+    private String unsubscribeAll(String msisdn, String accountID, Feedback feedback, String insertions) throws Exception {
+        System.out.println(new Date() + "\t[" + processunsubscriberequest.class + "]\tINFO\tMessage is null. Will unsubscribe all");
+        ServiceSubscriptionDB.deleteSubscription(msisdn, accountID);
+
+        String message = feedback.getValue("CANCEL_ALL_SUBSCRIPTIONS");
+        return com.rancard.util.URLUTF8Encoder.doMessageEscaping(insertions, message);
     }
 }

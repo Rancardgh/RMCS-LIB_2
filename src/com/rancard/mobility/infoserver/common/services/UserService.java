@@ -1,5 +1,6 @@
 package com.rancard.mobility.infoserver.common.services;
 
+import java.util.Date;
 import java.util.List;
 
 public class UserService implements java.io.Serializable{
@@ -11,29 +12,16 @@ public class UserService implements java.io.Serializable{
     private String accountId;
     private String serviceName;
     private String defaultMessage;
-    private String lastUpdated;
+    private Date lastUpdated;
     private String command;
-    private String allowedShortcodes;
-    private String allowedSiteTypes;
+    private List<String> allowedShortcodes;
+    private List<String> allowedSiteTypes;
     private String pricing;
     private String serviceResponseSender;
     
-    public UserService() {
-        this.isBasic = false;
-        this.isSubscription = false;
-        this.serviceType = "";
-        this.keyword = "";
-        this.accountId = "";
-        this.serviceName = "";
-        this.defaultMessage = "";
-        this.command = "";
-        this.allowedShortcodes = "";
-        this.allowedSiteTypes = "";
-        //this.allowedNetworks = "";
-        this.pricing = "";
-        this.serviceResponseSender = "";
+    public UserService(){        
     }
-
+    
     public UserService(String serviceType, String keyword, String accountId, String serviceid, String defaultMessage) {
         this.serviceType = serviceType;
         this.keyword = keyword;
@@ -42,8 +30,8 @@ public class UserService implements java.io.Serializable{
         this.defaultMessage = defaultMessage;
     }
     
-    public UserService(String serviceType, String keyword, String accountId, String serviceid, String defaultMessage, String command, String allowedShortcodes, String allowedSiteTypes,
-            String pricing, boolean isBasic) {
+    public UserService(String serviceType, String keyword, String accountId, String serviceid, String defaultMessage, String command, List<String> allowedShortcodes, 
+            List<String> allowedSiteTypes, String pricing, boolean isBasic) {
         this.isBasic = isBasic;
         
         this.serviceType = serviceType;
@@ -57,8 +45,8 @@ public class UserService implements java.io.Serializable{
         this.pricing = pricing;
     }
     
-    public UserService(String serviceType, String keyword, String accountId, String serviceid, String defaultMessage, String command, String allowedShortcodes, String allowedSiteTypes,
-            String pricing, boolean isBasic, boolean isSubscription, String serviceReponseSender) {
+    public UserService(String serviceType, String keyword, String accountId, String serviceid, String defaultMessage, String command, List<String> allowedShortcodes, 
+            List<String> allowedSiteTypes, String pricing, boolean isBasic, boolean isSubscription, String serviceReponseSender, Date lastUpdated) {
         this.isBasic = isBasic;
         this.isSubscription = isSubscription;
         this.serviceType = serviceType;
@@ -71,6 +59,24 @@ public class UserService implements java.io.Serializable{
         this.allowedSiteTypes = allowedSiteTypes;        
         this.pricing = pricing;
         this.serviceResponseSender = serviceReponseSender;
+        this.lastUpdated = lastUpdated;
+    }
+    
+    public UserService(String serviceType, String keyword, String accountId, String serviceid, String defaultMessage, String command, String allowedShortcodes, 
+            String allowedSiteTypes, String pricing, boolean isBasic, boolean isSubscription, String serviceReponseSender) {
+        this.isBasic = isBasic;
+        this.isSubscription = isSubscription;
+        this.serviceType = serviceType;
+        this.keyword = keyword;
+        this.accountId = accountId;
+        this.serviceName = serviceid;
+        this.defaultMessage = defaultMessage;
+        this.command = command;
+        //this.allowedShortcodes = allowedShortcodes;
+        //this.allowedSiteTypes = allowedSiteTypes;        
+        this.pricing = pricing;
+        this.serviceResponseSender = serviceReponseSender;
+        //this.lastUpdated = lastUpdated;
     }
     
     public String getAccountId() {
@@ -162,11 +168,11 @@ public class UserService implements java.io.Serializable{
         return userExists;
     }
 
-    public String getLastUpdated() {
+    public Date getLastUpdated() {
         return lastUpdated;
     }
 
-    public void setLastUpdated(String lastUpdated) {
+    public void setLastUpdated(Date lastUpdated) {
         this.lastUpdated = lastUpdated;
     }
 
@@ -178,19 +184,19 @@ public class UserService implements java.io.Serializable{
         this.command = command;
     }
 
-    public String getAllowedShortcodes () {
+    public List<String> getAllowedShortcodes () {
         return allowedShortcodes;
     }
 
-    public void setAllowedShortcodes (String allowedShortcodes) {
+    public void setAllowedShortcodes (List<String> allowedShortcodes) {
         this.allowedShortcodes = allowedShortcodes;
     }
     
-    public String getAllowedSiteTypes () {
+    public List<String> getAllowedSiteTypes () {
         return allowedSiteTypes;
     }
 
-    public void setAllowedSiteTypes (String allowedSiteTypes) {
+    public void setAllowedSiteTypes (List<String> allowedSiteTypes) {
         this.allowedSiteTypes = allowedSiteTypes;
     }
 

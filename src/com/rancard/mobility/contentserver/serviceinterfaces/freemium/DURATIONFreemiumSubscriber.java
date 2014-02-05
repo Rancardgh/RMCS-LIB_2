@@ -4,7 +4,7 @@
  */
 package com.rancard.mobility.contentserver.serviceinterfaces.freemium;
 
-import com.rancard.mobility.infoserver.common.services.ServiceSubscriberDB;
+import com.rancard.mobility.infoserver.common.services.ServiceSubscriptionDB;
 import java.util.Date;
 
 /**
@@ -15,7 +15,7 @@ public class DURATIONFreemiumSubscriber implements IFreemiumSubscriber{
 
     public boolean subscribe(Freemium freemium, String msisdn) throws Exception {
         if(freemium.isActive()){
-             ServiceSubscriberDB.addSubscription(new Date(), freemium.getLength(), msisdn, freemium.getAccountID(), freemium.getKeyword(), 1, 0);
+             ServiceSubscriptionDB.addSubscription(new Date(), freemium.getLength(), msisdn, freemium.getAccountID(), freemium.getKeyword(), 1, 0);
              return true;
         }else{
             return false;

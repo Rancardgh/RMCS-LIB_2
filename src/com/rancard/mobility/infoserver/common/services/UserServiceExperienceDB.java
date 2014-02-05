@@ -63,7 +63,7 @@ public class UserServiceExperienceDB {
                         rs.getString("already_subscribed_msg"), rs.getString("unsubscription_conf_msg"), rs.getString("promo_msg_sender"),
                         rs.getString("welcome_msg_sender"), rs.getString("already_subscribed_msg_sender"), rs.getString("unsubscription_conf_msg_sender"),
                         rs.getInt("push_msg_wait_time"), rs.getInt("subscription_interval"), rs.getString("url"), rs.getInt("url_timeout"),
-                        rs.getString("meta_data"));
+                        ServiceExperienceMetaDataOptions.createFromString(rs.getString("meta_data")));
 
             }
 

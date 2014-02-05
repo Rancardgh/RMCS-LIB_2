@@ -30,10 +30,12 @@ import javax.servlet.*;
 public class processsubscriberequest extends HttpServlet implements RequestDispatcher {
     
     //Initialize global variables
+    @Override
     public void init () throws ServletException {
     }
     
     //Process the HTTP Get request
+    @Override
     public void doGet (HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         //get reeponse writer
         PrintWriter out = response.getWriter ();

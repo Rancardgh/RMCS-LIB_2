@@ -1,4 +1,10 @@
 [syntax: glob]
+
+.idea/*
+build/*
+dist/*
 nbproject/*
+out/*
+cikanet/*
 build.xml
 manifest.mf

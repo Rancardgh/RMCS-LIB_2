@@ -5,8 +5,8 @@ import java.util.Properties;
 
 
 public class Config {
-    
-    
+
+
     private String location = "WEB-INF/conf/rmcs.properties";
     private Properties defaultProps = new Properties();
     /**
