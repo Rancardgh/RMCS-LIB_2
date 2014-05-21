@@ -1,0 +1,21 @@
+[PropertyInfo]
+address,String,false,false, , ,true,<default>
+count,int,false,false, , ,true,<default>
+email,String,false,false, , ,true,<default>
+emp_id,String,false,false, , ,true,<default>
+firstname,String,false,false, , ,true,<default>
+keyword,String,false,false, , ,true,<default>
+last_login,String,false,false, , ,true,<default>
+lastname,String,false,false, , ,true,<default>
+middlename,String,false,false, , ,true,<default>
+mobile_phone,String,false,false, , ,true,<default>
+password,String,false,false, , ,true,<default>
+role_id,String,false,false, , ,true,<default>
+sort_type,String,false,false, , ,true,<default>
+start,int,false,false, , ,true,<default>
+username,String,false,false, , ,true,<default>
+[IconNames]
+
+
+
+
