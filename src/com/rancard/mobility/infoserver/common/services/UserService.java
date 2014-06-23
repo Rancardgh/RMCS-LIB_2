@@ -62,6 +62,23 @@ public class UserService implements java.io.Serializable{
         this.lastUpdated = lastUpdated;
     }
     
+    public UserService(String serviceType, String keyword, String accountId, String serviceid, String defaultMessage, String command, String allowedShortcodes, 
+            String allowedSiteTypes, String pricing, boolean isBasic, boolean isSubscription, String serviceReponseSender) {
+        this.isBasic = isBasic;
+        this.isSubscription = isSubscription;
+        this.serviceType = serviceType;
+        this.keyword = keyword;
+        this.accountId = accountId;
+        this.serviceName = serviceid;
+        this.defaultMessage = defaultMessage;
+        this.command = command;
+        //this.allowedShortcodes = allowedShortcodes;
+        //this.allowedSiteTypes = allowedSiteTypes;        
+        this.pricing = pricing;
+        this.serviceResponseSender = serviceReponseSender;
+        //this.lastUpdated = lastUpdated;
+    }
+    
     public String getAccountId() {
         return accountId;
     }

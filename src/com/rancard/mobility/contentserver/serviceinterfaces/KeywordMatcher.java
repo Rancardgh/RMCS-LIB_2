@@ -112,6 +112,10 @@ public class KeywordMatcher {
         }
         return synonym;
     }
+    
+    public static UserService wordMatch(String keyword, String smsc, String shortCode) throws Exception {
+        return wordMatch(keyword, smsc, shortCode, 0.7);
+    }
 
     //Returns a keyword if a match is found.
     public static UserService wordMatch(String keyword, String smsc, String shortCode, double matchLevel) throws Exception {
