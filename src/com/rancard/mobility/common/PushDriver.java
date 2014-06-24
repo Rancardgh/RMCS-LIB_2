@@ -1,27 +1,64 @@
 package com.rancard.mobility.common;
 
-public interface PushDriver {
 
-    // content type
-    public static final String SEVENBIT = "0";
-    public static final String EIGHTBIT = "1";
-    public static final String UCS2 = "2";
-    public static final String SENDSMSTEXTRESPONSE = "";
-    public static final String SENDSMSBINARYRESPONSE = "";
-    public static final String SENDPUSHRESPONSE = "";
-    public static final String SENDSMSTEXTMULTIRESPONSE = "";
+import com.rancard.common.CPConnection;
 
-    public String sendSMSTextMessage(String to, String from, String text, String username, String password, String conn, String service, String price);
+import java.io.IOException;
+import java.util.Map;
+import java.util.logging.Logger;
 
-    public String sendSMSTextMessage(String to, String from, String text, String username, String password, String conn, String meta_data);
+public abstract class PushDriver {
+    private final Logger logger = Logger.getLogger(PushDriver.class.getName());
+    private final Map<String, String> params;
+    private final CPConnection cnxn;
 
-    public String sendSMSTextMessage(String to[], String from, String text, String username, String password, String conn, String service, String price);
+    public static final String RMS = "rms";
+    public static final String KANNEL = "kannel";
 
-    public String sendSMSBinaryMessage(String to, String from, String ud, String udh, String codingScheme, String format, String username,
-                                       String password, String conn, String serviceID, String price);
 
-    public String sendWAPPushMessage(String to, String from, String text, String url, String username, String password, String conn, String service,
-                                     String price);
 
-    public String processResponse(String reply) throws Exception;
+    public PushDriver(CPConnection cnxn, Map<String, String> params){
+        this.cnxn = cnxn;
+        this.params = params;
+    }
+
+    public abstract String sendSMSTextMessage() throws IOException;
+
+    public static PushDriver getDriver(CPConnection cnxn, Map<String, String> params) {
+        if (cnxn.getDriverType() == null) {
+            return null;
+        }
+
+        if (cnxn.getDriverType().equalsIgnoreCase(KANNEL)) {
+            return new KannelDriver(cnxn, params);
+        } else if (cnxn.getDriverType().equals(RMS)) {
+            return new RMSDriver(cnxn, params);
+        } else {
+            return null;
+        }
+
+    }
+
+    protected Map<String, String> getParams(){
+        return params;
+    }
+
+    protected CPConnection getCPConnection(){
+        return cnxn;
+    }
+
+
+    protected String getParameterValue(Map<String, String> params, String param) throws IllegalArgumentException{
+        String value = params.get(param);
+
+        if(value == null){
+            logger.severe(param + "is null.");
+            throw new IllegalArgumentException(param +" is null");
+        }
+
+        return value;
+    }
+
+
+
 }

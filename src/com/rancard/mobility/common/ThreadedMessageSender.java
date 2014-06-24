@@ -1,53 +1,72 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.rancard.mobility.common;
 
-import com.rancard.mobility.contentserver.CPConnections;
+
+
+import com.rancard.common.CPConnection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.logging.Logger;
 
 /**
- *
- * @author nii
+ * Created by Mustee on 2/10/14.
  */
-public class ThreadedMessageSender implements Runnable{
+public class ThreadedMessageSender implements Runnable {
+    private final Logger logger = Logger.getLogger(ThreadedMessageSender.class.getName());
 
-    CPConnections cnxn;
-    String msisdn;
-    String short_code;
-    String message;
-    String meta_data;
-    int delay;
+    private final CPConnection cnxn;
+    private final String msisdn;
+    private final String shortCode;
+    private final String message;
+    private final String account;
+    private final String accountID;
+    private final String keyword;
+    private final String product;
+    private final String smsc;
+    private final double price;
+    private final int delay;
 
-    public ThreadedMessageSender(CPConnections cnxn, String msisdn, String short_code, String message, int delay) {
+    public ThreadedMessageSender(CPConnection cnxn, String msisdn, String shortCode, String message, String account,
+                                 String accountID, String keyword, String product, String smsc, double price, int delay) {
         this.cnxn = cnxn;
         this.msisdn = msisdn;
-        this.short_code = short_code;
+        this.shortCode = shortCode;
         this.message = message;
+        this.account = account;
+        this.accountID = accountID;
+        this.keyword = keyword;
+        this.product = product;
+        this.smsc = smsc;
+        this.price = price;
         this.delay = delay;
-        this.meta_data = "";
     }
 
-    public ThreadedMessageSender(CPConnections cnxn, String msisdn, String short_code, String message, String meta_data, int delay) {
-        this.cnxn = cnxn;
-        this.msisdn = msisdn;
-        this.short_code = short_code;
-        this.message = message;
-        this.delay = delay;
-        this.meta_data = meta_data;
-    }
-
+    @Override
     public void run() {
         try {
+            Map<String, String> params = new HashMap<String, String>();
+            params.put("to", msisdn);
+            params.put("from", shortCode);
+            params.put("account", account);
+            params.put("account_id", accountID);
+            params.put("keyword", keyword);
+            params.put("text", message);
+            params.put("product", product);
+            params.put("price", Double.toString(price));
+
+            PushDriver driver = PushDriver.getDriver(cnxn, params);
+            if (driver == null) {
+                logger.warning("No driver found for connection of type: " + cnxn.getDriverType());
+                return;
+            }
+
             Thread.sleep(delay);
-                Driver.getDriver(cnxn.getDriverType(), cnxn.getGatewayURL()).sendSMSTextMessage(msisdn, short_code, message, cnxn.getUsername(),
-                        cnxn.getPassword(), cnxn.getConnection(), meta_data);
+            driver.sendSMSTextMessage();
+
+
         } catch (InterruptedException e) {
-            System.out.println(new java.util.Date() + ": " + short_code + ": " + msisdn + ": thread error sending notification @ ThreadedMessageSender: " + e.getMessage());
+            logger.severe("Thread error sending notification: " + e.getMessage());
         } catch (Exception e) {
-            System.out.println(new java.util.Date() + ": " + short_code + ": " + msisdn + ": error sending notification @ ThreadedMessageSender: " + e.getMessage());
-        } finally {
-            cnxn = null;
+            logger.severe("Error sending notification: " + e.getMessage());
         }
     }
 }
