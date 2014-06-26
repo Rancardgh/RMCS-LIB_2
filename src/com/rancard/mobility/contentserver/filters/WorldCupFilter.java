@@ -102,6 +102,7 @@ public class WorldCupFilter extends BaseServlet implements Filter {
             Properties property = Utils.loadPropertyFile("rmcs.properties");
             String responseMessage = (property == null) ? null : property.getProperty("worldcup_promo_message");
             int tally = getTally(msisdn, dest);
+            tally += 1;
             out.print((responseMessage != null) ? responseMessage.replace("@@tally@@", Integer.toString(tally)) : "Thanks for your prediction. Get World Cup updates on your phone. Simply send FBALL to 1988 on all networks, send more predictions to win. Enjoy!");
         } catch (Exception e) {
             logger.severe("Problem processing world cup promo: " + e.getMessage());
