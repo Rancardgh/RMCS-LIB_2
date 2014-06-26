@@ -4,6 +4,7 @@ import com.rancard.mobility.contentserver.BaseServlet;
 import com.rancard.util.Utils;
 import org.apache.commons.lang3.StringUtils;
 import redis.clients.jedis.Jedis;
+
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -30,6 +31,7 @@ public class WorldCupFilter extends BaseServlet implements Filter {
         logger.info(" Query String: " + req.getQueryString());
         String country = req.getParameter("country");
         String msisdn = req.getParameter("msisdn");
+        String dest = req.getParameter("dest");
 
         if (StringUtils.isAnyBlank(country, msisdn)) {
             logger.severe("Not all required parameters have been set.");
@@ -40,7 +42,11 @@ public class WorldCupFilter extends BaseServlet implements Filter {
         try {
             Jedis jedis = new Jedis("192.168.1.245", 6380);
             jedis.connect();
-            jedis.select(1);
+            if(dest.equals("1988")) {
+                jedis.select(1);
+            }else{
+                jedis.select(2);
+            }
             jedis.set(new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()) + "-" + msisdn, country);
             jedis.disconnect();
         } catch (Exception e) {
@@ -80,13 +86,13 @@ public class WorldCupFilter extends BaseServlet implements Filter {
 
             Properties properties = Utils.loadPropertyFile("rmcs.properties");
             String country = getCountry(properties, messageCaps.split(" "));
-            if (!(dest.equalsIgnoreCase("1988") && !StringUtils.isBlank(country))) {
+            if (!((dest.equalsIgnoreCase("1988") && !StringUtils.isBlank(country)) || (dest.equalsIgnoreCase("1987") && !StringUtils.isBlank(country)))) {
                 filterChain.doFilter(servletRequest, servletResponse);
                 return;
             }
 
             logger.info("Country found: " + country);
-            final String url = "http://192.168.1.244:19202/rmcs2/worldcup?msisdn=" + URLEncoder.encode(msisdn, "UTF-8") + "&country=" + URLEncoder.encode(country, "UTF-8");
+            final String url = "http://192.168.1.243:82/rmcs2/worldcup?msisdn=" + URLEncoder.encode(msisdn, "UTF-8") + "&country=" + URLEncoder.encode(country, "UTF-8") + "&dest=" + dest;
 
             ((HttpServletResponse) servletResponse).setHeader("X-Kannel-DLR-Mask", "8");
             ((HttpServletResponse) servletResponse).setHeader("X-Kannel-DLR-Url", url);
@@ -95,7 +101,8 @@ public class WorldCupFilter extends BaseServlet implements Filter {
 
             Properties property = Utils.loadPropertyFile("rmcs.properties");
             String responseMessage = (property == null) ? null : property.getProperty("worldcup_promo_message");
-            out.print((responseMessage != null) ? responseMessage : "Thanks for your prediction. Get World Cup updates on your phone. Simply send FBALL to 1988 on all networks, send more predictions to win. Enjoy!");
+            int tally = getTally(msisdn, dest);
+            out.print((responseMessage != null) ? responseMessage.replace("@@tally@@", Integer.toString(tally)) : "Thanks for your prediction. Get World Cup updates on your phone. Simply send FBALL to 1988 on all networks, send more predictions to win. Enjoy!");
         } catch (Exception e) {
             logger.severe("Problem processing world cup promo: " + e.getMessage());
             out.print("Something went wrong. Please try again later.");
@@ -110,9 +117,9 @@ public class WorldCupFilter extends BaseServlet implements Filter {
 
     private String getCountry(Properties properties, String country) {
 
-        for(Object key: properties.keySet()){
-            if(key.toString().startsWith("wc-")){
-                for(String c: properties.getProperty(key.toString()).split(",")){
+        for (Object key : properties.keySet()) {
+            if (key.toString().startsWith("wc-")) {
+                for (String c : properties.getProperty(key.toString()).split(",")) {
                     if (c.trim().equalsIgnoreCase(country.trim())) {
                         return key.toString().split("-")[1];
                     }
@@ -122,15 +129,36 @@ public class WorldCupFilter extends BaseServlet implements Filter {
         return null;
     }
 
-    private String getCountry(Properties properties, String[] messages){
-        for (String c: messages){
-            if(!StringUtils.isBlank(c)){
+    private String getCountry(Properties properties, String[] messages) {
+        for (String c : messages) {
+            if (!StringUtils.isBlank(c)) {
                 String country = getCountry(properties, c);
-                if(country!=null){
+                if (country != null) {
                     return country;
                 }
             }
         }
         return null;
+    }
+
+    private int getTally(String msisdn, String dest){
+        int tally = 0;
+        logger.info("Getting tally of prediction.");
+        try {
+            Jedis jedis = new Jedis("192.168.1.245", 6380);
+            jedis.connect();
+            if(dest.equals("1988")) {
+                jedis.select(1);
+            }else{
+                jedis.select(2);
+            }
+            Set<String> keys = jedis.keys(new SimpleDateFormat("yyyyMMdd").format(new Date()) + "*-" + msisdn);
+            tally = keys.size();
+            jedis.disconnect();
+        } catch (Exception e) {
+            logger.severe("Problem connecting to redis: " + e.getMessage());
+        }
+
+        return tally;
     }
 }
