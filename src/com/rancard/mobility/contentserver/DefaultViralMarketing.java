@@ -26,7 +26,7 @@ public class DefaultViralMarketing extends ViralMarketing {
         String howToMessage = StringUtils.isBlank(vmCampaign.getHowToMessage()) ? VMCampaign.DEFAULT_HOW_TO_MESSAGE : vmCampaign.getHowToMessage();
         (new Thread(new ThreadedMessageSender(cnxn, msisdn, vmCampaign.getMessageSender(), howToMessage.replace("@@shortCode@@", shortCode), null,
                 vmCampaign.getAccountID(), vmCampaign.getKeyword(),
-                "RMCS", smsc, 0, 0))).start();
+                "RMCS", smsc, 0, vmCampaign.getPushWaitTime()))).start();
     }
 
     @Override
@@ -43,6 +43,6 @@ public class DefaultViralMarketing extends ViralMarketing {
 
         String invitationSuccess = StringUtils.isBlank(vmCampaign.getInviteAcceptedMessage()) ? VMCampaign.DEFAULT_INVITATION_ACCEPTED_MESSAGE : vmCampaign.getInviteAcceptedMessage();
         (new Thread(new ThreadedMessageSender(cnxn, transaction.getRecruiterMSISDN(), vmCampaign.getMessageSender(), invitationSuccess, null,
-                vmCampaign.getAccountID(), vmCampaign.getKeyword(), "RMCS", smsc, 0, 0))).start();
+                vmCampaign.getAccountID(), vmCampaign.getKeyword(), "RMCS", smsc, 0, vmCampaign.getPushWaitTime()))).start();
     }
 }
