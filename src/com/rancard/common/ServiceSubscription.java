@@ -237,7 +237,8 @@ public class ServiceSubscription {
 
             if (rs.next()) {
                 return new ServiceSubscription(rs.getString("ss.account_id"), rs.getString("ss.keyword"), rs.getString("ss.msisdn"), DateUtil.convertFromTimeStampFormat(rs.getString("ss.subscription_date")),
-                        DateUtil.convertFromTimeStampFormat(rs.getString("ss.next_subscription_date")), rs.getInt("ss.status"), rs.getInt("ss.billing_type"), Channel.valueOf(rs.getString("sse.channel")), rs.getString("sse.meta_data"));
+                        DateUtil.convertFromTimeStampFormat(rs.getString("ss.next_subscription_date")), rs.getInt("ss.status"), rs.getInt("ss.billing_type"),
+                        rs.getString("sse.channel") == null ? null : Channel.valueOf(rs.getString("sse.channel")), rs.getString("sse.meta_data"));
             }
 
             return null;

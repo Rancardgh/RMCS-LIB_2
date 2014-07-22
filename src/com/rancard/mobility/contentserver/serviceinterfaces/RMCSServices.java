@@ -277,7 +277,8 @@ public class RMCSServices extends BaseServlet {
             Properties properties = Utils.loadPropertyFile("rmcs.properties");
             String prop = properties.getProperty("nothing_found_message");
 
-            out.print(prop != null ? prop : "We're sorry we couldn't find what you were looking for. You can send HELP to " + dest.substring(dest.indexOf("+") + 1) + " for options.");
+            out.print(prop != null ? prop.replace("@@short_code@@", dest.substring(dest.indexOf("+") + 1))
+                    : "We're sorry we couldn't find what you were looking for. You can send HELP to " + dest.substring(dest.indexOf("+") + 1) + " for options.");
         } finally {
             if (out != null) {
                 out.close();
