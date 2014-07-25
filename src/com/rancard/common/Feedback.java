@@ -63,7 +63,7 @@
 /*  63:    */     throws Exception
 /*  64:    */   {
 /*  65: 82 */     Locale locale = new Locale("en");
-/*  66: 83 */     this.rbundle = ResourceBundle.getBundle("feedback", locale);
+/*  66: 83 */     //this.rbundle = ResourceBundle.getBundle("feedback", locale);
 /*  67: 84 */     this.language = locale.getLanguage();
 /*  68:    */   }
 /*  69:    */   
@@ -214,8 +214,12 @@
 /* 214:    */   }
 /* 215:    */ }
 
-
-/* Location:           C:\Users\Mustee\Downloads\rmcs_211_lib (1).jar
- * Qualified Name:     com.rancard.common.Feedback
- * JD-Core Version:    0.7.0.1
+
+
+/* Location:           C:\Users\Mustee\Downloads\rmcs_211_lib (1).jar
+
+ * Qualified Name:     com.rancard.common.Feedback
+
+ * JD-Core Version:    0.7.0.1
+
  */
