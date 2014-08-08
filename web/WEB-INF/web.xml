@@ -4,14 +4,6 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd" >
     <servlet>
-        <servlet-name>WorldCup</servlet-name>
-        <servlet-class>com.rancard.mobility.contentserver.filters.WorldCupFilter</servlet-class>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>WorldCup</servlet-name>
-        <url-pattern>/worldcup</url-pattern>
-    </servlet-mapping>
-    <servlet>
         <servlet-name>RMCSServices</servlet-name>
         <servlet-class>com.rancard.mobility.contentserver.serviceinterfaces.RMCSServices</servlet-class>
     </servlet>
@@ -19,14 +11,6 @@
         <servlet-name>RMCSServices</servlet-name>
         <url-pattern>/rmcsservices</url-pattern>
     </servlet-mapping>
-    <filter>
-        <filter-name>WorldCupFilter</filter-name>
-        <filter-class>com.rancard.mobility.contentserver.filters.WorldCupFilter</filter-class>
-    </filter>
-    <filter-mapping>
-        <filter-name>WorldCupFilter</filter-name>
-        <servlet-name>RMCSServices</servlet-name>
-    </filter-mapping>
     <filter>
         <filter-name>StopFilter</filter-name>
         <filter-class>com.rancard.mobility.contentserver.filters.StopFilter</filter-class>

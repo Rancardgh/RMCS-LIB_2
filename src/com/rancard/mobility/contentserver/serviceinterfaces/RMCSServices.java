@@ -236,7 +236,8 @@ public class RMCSServices extends BaseServlet {
                     return;
                 }
 
-                String transactionID = UidGen.generateSecureUID();
+                String transactionID = (Integer.parseInt(pricePoint.getBillingMech()) == PaymentManager.AIRTEL_BILL) ? UidGen.generateAirtelTransactionId() : UidGen.generateSecureUID();
+
                 String completeTransnxnUrl = fullContextPath + "/sendinfo_push.jsp?msisdn=" + URLEncoder.encode(msisdn, "UTF-8")
                         + "&keyword=" + URLEncoder.encode(service.getKeyword().toUpperCase(), "UTF-8") + "&dest=" + URLEncoder.encode(dest, "UTF-8")
                         + "&siteId=" + URLEncoder.encode(site.getSiteId(), "UTF-8") + "&transId=" + URLEncoder.encode(transactionID, "UTF-8");
@@ -244,24 +245,22 @@ public class RMCSServices extends BaseServlet {
                     completeTransnxnUrl = completeTransnxnUrl + "&sender=KEYWORD";
                 }
 
-                Transaction transaction = new Transaction(transactionID, service.getAccountID(), service.getKeyword(), msisdn, new Date(), message,
-                        completeTransnxnUrl, false, false, pricePoint.getPricePointID());
-                Transaction.createTransaction(transaction);
+                boolean billed = PaymentManager.doPayment(pricePoint, cnxn.getUsername(), cnxn.getPassword(), msisdn, transactionID,
+                        service.getKeyword(), service.getAccountID(), dest);
 
-                boolean billed = PaymentManager.doPayment(pricePoint, cnxn, msisdn, message, null, completeTransnxnUrl, dest, service.getKeyword());
                 req.setAttribute("x-kannel-header-binfo", transactionID);
                 logger.info(service.getKeyword() + ": " + msisdn + ": Completed initiatePayment from sendinfo with result: " + billed);
                 if (billed) {
-
+                    Transaction.createTransaction(new Transaction(transactionID, service.getAccountID(), service.getKeyword(), msisdn, new Date(), message,
+                            completeTransnxnUrl, true, false, pricePoint.getPricePointID()));
                 } else {
-
-
+                    Transaction.createTransaction(new Transaction(transactionID, service.getAccountID(), service.getKeyword(), msisdn, new Date(), message,
+                            completeTransnxnUrl, false, false, pricePoint.getPricePointID()));
                     message = "We've received your request for a " + service.getServiceName() + " item. Please be patient while we process it.";
                     out.print(message);
                     ConfigureResponse.responseConfigurer(resp, serviceExperienceConfig, smsc, message, true);
                     return;
                 }
-
             }
 
             message = message.replace("\n", "").replace("\r", "");

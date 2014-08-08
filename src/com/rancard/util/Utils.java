@@ -21,6 +21,15 @@ import java.util.regex.Pattern;
 public class Utils {
     private static Logger logger = Logger.getLogger(Utils.class.getName());
 
+    public static boolean isNumber(String amount) {
+        try {
+            Double.parseDouble(amount);
+            return true;
+        } catch (NumberFormatException nfe) {
+            return false;
+        }
+    }
+
     public static String formatToInternationalFormatGH(String msisdn) {
         if (msisdn.startsWith("+233")) {
             return msisdn;
@@ -199,6 +208,11 @@ public class Utils {
             }
         })).start();
 
+    }
+
+    public static String getPropertyFileValue(String fileName, String propertyName){
+        Properties properties = loadPropertyFile(fileName);
+        return properties.getProperty(propertyName);
     }
 
     public static Properties loadPropertyFile(String fileName){
