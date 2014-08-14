@@ -11,7 +11,7 @@ import javax.servlet.http.HttpServletResponse;
  * Created by Mustee on 3/31/2014.
  */
 public abstract class StopMechanics {
-    public final String STOP = "STOP";
+    public static final String[] KEYWORDS = {"STOP", "UNSUB", "UNSUBSCRIBE", "NO"} ;
 
     private ServiceDefinition service = null;
 
@@ -20,18 +20,33 @@ public abstract class StopMechanics {
             return service;
         }
 
-        message = message.toUpperCase().replace(STOP+ " ", "").replace(STOP, "").trim();
+        message = removeUnsubscriptionKeyword(message);
 
         if (StringUtils.isBlank(message)) {
             ServiceSubscription subscription = ServiceSubscription.getLastSubscription(msisdn);
             service = ServiceDefinition.find(subscription.getAccountID(), subscription.getKeyword());
         } else {
             ServiceMatcher serviceMatcher = new SimpleServiceMatcher();
-            service = serviceMatcher.matchService(message.toUpperCase().replace(STOP + " ", "").replace(STOP, ""),
-                    ServiceDefinition.findBySMSCAndShortCode(smsc, shortCode), 0.7);
+            service = serviceMatcher.matchService(message, ServiceDefinition.findBySMSCAndShortCode(smsc, shortCode), 0.7);
         }
 
         return service;
+    }
+
+    public static boolean isUnsubscriptionMessage(String message){
+        for(String keyword: KEYWORDS) {
+            if (StringUtils.containsIgnoreCase(message, keyword + " ") || message.trim().equalsIgnoreCase(keyword)){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public String removeUnsubscriptionKeyword(String message){
+        for(String keyword: KEYWORDS) {
+            message = message.toUpperCase().replace(keyword+" ", "").replace(keyword, "").trim();
+        }
+        return message;
     }
 
 

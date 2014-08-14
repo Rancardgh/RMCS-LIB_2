@@ -1,6 +1,7 @@
 package com.rancard.mobility.contentserver.filters;
 
 import com.rancard.mobility.contentserver.BaseServlet;
+import com.rancard.mobility.contentserver.StopMechanics;
 import com.rancard.mobility.contentserver.StopMechanicsFactory;
 import com.rancard.mobility.contentserver.serviceinterfaces.config.ConfigureResponse;
 import org.apache.commons.lang3.StringUtils;
@@ -59,7 +60,7 @@ public class StopFilter extends BaseServlet implements Filter {
             }
             logger.fine("Message is OK: " + messageCaps + ". Check if MSISDN is valid: " + msisdn);
 
-            if (!(StringUtils.containsIgnoreCase(messageCaps, STOP + " ") || messageCaps.trim().equalsIgnoreCase(STOP))) {
+            if (!StopMechanics.isUnsubscriptionMessage(messageCaps)) {
                 filterChain.doFilter(servletRequest, servletResponse);
                 return;
             }
@@ -92,4 +93,7 @@ public class StopFilter extends BaseServlet implements Filter {
             }
         }
     }
+
+
+
 }
