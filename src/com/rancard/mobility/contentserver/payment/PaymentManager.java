@@ -38,11 +38,11 @@ public class PaymentManager {
         }
 
         Payment payment;
-        if(Integer.parseInt(pricePoint.getBillingMech()) == AIRTEL_BILL){
-            payment = new AirtelGhanaPayment();
-        }else if(Integer.parseInt(pricePoint.getBillingMech()) == OT_BILL){
+        if(Integer.parseInt(pricePoint.getBillingMech()) == OT_BILL){
             payment = new VodafonePayment();
-        }else {
+        }else if(Integer.parseInt(pricePoint.getBillingMech()) == AIRTEL_BILL){
+            payment = new AirtelPayment();
+        } else{
             return false;
         }
 
