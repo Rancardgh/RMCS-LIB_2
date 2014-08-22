@@ -170,7 +170,7 @@ public class SystemSMSQueue {
     }
 
     public static SystemSMSQueue find(String accountID, String keyword) throws Exception {
-        final String query = "SELECT * FROM system_sms_queue ssq WHERE account_id = '"+accountID+"' AND keyword = '"+keyword+"' ORDER BY publish_date desc, msg_id desc";
+        final String query = "SELECT * FROM system_sms_queue ssq WHERE account_id = '"+accountID+"' AND keyword = '"+keyword+"' ORDER BY publish_date desc, msg_id desc LIMIT 1";
         Connection conn = null;
         ResultSet rs = null;
 

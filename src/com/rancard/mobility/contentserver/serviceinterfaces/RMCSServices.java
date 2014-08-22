@@ -84,7 +84,7 @@ public class RMCSServices extends BaseServlet {
                 Properties properties = Utils.loadPropertyFile("rmcs.properties");
                 String prop = properties.getProperty("nothing_found_message");
 
-                message = (prop != null) ? prop : "We're sorry we couldn't find what you were looking for. You can send HELP to " + dest.substring(dest.indexOf("+") + 1) + " for options.";
+                message = "We're sorry we couldn't find what you were looking for. You can send HELP to " + dest.substring(dest.indexOf("+") + 1) + " for options.";
                 out.print(message);
                 ConfigureResponse.responseConfigurer(resp, null, smsc, message, true);
                 return;
@@ -93,7 +93,7 @@ public class RMCSServices extends BaseServlet {
             if (service.getAccountID().equals("177")) {
                 logger.info("This is JobMatch so we do stuff");
                 ServiceSubscription subscription = ServiceSubscription.find(msisdn, "177", "GENERAL");
-                if (StringUtils.equalsIgnoreCase(service.getKeyword(), "JobMatch") || StringUtils.equalsIgnoreCase(service.getKeyword(), "Match") || StringUtils.equalsIgnoreCase(service.getKeyword(), "Job")) {
+                if (StringUtils.equalsIgnoreCase(service.getKeyword(), "JobMatch") || StringUtils.equalsIgnoreCase(service.getKeyword(), "Match") || StringUtils.equalsIgnoreCase(service.getKeyword(), "Job") || StringUtils.equalsIgnoreCase(service.getKeyword(), "Jobs")) {
                     if (subscription == null) {
                         Date date = new Date();
                         ServiceSubscription.createSubscription(new ServiceSubscription(service.getAccountID(), "GENERAL", msisdn, date, DateUtil.addDaysToDate(date, 1), 1, 1, Channel.SMS, null));
@@ -215,8 +215,8 @@ public class RMCSServices extends BaseServlet {
                 }
             }
 
-            SystemSMSQueue systemSMSQueue = SystemSMSQueue.find(service.getAccountID(), service.getKeyword());
-            message = (systemSMSQueue == null || StringUtils.isBlank(systemSMSQueue.getMessage())) ? service.getDefaultMessage() : systemSMSQueue.getMessage();
+            //SystemSMSQueue systemSMSQueue = SystemSMSQueue.find(service.getAccountID(), service.getKeyword());
+            message = service.getDefaultMessage();
             boolean isFree = false;
             if (StringUtils.isBlank(message)) {
                 message = "No info is currently available for " + service.getServiceName() + ". Please try again later.";

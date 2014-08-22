@@ -36,6 +36,14 @@
         <servlet-name>RMCSServices</servlet-name>
     </filter-mapping>
     <filter>
+        <filter-name>UTVFilter</filter-name>
+        <filter-class>com.rancard.mobility.contentserver.filters.UTVFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>UTVFilter</filter-name>
+        <servlet-name>RMCSServices</servlet-name>
+    </filter-mapping>
+    <filter>
         <filter-name>BabyMamaFilter</filter-name>
         <filter-class>com.rancard.mobility.contentserver.filters.BabyMamaFilter</filter-class>
     </filter>
