@@ -12,6 +12,14 @@
         <url-pattern>/rmcsservices</url-pattern>
     </servlet-mapping>
     <filter>
+        <filter-name>UTVFilter</filter-name>
+        <filter-class>com.rancard.mobility.contentserver.filters.UTVFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>UTVFilter</filter-name>
+        <servlet-name>RMCSServices</servlet-name>
+    </filter-mapping>
+    <filter>
         <filter-name>StopFilter</filter-name>
         <filter-class>com.rancard.mobility.contentserver.filters.StopFilter</filter-class>
     </filter>
@@ -33,14 +41,6 @@
     </filter>
     <filter-mapping>
         <filter-name>InviteFilter</filter-name>
-        <servlet-name>RMCSServices</servlet-name>
-    </filter-mapping>
-    <filter>
-        <filter-name>UTVFilter</filter-name>
-        <filter-class>com.rancard.mobility.contentserver.filters.UTVFilter</filter-class>
-    </filter>
-    <filter-mapping>
-        <filter-name>UTVFilter</filter-name>
         <servlet-name>RMCSServices</servlet-name>
     </filter-mapping>
     <filter>
