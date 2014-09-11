@@ -46,8 +46,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.swing.text.html.parser.AttributeList;
 import javax.swing.text.html.parser.Element;
 
-public class FeedReader
-        extends HttpServlet
+public class FeedReader extends HttpServlet
 {
     public static final String MSG_PRTY_BHVR_STORE_AND_WAIT = "0";
     public static final String MSG_PRTY_BHVR_MOST_RECENT_IMMEDIATELY = "1";

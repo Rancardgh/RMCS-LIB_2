@@ -2,7 +2,6 @@ package com.rancard.mobility.contentprovider;
 
 import com.rancard.common.DConnect;
 import com.rancard.mobility.infoserver.common.services.UserService;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;

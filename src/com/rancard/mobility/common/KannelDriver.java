@@ -144,8 +144,7 @@ public class KannelDriver
         return responseString;
     }
 
-    public String processResponse(String reply)
-            throws Exception
+    public String processResponse(String reply) throws Exception
     {
         boolean isOk = false;
         if ((reply != null) || (!reply.equals(""))) {
