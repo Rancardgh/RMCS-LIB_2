@@ -28,7 +28,7 @@ import java.util.logging.Logger;
 public class UTVFilter extends BaseServlet
         implements Filter {
     private final Logger logger = Logger.getLogger(UTVFilter.class.getName());
-    private final String utvBaseURL = "http://localhost:8081/utv";
+    private final String utvBaseURL = "http://app.rancardmobility.com/rmcsselfcaretest";
 
     public void init(FilterConfig filterConfig)
             throws ServletException {
@@ -95,6 +95,12 @@ public class UTVFilter extends BaseServlet
                         out.print(addUser(Long.toString(user.msisdn), messageCaps.split(",")[0].trim(), messageCaps.split(",")[1].trim()));
                         ((HttpServletResponse) servletResponse).setHeader("X-Kannel-SMSC", "MTNGH");
                     } else if (user != null) {
+                        if(user.location == null|| user.location.equals("") || user.name == null|| user.name.equals("")){
+                            out.print("Please send your NAME followed by your LOCATION to 1987 to continue.");
+                            ((HttpServletResponse) servletResponse).setHeader("X-Kannel-SMSC", "MTNGH");
+                            return;
+                        }
+
                         final String url = servletRequest.getScheme() + "://" + servletRequest.getServerName() + ":" + servletRequest.getServerPort()
                                 + ((HttpServletRequest) servletRequest).getContextPath() + "/utv?msisdn=" + URLEncoder.encode(msisdn, "UTF-8") + "&message="
                                 + URLEncoder.encode(messageCaps, "UTF-8");
@@ -104,6 +110,8 @@ public class UTVFilter extends BaseServlet
                         ((HttpServletResponse) servletResponse).setHeader("X-Kannel-SMSC", "MTNGH2");
                         out.print(user.name + " thanks for your contribution. Your message has been queued & will be displayed shortly. Keep texting!Tell your friends about U-Chat.");
                     }
+
+
                 }
             }
         } catch (Exception e) {
