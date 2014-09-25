@@ -1,5 +1,7 @@
-[syntax: glob]
-
+syntax: glob
+*.iml
+*.ipr
+*.iws
 .idea/*
 build/*
 dist/*

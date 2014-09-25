@@ -1,6 +1,4 @@
 
-
-
 package com.rancard.mobility.infoserver.feeds;
 
 import com.rancard.common.DConnect;
@@ -21,6 +19,8 @@ import com.sun.syndication.fetcher.impl.FeedFetcherCache;
 import com.sun.syndication.fetcher.impl.HashMapFeedInfoCache;
 import com.sun.syndication.fetcher.impl.HttpClientFeedFetcher;
 import com.sun.syndication.io.FeedException;
+import org.apache.commons.lang.StringUtils;
+
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.PrintWriter;
@@ -46,14 +46,12 @@ import javax.servlet.http.HttpServletResponse;
 import javax.swing.text.html.parser.AttributeList;
 import javax.swing.text.html.parser.Element;
 
-public class FeedReader extends HttpServlet
-{
+public class FeedReader extends HttpServlet {
     public static final String MSG_PRTY_BHVR_STORE_AND_WAIT = "0";
     public static final String MSG_PRTY_BHVR_MOST_RECENT_IMMEDIATELY = "1";
     public static final String MSG_PRTY_BHVR_ALL_IMMEDIATELY = "2";
 
-    private static String extractCategories(String feedLink, SyndCategory category)
-    {
+    private static String extractCategories(String feedLink, SyndCategory category) {
         String categoryString = "";
         if ((feedLink != null) && (category != null)) {
             if (feedLink.equals("http://m.soccernet.com")) {
@@ -66,26 +64,22 @@ public class FeedReader extends HttpServlet
     }
 
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException
-    {
+            throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         PrintWriter out = response.getWriter();
         out.println(getFeedUpdates());
         out.close();
     }
 
-    public static int getFeedUpdates()
-    {
+    public static int getFeedUpdates() {
         return getFeedUpdates(25, null);
     }
 
-    public static int getFeedUpdates(String[] feedIds)
-    {
+    public static int getFeedUpdates(String[] feedIds) {
         return getFeedUpdates(25, feedIds);
     }
 
-    public static int getFeedUpdates(int numEntries, String[] feedIds)
-    {
+    public static int getFeedUpdates(int numEntries, String[] feedIds) {
         HashMap feeds = new HashMap();
 
         HashMap feedRecords = getActiveFeeds(feedIds);
@@ -96,22 +90,18 @@ public class FeedReader extends HttpServlet
         HashMap feedSubs = getFeedSubscribers(feeds);
 
 
-
-
         Iterator<String> feedIdIter = feedSubs.keySet().iterator();
-        while (feedIdIter.hasNext())
-        {
-            String tmpFeedId = (String)feedIdIter.next();
-            ArrayList fdSubs = (ArrayList)feedSubs.get(tmpFeedId);
-            SyndFeed feed = (SyndFeed)feeds.get(tmpFeedId);
+        while (feedIdIter.hasNext()) {
+            String tmpFeedId = (String) feedIdIter.next();
+            ArrayList fdSubs = (ArrayList) feedSubs.get(tmpFeedId);
+            SyndFeed feed = (SyndFeed) feeds.get(tmpFeedId);
             if (feed.getEntries().size() < numEntries) {
                 numEntries = feed.getEntries().size();
             }
             ListIterator<SyndEntry> entries = feed.getEntries().listIterator(numEntries);
             int itemCounter = numEntries - 1;
-            while (entries.hasPrevious())
-            {
-                SyndEntry currentEntry = (SyndEntry)entries.previous();
+            while (entries.hasPrevious()) {
+                SyndEntry currentEntry = (SyndEntry) entries.previous();
                 String msg = currentEntry.getDescription().getValue();
                 Date pubDate = currentEntry.getPublishedDate();
                 List categories = currentEntry.getCategories();
@@ -119,16 +109,13 @@ public class FeedReader extends HttpServlet
                 String title = currentEntry.getTitle();
                 String con_url = currentEntry.getLink();
                 String imageURL = "";
-                try
-                {
-                    ArrayList<Element> foreign = (ArrayList)currentEntry.getForeignMarkup();
-                    Element attrib = (Element)foreign.get(1);
-                    AttributeList at = ((Element)((ArrayList)currentEntry.getForeignMarkup()).get(0)).getAttribute("attributes");
-                    Vector<?> v = (Vector)at.getValues();
+                try {
+                    ArrayList<Element> foreign = (ArrayList) currentEntry.getForeignMarkup();
+                    Element attrib = (Element) foreign.get(1);
+                    AttributeList at = ((Element) ((ArrayList) currentEntry.getForeignMarkup()).get(0)).getAttribute("attributes");
+                    Vector<?> v = (Vector) at.getValues();
                     imageURL = v.get(v.indexOf("url")).toString();
-                }
-                catch (Exception e)
-                {
+                } catch (Exception e) {
                     System.out.println(e.getMessage());
                     e.printStackTrace(System.out);
                 }
@@ -136,9 +123,8 @@ public class FeedReader extends HttpServlet
 
                 String categoryStr = "";
                 if (categories != null) {
-                    for (int i = 0; i < categories.size(); i++)
-                    {
-                        SyndCategory cat = (SyndCategory)categories.get(i);
+                    for (int i = 0; i < categories.size(); i++) {
+                        SyndCategory cat = (SyndCategory) categories.get(i);
                         if (categoryStr.equals("")) {
                             categoryStr = categoryStr + extractCategories(feed.getLink(), cat);
                         } else {
@@ -165,9 +151,8 @@ public class FeedReader extends HttpServlet
                 msg = msg.replaceAll("“", "\"");
                 msg = msg.replaceAll("”", "\"");
                 if (msg.length() > 0) {
-                    for (int i = 0; i < fdSubs.size(); i++)
-                    {
-                        CPUserFeeds afeed = (CPUserFeeds)fdSubs.get(i);
+                    for (int i = 0; i < fdSubs.size(); i++) {
+                        CPUserFeeds afeed = (CPUserFeeds) fdSubs.get(i);
 
                         String accountId = afeed.getCpUserId();
                         String keyword = afeed.getKeyword();
@@ -176,102 +161,64 @@ public class FeedReader extends HttpServlet
                         int msgDlrPriority = afeed.getMsgDlrPrority();
 
                         UserService service = new UserService();
-                        try
-                        {
+                        try {
                             service = ServiceManager.viewService(keyword, accountId);
-                        }
-                        catch (Exception e)
-                        {
+                        } catch (Exception e) {
                             System.out.println(new Date() + ": " + keyword + ": " + accountId + ": @ com.rancard.mobility.infoserver.feeds.FeedReader: " + "Did not find matching service. May not be able to transmit updates");
                         }
                         String[] regexes = regexReject.split("::");
                         int rejectFlag = 0;
-                        for (int j = 0; j < regexes.length; j++)
-                        {
+                        for (int j = 0; j < regexes.length; j++) {
                             String expr = regexes[j];
-                            if (!expr.equals(""))
-                            {
+                            if (!expr.equals("")) {
                                 Pattern pattern = Pattern.compile(expr);
                                 Matcher matcher = pattern.matcher(msg);
-                                if (matcher.find())
-                                {
+                                if (matcher.find()) {
                                     System.out.println(new Date() + ": " + keyword + ": " + accountId + ": @ com.rancard.mobility.infoserver.feeds.FeedReader: " + "regex_reject pattern matched. Reject item: " + msg);
-
-
                                     rejectFlag = 1;
                                     break;
                                 }
                             }
                         }
-                        if (rejectFlag == 0)
-                        {
+                        if (rejectFlag == 0) {
                             InfoServiceDB db = new InfoServiceDB();
                             Date date = new Date();
-                            try
-                            {
+                            try {
                                 int contentUpdateCheck = 0;
                                 String messageRef = uidGen.generateSecureUID();
-                                if (allowedAge > 0)
-                                {
+                                if (allowedAge > 0) {
                                     Calendar cal = Calendar.getInstance();
                                     cal.add(10, -1 * allowedAge);
                                     Date allowedStartTime = cal.getTime();
-                                    if (pubDate == null)
-                                    {
+                                    if (pubDate == null) {
                                         System.out.println(new Date() + ": " + keyword + ": " + accountId + ": @ com.rancard.mobility.infoserver.feeds.FeedReader: " + "Can't apply filtering by allowed_age because content doesn't have timestamp. Will add anyway");
-
-
-
-
                                         contentUpdateCheck = db.createInfoServiceEntryWithTags(date, keyword, msg, accountId, "RSS", imageURL, title, con_url, author, categoryStr, messageRef, 160);
-                                    }
-                                    else if (pubDate.after(allowedStartTime))
-                                    {
+                                    } else if (pubDate.after(allowedStartTime)) {
                                         contentUpdateCheck = db.createInfoServiceEntryWithTags(date, keyword, msg, accountId, "RSS", imageURL, title, con_url, author, categoryStr, messageRef, 160);
-                                    }
-                                    else
-                                    {
+                                    } else {
                                         contentUpdateCheck = -1;
                                     }
-                                }
-                                else
-                                {
+                                } else {
                                     contentUpdateCheck = db.createInfoServiceEntryWithTags(date, keyword, msg, accountId, "RSS", imageURL, title, con_url, author, categoryStr, messageRef, 160);
                                 }
-                                if (contentUpdateCheck == -1)
-                                {
+                                if (contentUpdateCheck == -1) {
                                     System.out.println(new Date() + ": " + keyword + ": " + accountId + ": @ com.rancard.mobility.infoserver.feeds.FeedReader: content is old. feed item rejected");
-                                }
-                                else if (contentUpdateCheck == 1)
-                                {
+                                } else if (contentUpdateCheck == 1) {
                                     System.out.println(new Date() + ": " + keyword + ": " + accountId + ": @ com.rancard.mobility.infoserver.feeds.FeedReader: content length exceeds 160 chars. feed item rejected");
-                                }
-                                else if (contentUpdateCheck == 2)
-                                {
+                                } else if (contentUpdateCheck == 2) {
                                     System.out.println(new Date() + ": " + keyword + ": " + accountId + ": @ com.rancard.mobility.infoserver.feeds.FeedReader: duplicate content. feed item rejected. content: " + msg);
-                                }
-                                else if (new String("" + msgDlrPriority).equals("2"))
-                                {
+                                } else if (new String("" + msgDlrPriority).equals("2")) {
                                     System.out.println("delivering content now ... " + messageRef);
-
                                     new Thread(new ContentDispatcher(date, service, messageRef)).start();
-                                }
-                                else if ((new String("" + msgDlrPriority).equals("1")) && (itemCounter == 0))
-                                {
+                                } else if ((new String("" + msgDlrPriority).equals("1")) && (itemCounter == 0)) {
                                     System.out.println("delivering last, most recent content now ... " + messageRef);
                                     new Thread(new ContentDispatcher(date, service, messageRef)).start();
-                                }
-                                else if (new String("" + msgDlrPriority).equals("0"))
-                                {
+                                } else if (new String("" + msgDlrPriority).equals("0")) {
+                                    System.out.println("content stored! user can pick it up whenever ... " + messageRef);
+                                } else {
                                     System.out.println("content stored! user can pick it up whenever ... " + messageRef);
                                 }
-                                else
-                                {
-                                    System.out.println("content stored! user can pick it up whenever ... " + messageRef);
-                                }
-                            }
-                            catch (Exception ex)
-                            {
+                            } catch (Exception ex) {
                                 System.out.println(new Date() + " Create Info Service Entry unable to create. : " + "Error Message:" + ex.getMessage());
                                 ex.printStackTrace();
                             }
@@ -289,11 +236,9 @@ public class FeedReader extends HttpServlet
         return 0;
     }
 
-    private static HashMap getActiveFeeds(String[] feedIds)
-    {
+    private static HashMap getActiveFeeds(String[] feedIds) {
         String feedIdString = "";
-        if ((feedIds != null) && (feedIds.length > 0))
-        {
+        if ((feedIds != null) && (feedIds.length > 0)) {
             feedIdString = "'" + feedIds[0].trim() + "'";
             for (int i = 1; i < feedIds.length; i++) {
                 feedIdString = feedIdString + ",'" + feedIds[i] + "'";
@@ -304,8 +249,7 @@ public class FeedReader extends HttpServlet
         Connection con = null;
 
         HashMap feeds = new HashMap();
-        try
-        {
+        try {
             String SQL = "select * from feeds where is_active=1";
             if (!feedIdString.equals("")) {
                 SQL = "select * from feeds where is_active=1 and feed_id in (" + feedIdString + ")";
@@ -313,8 +257,7 @@ public class FeedReader extends HttpServlet
             con = DConnect.getConnection();
             prepstat = con.prepareStatement(SQL);
             rs = prepstat.executeQuery();
-            while (rs.next())
-            {
+            while (rs.next()) {
                 URL feedUrl = new URL(rs.getString("feed_url"));
                 String id = rs.getString("feed_id");
                 String name = rs.getString("feed_name");
@@ -335,22 +278,14 @@ public class FeedReader extends HttpServlet
                 }
                 feeds.put(id, currentItem);
             }
+        } catch (Exception ex) {
+            System.out.println(new Date() + " ERROR: " + ex.getMessage());
+            ex.printStackTrace();
         }
-        catch (Exception ex)
-        {
-            ex =
-
-
-
-
-                    ex;System.out.println(new Date() + " ERROR: " + ex.getMessage());ex.printStackTrace();
-        }
-        finally {}
         return feeds;
     }
 
-    private static HashMap getFeedSubscribers(HashMap feedIds)
-    {
+    private static HashMap getFeedSubscribers(HashMap feedIds) {
         HashMap feedUsers = new HashMap();
         PreparedStatement prepstat = null;
         ResultSet rs = null;
@@ -358,12 +293,10 @@ public class FeedReader extends HttpServlet
         int messagesUpdated = 0;
 
         String ids = "(";
-        if (!feedIds.keySet().isEmpty())
-        {
+        if (!feedIds.keySet().isEmpty()) {
             Iterator<String> feedIdIter = feedIds.keySet().iterator();
-            while (feedIdIter.hasNext())
-            {
-                String feedId = (String)feedIdIter.next();
+            while (feedIdIter.hasNext()) {
+                String feedId = (String) feedIdIter.next();
                 ids = ids + feedId;
                 if (feedIdIter.hasNext()) {
                     ids = ids + ",";
@@ -373,14 +306,12 @@ public class FeedReader extends HttpServlet
             ids = ids + ")";
 
             ArrayList userfeeds = new ArrayList();
-            try
-            {
+            try {
                 String SQL = "select * from cp_user_feeds WHERE feed_id IN " + ids + "  Order by feed_id";
                 con = DConnect.getConnection();
                 prepstat = con.prepareStatement(SQL);
                 rs = prepstat.executeQuery();
-                while (rs.next())
-                {
+                while (rs.next()) {
                     CPUserFeeds cpfeed = new CPUserFeeds();
                     String accountId = rs.getString("account_id");
                     String keyword = rs.getString("keyword");
@@ -389,7 +320,7 @@ public class FeedReader extends HttpServlet
                     String regexReject = rs.getString("regex_reject");
                     int msgDlrPriority = rs.getInt("msg_dlr_priority");
 
-                    ArrayList tmpFeeds = (ArrayList)feedUsers.get(feedId);
+                    ArrayList tmpFeeds = (ArrayList) feedUsers.get(feedId);
                     cpfeed.setFeedId(feedId);
                     cpfeed.setCpUserId(accountId);
                     cpfeed.setKeyword(keyword);
@@ -401,31 +332,21 @@ public class FeedReader extends HttpServlet
                     feedUsers.put(feedId, tmpFeeds);
                 }
 
-            }
-            catch (Exception ex)
-            {
+            } catch (Exception ex) {
                 ex.printStackTrace();
                 System.out.println("ERROR: " + ex.getMessage());
-            }
-            finally
-            {
-                try
-                {
-                    if (prepstat != null)
-                    {
+            } finally {
+                try {
+                    if (prepstat != null) {
                         prepstat.close();
                     }
-                    if (rs != null)
-                    {
+                    if (rs != null) {
                         rs.close();
                     }
-                    if (con != null)
-                    {
+                    if (con != null) {
                         con.close();
                     }
-                }
-                catch (Exception ex)
-                {
+                } catch (Exception ex) {
                     ex.printStackTrace();
                 }
             }
@@ -433,60 +354,46 @@ public class FeedReader extends HttpServlet
         return feedUsers;
     }
 
-    private static HashMap retrieveUpdatedFeeds(HashMap feedRecords)
-    {
+    private static HashMap retrieveUpdatedFeeds(HashMap feedRecords) {
         HashMap feeds = new HashMap();
 
         Iterator<String> entries = feedRecords.keySet().iterator();
-        while (entries.hasNext())
-        {
-            String feedId = (String)entries.next();
-            Feed currentFeed = (Feed)feedRecords.get(feedId);
+        while (entries.hasNext()) {
+            String feedId = (String) entries.next();
+            Feed currentFeed = (Feed) feedRecords.get(feedId);
             URL inputUrl = currentFeed.getFeedURL();
             String username = currentFeed.getUsername();
             String password = currentFeed.getPassword();
             FeedFetcherCache feedInfoCache = HashMapFeedInfoCache.getInstance();
             FeedFetcher fetcher;
 
-            if ((username != null) && (!username.equals("")) && (password != null) && (!password.equals("")))
-            {
+            if ((username != null) && (!username.equals("")) && (password != null) && (!password.equals(""))) {
                 AuthCredentialSupplier authCredentials = new AuthCredentialSupplier(username, password);
                 fetcher = new HttpClientFeedFetcher(feedInfoCache, authCredentials);
-            }
-            else
-            {
+            } else {
                 fetcher = new HttpClientFeedFetcher(feedInfoCache);
             }
             System.err.println("Retrieving feed " + inputUrl.toExternalForm());
-            try
-            {
+            try {
                 SyndFeed feed = fetcher.retrieveFeed(inputUrl);
 
                 System.err.println(new Date() + " " + inputUrl + " retrieved");
                 System.err.println(new Date() + " " + inputUrl + " has a title: " + feed.getTitle() + " and contains " + feed.getEntries().size() + " entries.");
                 if ((feed != null) && (!feed.getEntries().isEmpty())) {
-                    feeds.put(feedId, feed);
+                    if (StringUtils.isNotBlank(feed.getTitle()) || feed.getTitle().startsWith("VIDEO:")) {
+                        feeds.put(feedId, feed);
+                    }
                 }
-            }
-            catch (IllegalArgumentException ex)
-            {
+            } catch (IllegalArgumentException ex) {
                 System.err.println(new Date() + " Illegal Argument . Likely an invalid URL");
                 ex.printStackTrace();
-            }
-            catch (FeedException ex)
-            {
+            } catch (FeedException ex) {
                 ex.printStackTrace();
-            }
-            catch (FetcherException ex)
-            {
+            } catch (FetcherException ex) {
                 ex.printStackTrace();
-            }
-            catch (IOException ex)
-            {
+            } catch (IOException ex) {
                 ex.printStackTrace();
-            }
-            catch (Exception ex)
-            {
+            } catch (Exception ex) {
                 System.err.println(new Date() + " Unknown Host : lets try the next URL");
                 ex.printStackTrace();
             }
@@ -495,10 +402,8 @@ public class FeedReader extends HttpServlet
     }
 
     static class FetcherEventListenerImpl
-            implements FetcherListener
-    {
-        public void fetcherEvent(FetcherEvent event)
-        {
+            implements FetcherListener {
+        public void fetcherEvent(FetcherEvent event) {
             String eventType = event.getEventType();
             if ("FEED_POLLED".equals(eventType)) {
                 System.err.println("\tEVENT: Feed Polled. URL = " + event.getUrlString());
@@ -511,19 +416,16 @@ public class FeedReader extends HttpServlet
     }
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException
-    {
+            throws ServletException, IOException {
         processRequest(request, response);
     }
 
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException
-    {
+            throws ServletException, IOException {
         processRequest(request, response);
     }
 
-    public String getServletInfo()
-    {
+    public String getServletInfo() {
         return "Short description";
     }
 }
