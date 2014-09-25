@@ -380,7 +380,7 @@ public class FeedReader extends HttpServlet {
                 System.err.println(new Date() + " " + inputUrl + " retrieved");
                 System.err.println(new Date() + " " + inputUrl + " has a title: " + feed.getTitle() + " and contains " + feed.getEntries().size() + " entries.");
                 if ((feed != null) && (!feed.getEntries().isEmpty())) {
-                    if (StringUtils.isNotBlank(feed.getTitle()) || feed.getTitle().startsWith("VIDEO:")) {
+                    if (StringUtils.isNotBlank(feed.getTitle()) && !feed.getTitle().startsWith("VIDEO:")) {
                         feeds.put(feedId, feed);
                     }
                 }
