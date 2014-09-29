@@ -7,6 +7,7 @@ import com.rancard.mobility.common.ServiceMatcher;
 import com.rancard.mobility.common.SimpleServiceMatcher;
 import com.rancard.mobility.contentserver.BaseServlet;
 import com.rancard.mobility.contentserver.serviceinterfaces.config.ConfigureResponse;
+import com.rancard.util.Utils;
 import org.apache.commons.lang3.StringUtils;
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
@@ -14,6 +15,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.List;
+import java.util.Properties;
 import java.util.logging.Logger;
 
 /**
@@ -38,9 +40,7 @@ public class HelpFilter extends BaseServlet implements Filter {
         String smsc = servletRequest.getParameter("smsc");
 
         PrintWriter out = servletResponse.getWriter();
-
-
-
+        
         try {
             logger.fine("Check that smsc and msisdn are not empty or null.");
             String message;
@@ -85,17 +85,31 @@ public class HelpFilter extends BaseServlet implements Filter {
 
             if(service == null){
                 logger.info("Service is null");
+                Properties property = Utils.loadPropertyFile("rmcs.properties");
+                
                 message = "Try out our services! Send MUSIC, SPORTS, NEWS or anything of interest to " + dest + ". If you like them, send your friend's number to "
                         + dest + " to share the fun with them.";
-            }else {
-
+                
+                if (dest.trim().equals("1983")) {
+                    message = property.getProperty("1983_help_message");
+                } else if (dest.trim().equals("1984")) {
+                    message = property.getProperty("1984_help_message");
+                } else if (dest.trim().equals("1987")) {
+                    message = property.getProperty("1987_help_message");
+                } else if (dest.trim().equals("1988")) {
+                    message = property.getProperty("1988_help_message");
+                } else if (dest.trim().equals("1989")) {
+                    message = property.getProperty("1989_help_message");
+                }
+                
+            } else {
                 ServiceDefinition helpService = ServiceDefinition.find(service.getAccountID(), "HELP");
-
+                
                 if(helpService == null){
                     logger.info("Cant find help for service.");
                     message = "Try out our services! Send MUSIC, SPORTS, NEWS or anything of interest to " + dest + ". If you like them, send your friend's number to "
                             + dest + " to share the fun with them.";
-                }else{
+                } else{
                     message = helpService.getDefaultMessage();
                 }
             }
