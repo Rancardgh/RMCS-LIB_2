@@ -25,8 +25,7 @@ import java.util.logging.Logger;
 /**
  * Created by Ahmed on 8/28/2014.
  */
-public class UTVFilter extends BaseServlet
-        implements Filter {
+public class UTVFilter extends BaseServlet implements Filter {
     private final Logger logger = Logger.getLogger(UTVFilter.class.getName());
     private final String utvBaseURL = "http://app.rancardmobility.com/rmcsselfcaretest";
 
@@ -88,11 +87,20 @@ public class UTVFilter extends BaseServlet
                     if (messageCaps.trim().equalsIgnoreCase("UTV")) {
                         out.print(addUser(msisdn, "", ""));
                         ((HttpServletResponse) servletResponse).setHeader("X-Kannel-SMSC", "MTNGH");
-                    } else if (messageCaps.trim().equalsIgnoreCase("STOP") && user != null) {
+                    } else if ((messageCaps.trim().equalsIgnoreCase("STOP") || messageCaps.replace(" ", "").equalsIgnoreCase("STOPUTV")) && user != null) {
                         out.print(removeUser(Long.toString(user.msisdn)));
                         ((HttpServletResponse) servletResponse).setHeader("X-Kannel-SMSC", "MTNGH");
-                    } else if (messageCaps.split(",").length == 2 && user != null) {
-                        out.print(addUser(Long.toString(user.msisdn), messageCaps.split(",")[0].trim(), messageCaps.split(",")[1].trim()));
+                    } else if ((messageCaps.trim().split(",").length >= 2 || messageCaps.trim().split(" ").length >= 2) && user != null
+                            && (user.location == null || user.location.equals("")) && (user.name == null || user.name.equals(""))) {
+                        if(messageCaps.split(",").length >= 2) {
+                            String location = messageCaps.trim().split(",")[messageCaps.trim().split(",").length -1 ];
+                            String name = messageCaps.replace(location, "").trim();
+                            out.print(addUser(Long.toString(user.msisdn), name, location));
+                        }else{
+                            String location = messageCaps.trim().split(" ")[messageCaps.trim().split(" ").length -1 ];
+                            String name = messageCaps.replace(location, "").trim();
+                            out.print(addUser(Long.toString(user.msisdn), name, location));
+                        }
                         ((HttpServletResponse) servletResponse).setHeader("X-Kannel-SMSC", "MTNGH");
                     } else if (user != null) {
                         if(user.location == null|| user.location.equals("") || user.name == null|| user.name.equals("")){
@@ -101,14 +109,19 @@ public class UTVFilter extends BaseServlet
                             return;
                         }
 
-                        final String url = servletRequest.getScheme() + "://" + servletRequest.getServerName() + ":" + servletRequest.getServerPort()
-                                + ((HttpServletRequest) servletRequest).getContextPath() + "/utv?msisdn=" + URLEncoder.encode(msisdn, "UTF-8") + "&message="
-                                + URLEncoder.encode(messageCaps, "UTF-8");
-                        logger.info("Callback url: " + url);
-                        ((HttpServletResponse) servletResponse).setHeader("X-Kannel-DLR-Mask", "8");
-                        ((HttpServletResponse) servletResponse).setHeader("X-Kannel-DLR-Url", url);
                         ((HttpServletResponse) servletResponse).setHeader("X-Kannel-SMSC", "MTNGH2");
-                        out.print(user.name + " thanks for your contribution. Your message has been queued & will be displayed shortly. Keep texting!Tell your friends about U-Chat.");
+
+                        if(isValid(messageCaps)) {
+                            final String url = servletRequest.getScheme() + "://" + servletRequest.getServerName() + ":" + servletRequest.getServerPort()
+                                    + ((HttpServletRequest) servletRequest).getContextPath() + "/utv?msisdn=" + URLEncoder.encode(msisdn, "UTF-8") + "&message="
+                                    + URLEncoder.encode(messageCaps, "UTF-8");
+                            logger.info("Callback url: " + url);
+                            ((HttpServletResponse) servletResponse).setHeader("X-Kannel-DLR-Mask", "8");
+                            ((HttpServletResponse) servletResponse).setHeader("X-Kannel-DLR-Url", url);
+                            out.print(user.name + " thanks for your contribution. Your message has been queued & will be displayed shortly. Keep texting!Tell your friends about U-Chat.");
+                        }else{
+                            out.print("You are not allowed to send this.");
+                        }
                     }
 
 
@@ -257,4 +270,36 @@ public class UTVFilter extends BaseServlet
             this.location = location;
         }
     }
+
+    private String[] censorWords = {"asshole", "penis", "ass", "bitch", "boob", "bastard", "bitch", "cock", "cocksucker", "cunt", "dick", "damn", "darn", "fag", "fuck",
+            "fcuk", "fck", "faggot", "motherfucker", "nigger", "nigga", "niga", "porn", "shit", "anus", "butt", "arse", "arsehole", "assbag", "assbandit", "assbanger",
+            "assbite", "assclown", "asscock", "asscracker", "asses", "assface", "assfuck", "assfucker", "assgoblin", "asshat", "ass-hat", "asshead", "asshole", "asshopper",
+            "ass-jabber", "assjacker", "asslick", "asslicker", "assmonkey", "assmunch", "assmuncher", "assnigger", "asspirate", "ass-pirate", "assshit", "assshole",
+            "asssucker", "asswad", "asswipe", "axwound", "butt", "Buttlicker", "butts", "homosexual", "idiot", "jerk", "pennis", "pussy", "rear-loving", "vagina",
+            "wanker", "stupid", "fool", "fucker", "aboa", "odwan", "buulu", "duna", "gyimi gyimi", "gyimii", "jimi jimi", "jimii", "koti", "kwasia", "ohi3", "ony3",
+            "ots3", "shua", "shwua", "kurasini", "ekurase", "shwoa", "wotiriso", "womaametwe", "womaametw3", "etwe", "etw3", "3tw3", "3twe", "nkwasiasem", "ogyimifuor",
+            "wagyimi" };
+
+    private boolean isValid(String message){
+        String[] words = message.split(" ");
+        for(String word: words){
+            if(isBadWord(word)){
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private boolean isBadWord(String word){
+        for(String censorWord: censorWords){
+            if(censorWord.equalsIgnoreCase(word)){
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+
 }

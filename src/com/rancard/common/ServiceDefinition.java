@@ -28,7 +28,7 @@ public class ServiceDefinition implements Serializable {
     private String defaultMessage;
     private Date lastUpdated;
     private String allowedSiteTypes;
-    private String allowedShortcodes;
+    private String allowedShortCodes;
     private String pricing;
     private String command;
     private boolean isSubscription;
@@ -45,7 +45,7 @@ public class ServiceDefinition implements Serializable {
         this.defaultMessage = defaultMessage;
         this.lastUpdated = lastUpdated;
         this.allowedSiteTypes = allowedSiteTypes;
-        this.allowedShortcodes = allowedShortcodes;
+        this.allowedShortCodes = allowedShortcodes;
         this.pricing = pricing;
         this.command = command;
         this.isSubscription = isSubscription;
@@ -118,11 +118,11 @@ public class ServiceDefinition implements Serializable {
     }
 
     public String getAllowedShortcodes() {
-        return allowedShortcodes;
+        return allowedShortCodes;
     }
 
     public void setAllowedShortcodes(String allowedShortcodes) {
-        this.allowedShortcodes = allowedShortcodes;
+        this.allowedShortCodes = allowedShortcodes;
     }
 
     public String getPricing() {
