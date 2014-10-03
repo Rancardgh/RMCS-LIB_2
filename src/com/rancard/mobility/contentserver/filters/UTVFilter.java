@@ -92,18 +92,18 @@ public class UTVFilter extends BaseServlet implements Filter {
                         ((HttpServletResponse) servletResponse).setHeader("X-Kannel-SMSC", "MTNGH");
                     } else if ((messageCaps.trim().split(",").length >= 2 || messageCaps.trim().split(" ").length >= 2) && user != null
                             && (user.location == null || user.location.equals("")) && (user.name == null || user.name.equals(""))) {
-                        if(messageCaps.split(",").length >= 2) {
-                            String location = messageCaps.trim().split(",")[messageCaps.trim().split(",").length -1 ];
+                        if (messageCaps.split(",").length >= 2) {
+                            String location = messageCaps.trim().split(",")[messageCaps.trim().split(",").length - 1];
                             String name = messageCaps.replace(location, "").trim();
                             out.print(addUser(Long.toString(user.msisdn), name, location));
-                        }else{
-                            String location = messageCaps.trim().split(" ")[messageCaps.trim().split(" ").length -1 ];
+                        } else {
+                            String location = messageCaps.trim().split(" ")[messageCaps.trim().split(" ").length - 1];
                             String name = messageCaps.replace(location, "").trim();
                             out.print(addUser(Long.toString(user.msisdn), name, location));
                         }
                         ((HttpServletResponse) servletResponse).setHeader("X-Kannel-SMSC", "MTNGH");
                     } else if (user != null) {
-                        if(user.location == null|| user.location.equals("") || user.name == null|| user.name.equals("")){
+                        if (user.location == null || user.location.equals("") || user.name == null || user.name.equals("")) {
                             out.print("Please send your NAME followed by your LOCATION to 1987 to continue.");
                             ((HttpServletResponse) servletResponse).setHeader("X-Kannel-SMSC", "MTNGH");
                             return;
@@ -111,15 +111,15 @@ public class UTVFilter extends BaseServlet implements Filter {
 
                         ((HttpServletResponse) servletResponse).setHeader("X-Kannel-SMSC", "MTNGH2");
 
-                        if(isValid(messageCaps)) {
+                        if (isValid(messageCaps)) {
                             final String url = servletRequest.getScheme() + "://" + servletRequest.getServerName() + ":" + servletRequest.getServerPort()
                                     + ((HttpServletRequest) servletRequest).getContextPath() + "/utv?msisdn=" + URLEncoder.encode(msisdn, "UTF-8") + "&message="
                                     + URLEncoder.encode(messageCaps, "UTF-8");
                             logger.info("Callback url: " + url);
                             ((HttpServletResponse) servletResponse).setHeader("X-Kannel-DLR-Mask", "8");
                             ((HttpServletResponse) servletResponse).setHeader("X-Kannel-DLR-Url", url);
-                            out.print(user.name + " thanks for your contribution. Your message has been queued & will be displayed shortly. Keep texting!Tell your friends about U-Chat.");
-                        }else{
+                            out.print("Thanks " + user.name + " from " + user.location + ". Contribute to the program by sending your comments to 1987 @ 30p/msg. To end, send STOP UTV to 1987");
+                        } else {
                             out.print("You are not allowed to send this.");
                         }
                     }
@@ -278,12 +278,12 @@ public class UTVFilter extends BaseServlet implements Filter {
             "asssucker", "asswad", "asswipe", "axwound", "butt", "Buttlicker", "butts", "homosexual", "idiot", "jerk", "pennis", "pussy", "rear-loving", "vagina",
             "wanker", "stupid", "fool", "fucker", "aboa", "odwan", "buulu", "duna", "gyimi gyimi", "gyimii", "jimi jimi", "jimii", "koti", "kwasia", "ohi3", "ony3",
             "ots3", "shua", "shwua", "kurasini", "ekurase", "shwoa", "wotiriso", "womaametwe", "womaametw3", "etwe", "etw3", "3tw3", "3twe", "nkwasiasem", "ogyimifuor",
-            "wagyimi" };
+            "wagyimi"};
 
-    private boolean isValid(String message){
+    private boolean isValid(String message) {
         String[] words = message.split(" ");
-        for(String word: words){
-            if(isBadWord(word)){
+        for (String word : words) {
+            if (isBadWord(word)) {
                 return false;
             }
         }
@@ -291,9 +291,9 @@ public class UTVFilter extends BaseServlet implements Filter {
         return true;
     }
 
-    private boolean isBadWord(String word){
-        for(String censorWord: censorWords){
-            if(censorWord.equalsIgnoreCase(word)){
+    private boolean isBadWord(String word) {
+        for (String censorWord : censorWords) {
+            if (censorWord.equalsIgnoreCase(word)) {
                 return true;
             }
         }
