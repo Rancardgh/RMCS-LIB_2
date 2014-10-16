@@ -175,7 +175,7 @@ public class processunsubscriberequest
             ACK = URLUTF8Encoder.doMessageEscaping(insertions, ACK);
 
             if (provId.equals("171") || provId.equals("178") || provId.equals("181") || provId.equals("182") ) {
-                Utils.informMASP(msisdn, provId, kw, "38080", "UNSUBSCRIBE");
+                Utils.informMASP(msisdn, provId, kw, "38080", "UNSUBSCRIBE", ACK);
             }
             out.println(ACK);
 

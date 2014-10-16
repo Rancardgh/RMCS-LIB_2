@@ -229,7 +229,7 @@ public class serviceexperiencefilter
                             }
 
                             if (smsc.toUpperCase().contains("ETISALAT_NG")) {
-                                Utils.informMASP(msisdn, accountId, keyword, dest, "SUBSCRIBE");
+                                Utils.informMASP(msisdn, accountId, keyword, dest, "SUBSCRIBE", pushMsg);
                             }
 
                             vmAcceptance(accountId, service_keyword, msisdn, srvc.getServiceName(), srvcExpr.getWelcomeMsgSender().equals("") ? shortCode : srvcExpr.getWelcomeMsgSender(), smsc);
