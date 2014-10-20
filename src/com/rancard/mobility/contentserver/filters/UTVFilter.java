@@ -1,7 +1,13 @@
 package com.rancard.mobility.contentserver.filters;
 
 import com.google.gson.Gson;
+import com.rancard.common.Channel;
+import com.rancard.common.ServiceDefinition;
+import com.rancard.common.ServiceSubscription;
 import com.rancard.mobility.contentserver.BaseServlet;
+import com.rancard.mobility.contentserver.StopMechanics;
+import com.rancard.util.DateUtil;
+import com.rancard.util.Utils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
@@ -20,6 +26,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URLEncoder;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.logging.Logger;
 
 /**
@@ -27,7 +34,7 @@ import java.util.logging.Logger;
  */
 public class UTVFilter extends BaseServlet implements Filter {
     private final Logger logger = Logger.getLogger(UTVFilter.class.getName());
-    private final String utvBaseURL = "http://app.rancardmobility.com/rmcsselfcaretest";
+    private final String utvBaseURL = "http://app.rancardmobility.com/UTV";
 
     public void init(FilterConfig filterConfig)
             throws ServletException {
@@ -80,14 +87,18 @@ public class UTVFilter extends BaseServlet implements Filter {
                 User user = getUser(msisdn);
                 if (StringUtils.isBlank(messageCaps.trim())) {
                     filterChain.doFilter(servletRequest, servletResponse);
-                } else if (!((dest.equalsIgnoreCase("1987") && messageCaps.trim().equalsIgnoreCase("UTV")) || (dest.equalsIgnoreCase("1987") && user != null))) {
+                } else if (!((dest.equalsIgnoreCase("1987") && messageCaps.trim().equalsIgnoreCase("UTV")) || (dest.equalsIgnoreCase("1987") && user != null)
+                        || (StopMechanics.isUnsubscriptionMessage(messageCaps) && messageCaps.contains("UTV")))) {
                     filterChain.doFilter(servletRequest, servletResponse);
                 } else {
                     this.logger.info("Will process UTV request");
                     if (messageCaps.trim().equalsIgnoreCase("UTV")) {
+                        ServiceSubscription.createSubscription(new ServiceSubscription("215", "UTV", Utils.formatToInternationalFormatGH(msisdn), new Date(),
+                                DateUtil.addDaysToDate(new Date(), 1), 1, 1, Channel.SMS, null));
                         out.print(addUser(msisdn, "", ""));
                         ((HttpServletResponse) servletResponse).setHeader("X-Kannel-SMSC", "MTNGH");
                     } else if ((messageCaps.trim().equalsIgnoreCase("STOP") || messageCaps.replace(" ", "").equalsIgnoreCase("STOPUTV")) && user != null) {
+                        ServiceSubscription.delete(Utils.formatToInternationalFormatGH(msisdn), "215", "UTV");
                         out.print(removeUser(Long.toString(user.msisdn)));
                         ((HttpServletResponse) servletResponse).setHeader("X-Kannel-SMSC", "MTNGH");
                     } else if ((messageCaps.trim().split(",").length >= 2 || messageCaps.trim().split(" ").length >= 2) && user != null
@@ -103,7 +114,7 @@ public class UTVFilter extends BaseServlet implements Filter {
                         }
                         ((HttpServletResponse) servletResponse).setHeader("X-Kannel-SMSC", "MTNGH");
                     } else if (user != null) {
-                        if (user.location == null || user.location.equals("") || user.name == null || user.name.equals("")) {
+                        if (StringUtils.isAnyBlank(user.location, user.name)) {
                             out.print("Please send your NAME followed by your LOCATION to 1987 to continue.");
                             ((HttpServletResponse) servletResponse).setHeader("X-Kannel-SMSC", "MTNGH");
                             return;
@@ -118,7 +129,7 @@ public class UTVFilter extends BaseServlet implements Filter {
                             logger.info("Callback url: " + url);
                             ((HttpServletResponse) servletResponse).setHeader("X-Kannel-DLR-Mask", "8");
                             ((HttpServletResponse) servletResponse).setHeader("X-Kannel-DLR-Url", url);
-                            out.print("Thanks " + user.name + " from " + user.location + ". Contribute to the program by sending your comments to 1987 @ 30p/msg. To end, send STOP UTV to 1987");
+                            out.print(user.name + " thanks for your contribution. Your message has been queued & will be displayed shortly. Keep texting!Tell your friends about U-Chat.");
                         } else {
                             out.print("You are not allowed to send this.");
                         }
