@@ -27,6 +27,7 @@ import java.io.PrintWriter;
 import java.net.URLEncoder;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.Random;
 import java.util.logging.Logger;
 
 /**
@@ -93,15 +94,17 @@ public class UTVFilter extends BaseServlet implements Filter {
                 } else {
                     this.logger.info("Will process UTV request");
                     if (messageCaps.trim().equalsIgnoreCase("UTV")) {
-                        ServiceSubscription.createSubscription(new ServiceSubscription("215", "UTV", Utils.formatToInternationalFormatGH(msisdn), new Date(),
-                                DateUtil.addDaysToDate(new Date(), 1), 1, 1, Channel.SMS, null));
+                        if(ServiceSubscription.find(Utils.formatToInternationalFormatGH(msisdn), "215", "UTV") == null) {
+                            ServiceSubscription.createSubscription(new ServiceSubscription("215", "UTV", Utils.formatToInternationalFormatGH(msisdn), new Date(),
+                                    DateUtil.addDaysToDate(new Date(), 1), 1, 1, Channel.SMS, null));
+                        }
                         out.print(addUser(msisdn, "", ""));
                         ((HttpServletResponse) servletResponse).setHeader("X-Kannel-SMSC", "MTNGH");
                     } else if ((messageCaps.trim().equalsIgnoreCase("STOP") || messageCaps.replace(" ", "").equalsIgnoreCase("STOPUTV")) && user != null) {
                         ServiceSubscription.delete(Utils.formatToInternationalFormatGH(msisdn), "215", "UTV");
                         out.print(removeUser(Long.toString(user.msisdn)));
                         ((HttpServletResponse) servletResponse).setHeader("X-Kannel-SMSC", "MTNGH");
-                    } else if ((messageCaps.trim().split(",").length >= 2 || messageCaps.trim().split(" ").length >= 2) && user != null
+                    }  else if ((messageCaps.trim().split(",").length >= 2 || messageCaps.trim().split(" ").length >= 2) && user != null
                             && (user.location == null || user.location.equals("")) && (user.name == null || user.name.equals(""))) {
                         if (messageCaps.split(",").length >= 2) {
                             String location = messageCaps.trim().split(",")[messageCaps.trim().split(",").length - 1];
@@ -115,7 +118,7 @@ public class UTVFilter extends BaseServlet implements Filter {
                         ((HttpServletResponse) servletResponse).setHeader("X-Kannel-SMSC", "MTNGH");
                     } else if (user != null) {
                         if (StringUtils.isAnyBlank(user.location, user.name)) {
-                            out.print("Please send your NAME followed by your LOCATION to 1987 to continue.");
+                            out.print("Welcome to U-Chat service. You will receive daily updates. Please send your NAME followed by your LOCATION to 1987 to continue.");
                             ((HttpServletResponse) servletResponse).setHeader("X-Kannel-SMSC", "MTNGH");
                             return;
                         }
@@ -129,7 +132,7 @@ public class UTVFilter extends BaseServlet implements Filter {
                             logger.info("Callback url: " + url);
                             ((HttpServletResponse) servletResponse).setHeader("X-Kannel-DLR-Mask", "8");
                             ((HttpServletResponse) servletResponse).setHeader("X-Kannel-DLR-Url", url);
-                            out.print(user.name + " thanks for your contribution. Your message has been queued & will be displayed shortly. Keep texting!Tell your friends about U-Chat.");
+                            out.print(getRandomMessage(user.name));
                         } else {
                             out.print("You are not allowed to send this.");
                         }
@@ -148,6 +151,14 @@ public class UTVFilter extends BaseServlet implements Filter {
             }
         }
     }
+
+    private String getRandomMessage(String name) {
+        String[] messages = {"Thanks for your contribution. Your message will be displayed shortly. Tell your friends about U-Chat. Text INVITE followed by your friend's number to 1987.",
+                "Thanks for your contribution. Your message has been queued & will be displayed shortly. Keep texting!Tell your friends about U-Chat. Click here http://goo.gl/rCBvEW",
+                name + " Thanks for your contribution. Your message will be displayed shortly. Keep texting!"};
+        return messages[new Random().nextInt(3)];
+    }
+
 
     private User getUser(String msisdn) throws Exception {
         final String url = utvBaseURL + "/users?msisdn=" + URLEncoder.encode(msisdn, "UTF-8");
