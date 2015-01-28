@@ -304,7 +304,7 @@ public class sendinfo
                         transactionId = uidGen.genUID("OD-", 5);
                     }
                     String completeTransnxnUrl = fullContextPath + "/sendinfo_push.jsp?msisdn=" + URLEncoder.encode(msisdn, "UTF-8") + "&keyword=" + URLEncoder.encode(kw.toUpperCase(), "UTF-8") + "&alert_count=" + is.getMsgId() + "&dest=" + URLEncoder.encode(shortcode, "UTF-8") + "&siteId=" + URLEncoder.encode(siteId, "UTF-8") + "&transId=" + URLEncoder.encode(transactionId, "UTF-8");
-                    if (pricePoint.getBillingMech().equals("3")) {
+                    if (pricePoint.getBillingMech().equals("3") && !"000".equals(provId)) {
                         completeTransnxnUrl = completeTransnxnUrl + "&sender=KEYWORD";
                     }
                     UserServiceTransaction trans = new UserServiceTransaction();

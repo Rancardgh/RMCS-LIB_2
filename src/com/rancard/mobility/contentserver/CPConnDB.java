@@ -4,6 +4,7 @@
 /*   4:    */ import java.io.PrintStream;
 /*   5:    */ import java.sql.Connection;
 /*   6:    */ import java.sql.ResultSet;
+import java.sql.SQLException;
 /*   7:    */ import java.sql.Statement;
 /*   8:    */ import java.util.ArrayList;
 /*   9:    */ import java.util.Arrays;
@@ -40,10 +41,18 @@
 /*  40:    */     finally
 /*  41:    */     {
 /*  42: 39 */       if (rs != null) {
-/*  43: 40 */         rs.close();
+/*  43: 40 */         try{
+                            rs.close();
+                        } catch (SQLException sqx){
+
+                        }
 /*  44:    */       }
 /*  45: 42 */       if (conn != null) {
-/*  46: 43 */         conn.close();
+/*  46: 43 */         try{
+                            conn.close();
+                        } catch (SQLException sqx){
+
+                        }
 /*  47:    */       }
 /*  48:    */     }
 /*  49:    */   }
@@ -74,10 +83,18 @@
 /*  74:    */     finally
 /*  75:    */     {
 /*  76: 74 */       if (rs != null) {
-/*  77: 75 */         rs.close();
+                        try{
+                            rs.close();
+                        } catch (SQLException sqx){
+
+                        }
 /*  78:    */       }
 /*  79: 77 */       if (conn != null) {
-/*  80: 78 */         conn.close();
+/*  80: 78 */         try{
+                            conn.close();
+                        } catch (SQLException sqx){
+
+                        }
 /*  81:    */       }
 /*  82:    */     }
 /*  83: 81 */     return connections;
@@ -109,18 +126,30 @@
 /* 109:    */     finally
 /* 110:    */     {
 /* 111:109 */       if (rs != null) {
-/* 112:110 */         rs.close();
+                        try{
+                            rs.close();
+                        } catch (SQLException sqx){
+
+                        }
 /* 113:    */       }
 /* 114:112 */       if (conn != null) {
-/* 115:113 */         conn.close();
+                        try{
+                            conn.close();
+                        } catch (SQLException sqx){
+
+                        }
 /* 116:    */       }
 /* 117:    */     }
 /* 118:116 */     return connections;
 /* 119:    */   }
 /* 120:    */ }
 
-
-/* Location:           C:\Users\Mustee\Downloads\rmcs_211_lib (1).jar
- * Qualified Name:     com.rancard.mobility.contentserver.CPConnDB
- * JD-Core Version:    0.7.0.1
+
+
+/* Location:           C:\Users\Mustee\Downloads\rmcs_211_lib (1).jar
+
+ * Qualified Name:     com.rancard.mobility.contentserver.CPConnDB
+
+ * JD-Core Version:    0.7.0.1
+
  */

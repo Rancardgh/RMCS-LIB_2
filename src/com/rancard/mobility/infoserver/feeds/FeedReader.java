@@ -111,7 +111,9 @@ public class FeedReader
             {
                 SyndEntry currentEntry = (SyndEntry)entries.previous();
                 String msg = currentEntry.getDescription().getValue();
+                System.out.println(new Date()+"\tINFO\t[FeedReader]\tMessage Before trim: "+msg+" >> Length: "+msg.length());
                 msg = msg.trim();
+                System.out.println(new Date()+"\tINFO\t[FeedReader]\tMessage After trim: "+msg+" >> Length: "+msg.length());
                 Date pubDate = currentEntry.getPublishedDate();
                 List categories = currentEntry.getCategories();
                 String author = currentEntry.getAuthor();
