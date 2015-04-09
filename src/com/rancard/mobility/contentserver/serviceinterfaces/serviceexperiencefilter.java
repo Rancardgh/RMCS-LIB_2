@@ -15,6 +15,8 @@ import com.rancard.mobility.infoserver.viralmarketing.PromoImpression;
 import com.rancard.mobility.infoserver.viralmarketing.VMServiceManager;
 import com.rancard.mobility.infoserver.viralmarketing.VMTransaction;
 import com.rancard.mobility.infoserver.viralmarketing.VMUser;
+import com.rancard.mobility.rndvu.ServiceRndvuDetails;
+import com.rancard.rndvu.events.UserEvents;
 import com.rancard.util.Date;
 import com.rancard.util.Utils;
 import com.rancard.util.payment.PaymentManager;
@@ -93,6 +95,7 @@ public class serviceexperiencefilter
                     boolean alreadySubscribed = false;
                     HashMap thisSubscription = ServiceManager.getSubscription(msisdn, accountId, keyword, altKeyword);
                     if ((thisSubscription != null) && (!thisSubscription.isEmpty())) {
+                        // Log Rendezvous ALREADY SUBSCRIBED (MORE) here
                         alreadySubscribed = true;
                     }
                     if (alreadySubscribed) {
@@ -217,7 +220,7 @@ public class serviceexperiencefilter
                             }
                         } else {
                             logState(accountId, siteId, keyword, msisdn, "Subscription doesn't exist. Creating new subscription record...");
-
+                            
                             ArrayList keywordList = new ArrayList();
                             keywordList.add(service_keyword);
                             if (srvcExpr.getSubscriptionInterval() == 0) {
@@ -230,6 +233,22 @@ public class serviceexperiencefilter
 
                             if (smsc.toUpperCase().contains("ETISALAT_NG")) {
                                 Utils.informMASP(msisdn, accountId, keyword, dest, "SUBSCRIBE", pushMsg);
+                            }
+                            
+                            // Log Rendezvous SUBSCRIBE here
+                            try{
+                                // Get Service Rndvu Details from DB
+                                ServiceRndvuDetails serviceRndv = ServiceRndvuDetails.viewDetails(accountId, keyword);
+                                if (serviceRndv != null){
+                                    String clientId = serviceRndv.getClientId();
+                                    String storeId = serviceRndv.getStoreId();
+                                    // Log User SUBSCRIBE action
+                                    UserEvents.subscribe(msisdn, clientId, storeId);
+                                } else {
+                                    System.out.println(new java.util.Date()+"\tCould not find RNDVU Details for service ("+accountId+", "+keyword+")");
+                                }
+                            } catch (Exception ex){
+                                System.out.println(new Date()+"\tError while writing User action [SUBSCRIBE] to RNDVU Graph: "+ex.getMessage());
                             }
 
                             vmAcceptance(accountId, service_keyword, msisdn, srvc.getServiceName(), srvcExpr.getWelcomeMsgSender().equals("") ? shortCode : srvcExpr.getWelcomeMsgSender(), smsc);
@@ -288,6 +307,7 @@ public class serviceexperiencefilter
                 String displayable_number = "0" + trans.getRecipientMsisdn().substring(4);
                 String confirmation_msg = "You recently invited " + displayable_number + " to use your favourite service. " + "We're excited to inform you that your invitation was just accepted! You now have " + user.getPoints() + " points.";
 
+                // Log Rendezvous ACCEPTED INVITE here
                 new Thread(new ThreadedMessageSender(cnxn, recruiter, this.push_sender, confirmation_msg, 5000)).start();
             }
             if ((!smsc.toUpperCase().contains("myBuzz".toUpperCase())) && (!smsc.toUpperCase().contains("AIRTEL_NG".toUpperCase()))) {
@@ -299,13 +319,21 @@ public class serviceexperiencefilter
     }
 
     private void initializeServiceCustomization(String accountId, String keyword, String shortCode) {
-        if (accountId.equals("000")) {
-            this.push_sender = keyword;
-            this.inv_instruction = ("Send INVITE followed by your friend's number to " + shortCode + " to share this service with them. Add FROM followed by your name to the message to personalize it.");
-        } else {
-            this.push_sender = shortCode;
-            this.inv_instruction = ("Send INVITE followed by your friend's number to " + this.push_sender + " to share this service with them. Add FROM followed by your name to the message to personalize it.");
+        String inviteMessage = "Send INVITE followed by your friend's number to " + shortCode + " to share this service with them. Add FROM followed by your name to the message to personalize it.";
+        UserService inviteService;
+        try{
+            inviteService= ServiceManager.viewService("MEINVITE", accountId);
+            if (inviteService != null && inviteService.getDefaultMessage() != null && !"".equals(inviteService.getDefaultMessage())){
+                inviteMessage = inviteService.getDefaultMessage();
+                System.out.println(new java.util.Date()+"\t"+serviceexperiencefilter.class+"\tInvite message configured: "+inviteService.getDefaultMessage());
+            } else {
+                System.out.println(new java.util.Date()+"\t"+serviceexperiencefilter.class+"\tInvite message not configured!! Using default");
+            }
+        } catch (Exception ex){
+            System.out.println(new java.util.Date()+"\t"+serviceexperiencefilter.class+"\t"+"Error occurred while getting INVITE message for service. Using default ...");
         }
+        this.push_sender = shortCode;
+        this.inv_instruction = inviteMessage;
     }
 
     private void promoImpressionsCheck(String srvcRespCode, String keyword, String accountId, String msisdn, HttpServletRequest request)

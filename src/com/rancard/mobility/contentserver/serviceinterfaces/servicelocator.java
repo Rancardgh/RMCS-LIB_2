@@ -6,6 +6,8 @@ import com.rancard.mobility.contentprovider.User;
 import com.rancard.mobility.contentserver.CPSite;
 import com.rancard.mobility.infoserver.common.services.ServiceManager;
 import com.rancard.mobility.infoserver.common.services.UserService;
+import com.rancard.mobility.rndvu.ServiceRndvuDetails;
+import com.rancard.rndvu.events.UserEvents;
 import com.rancard.util.DefaultService;
 import com.rancard.util.URLUTF8Encoder;
 
@@ -199,6 +201,16 @@ public class servicelocator
             try {
                 srvc = ServiceManager.viewService(searchParam, accountId);
                 if ((srvc.getKeyword() == null) || (srvc.getKeyword().equals(""))) {
+                    // Log Rendezvous HELP/SEARCH here
+                    try{
+                        // Get Service Rndvu Details from DB
+                        //ServiceRndvuDetails serviceRndv = ServiceRndvuDetails.viewDetails(accountId, promoId);
+                        String clientId = "74nc4r6rn6vu";
+                        // Log User HELP/SEARCH action
+                        UserEvents.help(msisdn, clientId, searchParam);
+                    } catch (Exception ex){
+                        System.out.println(new Date()+"\tError while writing User action [SEARCH] to RNDVU Graph: "+ex.getMessage());
+                    }
                     if (sp.getDefaultService().startsWith("HELP")) {
                         serviceExeptionFlag = "2";
                         throw new Exception(DefaultService.getHelp(accountId, msisdn, dest, searchParam));

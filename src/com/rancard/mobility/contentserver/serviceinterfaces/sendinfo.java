@@ -6,6 +6,8 @@ import com.rancard.mobility.contentserver.CPConnections;
 import com.rancard.mobility.infoserver.InfoService;
 import com.rancard.mobility.infoserver.common.services.ServiceManager;
 import com.rancard.mobility.infoserver.common.services.UserServiceTransaction;
+import com.rancard.mobility.rndvu.ServiceRndvuDetails;
+import com.rancard.rndvu.events.UserEvents;
 import com.rancard.util.URLUTF8Encoder;
 import com.rancard.util.payment.PaymentManager;
 import com.rancard.util.payment.PricePoint;
@@ -16,6 +18,7 @@ import java.io.PrintWriter;
 import java.net.URLEncoder;
 import java.sql.Timestamp;
 import java.util.Calendar;
+import java.util.Date;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
@@ -355,6 +358,22 @@ public class sendinfo
                         if (billed) {
                             trans.setIsBilled(1);
                             trans.setIsCompleted(1);
+                            // Log Rendezvous BILLED here
+                            try{
+                                // Get Service Rndvu Details from DB
+                                ServiceRndvuDetails serviceRndv = ServiceRndvuDetails.viewDetails(provId, kw);
+                                if (serviceRndv != null){
+                                    String clientId = serviceRndv.getClientId();
+                                    String storeId = serviceRndv.getStoreId();
+                                    String itemId = serviceRndv.getItemId();
+                                    // Log User BILL action
+                                    UserEvents.billed(msisdn, clientId, storeId, itemId);
+                                } else {
+                                    System.out.println(new Date()+"\tCould not find RNDVU Details for service ("+provId+", "+kw+")");
+                                }
+                            } catch (Exception ex){
+                                System.out.println(new Date()+"\tError while writing User action [BILLED] to RNDVU Graph: "+ex.getMessage());
+                            }
                         } else {
                             trans.setIsBilled(0);
                             trans.setIsCompleted(isCompleted);
