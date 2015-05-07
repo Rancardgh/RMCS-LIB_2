@@ -4,7 +4,6 @@ import com.rancard.common.AddressBook;
 import com.rancard.common.AddressBookDB;
 import com.rancard.common.DConnect;
 import com.rancard.common.uidGen;
-import com.rancard.mobility.common.ThreadedPostman;
 import com.rancard.mobility.infoserver.feeds.CPUserFeeds;
 import com.rancard.mobility.infoserver.feeds.Feed;
 import com.rancard.util.DateUtil;
@@ -736,10 +735,10 @@ public class UserServiceDB {
                 System.out.println(new java.util.Date() + ": " + UserServiceDB.class + ":DEBUG Create service: " + prepstat.toString());
                 prepstat.execute();
 
-                Map<String, String> params = new HashMap();
-                params.put("msisdn", msisdn.substring(msisdn.indexOf("+") + 1));
-                params.put("keyword", keyword);
-                new ThreadedPostman("http://192.168.1.246/rndvu/@@msisdn@@/action/log/@@keyword@@/buy", params).run();
+//                Map<String, String> params = new HashMap();
+//                params.put("msisdn", msisdn.substring(msisdn.indexOf("+") + 1));
+//                params.put("keyword", keyword);
+//                new ThreadedPostman("http://192.168.1.246/rndvu/@@msisdn@@/action/log/@@keyword@@/buy", params).run();
             } else {
                 System.out.println(new java.util.Date() + ": " + UserServiceDB.class + "ERROR: Creating service. Service does not exist: " + accountId + "-" + keyword);
                 throw new Exception("10001");
@@ -783,10 +782,10 @@ public class UserServiceDB {
                     System.out.println(new java.util.Date() + ": " + UserServiceDB.class + ":DEBUG Create service: " + prepstat.toString());
                     prepstat.execute();
 
-                    Map<String, String> params = new HashMap();
-                    params.put("msisdn", msisdn.substring(msisdn.indexOf("+") + 1));
-                    params.put("keyword", keyword);
-                    new ThreadedPostman("http://192.168.1.246/rndvu/@@msisdn@@/action/log/@@keyword@@/buy", params).run();
+//                    Map<String, String> params = new HashMap();
+//                    params.put("msisdn", msisdn.substring(msisdn.indexOf("+") + 1));
+//                    params.put("keyword", keyword);
+//                    new ThreadedPostman("http://192.168.1.246/rndvu/@@msisdn@@/action/log/@@keyword@@/buy", params).run();
                 } else {
                     System.out.println(new java.util.Date() + ": " + UserServiceDB.class + "ERROR: Creating service. Service does not exist: " + accountId + "-" + keyword);
                     throw new Exception("10001");
@@ -832,10 +831,10 @@ public class UserServiceDB {
                     System.out.println(new java.util.Date() + ": " + UserServiceDB.class + ":DEBUG Create service: " + prepstat.toString());
                     prepstat.execute();
 
-                    HashMap<String, String> params = new HashMap();
-                    params.put("msisdn", msisdn.substring(msisdn.indexOf("+") + 1));
-                    params.put("keyword", keyword);
-                    new ThreadedPostman("http://192.168.1.246/rndvu/@@msisdn@@/action/log/@@keyword@@/buy", params).run();
+//                    HashMap<String, String> params = new HashMap();
+//                    params.put("msisdn", msisdn.substring(msisdn.indexOf("+") + 1));
+//                    params.put("keyword", keyword);
+//                    new ThreadedPostman("http://192.168.1.246/rndvu/@@msisdn@@/action/log/@@keyword@@/buy", params).run();
                 } else {
                     System.out.println(new java.util.Date() + ": " + UserServiceDB.class + "ERROR: Creating service. Service does not exist: " + accountId + "-" + keyword);
                     throw new Exception("10001");
@@ -912,10 +911,10 @@ public class UserServiceDB {
                     prepstat.execute();
                     regId[2] = nextSubDate;
 
-                    HashMap<String, String> params = new HashMap();
-                    params.put("msisdn", msisdn.substring(msisdn.indexOf("+") + 1));
-                    params.put("keyword", keyword);
-                    new ThreadedPostman("http://192.168.1.246/rndvu/@@msisdn@@/action/log/@@keyword@@/buy", params).run();
+//                    HashMap<String, String> params = new HashMap();
+//                    params.put("msisdn", msisdn.substring(msisdn.indexOf("+") + 1));
+//                    params.put("keyword", keyword);
+//                    new ThreadedPostman("http://192.168.1.246/rndvu/@@msisdn@@/action/log/@@keyword@@/buy", params).run();
                 } else {
                     failedCheck = true;
                 }
@@ -996,10 +995,10 @@ public class UserServiceDB {
                     prepstat.setTimestamp(6, new Timestamp(nextSubscriptionDate.getTime()));
                     prepstat.execute();
 
-                    HashMap<String, String> params = new HashMap();
-                    params.put("msisdn", msisdn.substring(msisdn.indexOf("+") + 1));
-                    params.put("keyword", keyword);
-                    new ThreadedPostman("http://192.168.1.246/rndvu/@@msisdn@@/action/log/@@keyword@@/buy", params).run();
+//                    HashMap<String, String> params = new HashMap();
+//                    params.put("msisdn", msisdn.substring(msisdn.indexOf("+") + 1));
+//                    params.put("keyword", keyword);
+//                    new ThreadedPostman("http://192.168.1.246/rndvu/@@msisdn@@/action/log/@@keyword@@/buy", params).run();
                 } else {
                     failedCheck = true;
                 }
