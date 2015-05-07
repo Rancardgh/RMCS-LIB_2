@@ -236,20 +236,31 @@ public class serviceexperiencefilter
                             }
                             
                             // Log Rendezvous SUBSCRIBE here
-                            try{
+//                            boolean doLogging = new Config().doGraphLogging();
+//                            if (doLogging){
                                 // Get Service Rndvu Details from DB
                                 ServiceRndvuDetails serviceRndv = ServiceRndvuDetails.viewDetails(accountId, keyword);
                                 if (serviceRndv != null){
-                                    String clientId = serviceRndv.getClientId();
-                                    String storeId = serviceRndv.getStoreId();
+                                    final String rndvuMsisdn = msisdn;
+                                    final String clientId = serviceRndv.getClientId();
+                                    final String storeId = serviceRndv.getStoreId();
                                     // Log User SUBSCRIBE action
-                                    UserEvents.subscribe(msisdn, clientId, storeId);
+                                    new Thread(new Runnable() {
+
+                                        @Override
+                                        public void run() {
+                                            try{
+                                                UserEvents.subscribe(rndvuMsisdn, clientId, storeId);
+                                            } catch (Exception ex){
+                                                System.out.println(new java.util.Date()+"\tERROR\t[serviceexp]\t"+rndvuMsisdn+"\tError while writing User action [SUBSCRIBE] to RNDVU Graph: "+ex.getMessage());
+                                            }
+                                        }
+                                    }).start();
+                                    System.out.println(new java.util.Date()+"\tINFO\t[serviceexp]\t"+msisdn+"\tCompleted SUBSCRIBE action Graph logging for service ("+accountId+", "+keyword+")");
                                 } else {
-                                    System.out.println(new java.util.Date()+"\tCould not find RNDVU Details for service ("+accountId+", "+keyword+")");
+                                    System.out.println(new java.util.Date()+"\tERROR\t[serviceexp]\t"+msisdn+"\tCould not find RNDVU Details for service ("+accountId+", "+keyword+")");
                                 }
-                            } catch (Exception ex){
-                                System.out.println(new Date()+"\tError while writing User action [SUBSCRIBE] to RNDVU Graph: "+ex.getMessage());
-                            }
+                            //}
 
                             vmAcceptance(accountId, service_keyword, msisdn, srvc.getServiceName(), srvcExpr.getWelcomeMsgSender().equals("") ? shortCode : srvcExpr.getWelcomeMsgSender(), smsc);
 

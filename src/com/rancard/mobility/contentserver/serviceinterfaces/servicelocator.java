@@ -6,7 +6,6 @@ import com.rancard.mobility.contentprovider.User;
 import com.rancard.mobility.contentserver.CPSite;
 import com.rancard.mobility.infoserver.common.services.ServiceManager;
 import com.rancard.mobility.infoserver.common.services.UserService;
-import com.rancard.mobility.rndvu.ServiceRndvuDetails;
 import com.rancard.rndvu.events.UserEvents;
 import com.rancard.util.DefaultService;
 import com.rancard.util.URLUTF8Encoder;
@@ -202,15 +201,25 @@ public class servicelocator
                 srvc = ServiceManager.viewService(searchParam, accountId);
                 if ((srvc.getKeyword() == null) || (srvc.getKeyword().equals(""))) {
                     // Log Rendezvous HELP/SEARCH here
-                    try{
-                        // Get Service Rndvu Details from DB
-                        //ServiceRndvuDetails serviceRndv = ServiceRndvuDetails.viewDetails(accountId, promoId);
-                        String clientId = "74nc4r6rn6vu";
+                    
+//                    boolean doLogging = new Config().doGraphLogging();
+//                    if (doLogging){
+                        final String rndvuMsisdn = msisdn;
+                        final String clientId = "74nc4r6rn6vu";
+                        final String searchString = searchParam;
                         // Log User HELP/SEARCH action
-                        UserEvents.help(msisdn, clientId, searchParam);
-                    } catch (Exception ex){
-                        System.out.println(new Date()+"\tError while writing User action [SEARCH] to RNDVU Graph: "+ex.getMessage());
-                    }
+                        new Thread(new Runnable() {
+
+                            @Override
+                            public void run() {
+                                try{
+                                    UserEvents.help(rndvuMsisdn, clientId, searchString);
+                                } catch (Exception ex){
+                                    System.out.println(new java.util.Date()+"\tERROR\t[servicelocator]\t"+rndvuMsisdn+"\tError while writing User action [SEARCH] to RNDVU Graph: "+ex.getMessage());
+                                }
+                            }
+                        }).start();
+                    //}
                     if (sp.getDefaultService().startsWith("HELP")) {
                         serviceExeptionFlag = "2";
                         throw new Exception(DefaultService.getHelp(accountId, msisdn, dest, searchParam));
@@ -316,6 +325,7 @@ public class servicelocator
             } catch (Exception ex) {
                 this.filterConfig.getServletContext().log(ex.getMessage());
             }
+            e.printStackTrace();
         } finally {
             String fwdReqKw = (String) request.getAttribute("log_fwdReq_kw");
             try {

@@ -359,21 +359,32 @@ public class sendinfo
                             trans.setIsBilled(1);
                             trans.setIsCompleted(1);
                             // Log Rendezvous BILLED here
-                            try{
+//                            boolean doLogging = new Config().doGraphLogging();
+//                            if (doLogging){
                                 // Get Service Rndvu Details from DB
                                 ServiceRndvuDetails serviceRndv = ServiceRndvuDetails.viewDetails(provId, kw);
                                 if (serviceRndv != null){
-                                    String clientId = serviceRndv.getClientId();
-                                    String storeId = serviceRndv.getStoreId();
-                                    String itemId = serviceRndv.getItemId();
+                                    final String rndvuMsisdn = msisdn;
+                                    final String clientId = serviceRndv.getClientId();
+                                    final String storeId = serviceRndv.getStoreId();
+                                    final String itemId = serviceRndv.getItemId();
                                     // Log User BILL action
-                                    UserEvents.billed(msisdn, clientId, storeId, itemId);
+                                    new Thread(new Runnable() {
+
+                                        @Override
+                                        public void run() {
+                                            try{
+                                                UserEvents.billed(rndvuMsisdn, clientId, storeId, itemId);
+                                            } catch (Exception ex){
+                                                System.out.println(new Date()+"\tERROR\t[sendinfo]\t"+rndvuMsisdn+"\tError while writing User action [BILLED] to RNDVU Graph: "+ex.getMessage());
+                                            }
+                                        }
+                                    }).start();
+                                    System.out.println(new java.util.Date()+"\tINFO\t[sendinfo]\t"+msisdn+"\tCompleted BILL action Graph logging for service ("+provId+", "+kw+")");
                                 } else {
-                                    System.out.println(new Date()+"\tCould not find RNDVU Details for service ("+provId+", "+kw+")");
+                                    System.out.println(new java.util.Date()+"\tERROR\t[sendinfo]\t"+msisdn+"\tCould not find RNDVU Details for service ("+provId+", "+kw+")");
                                 }
-                            } catch (Exception ex){
-                                System.out.println(new Date()+"\tError while writing User action [BILLED] to RNDVU Graph: "+ex.getMessage());
-                            }
+                            //}
                         } else {
                             trans.setIsBilled(0);
                             trans.setIsCompleted(isCompleted);
