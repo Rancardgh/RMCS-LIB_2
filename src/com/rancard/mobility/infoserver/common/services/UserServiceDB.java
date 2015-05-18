@@ -6,6 +6,8 @@ import com.rancard.common.DConnect;
 import com.rancard.common.uidGen;
 import com.rancard.mobility.infoserver.feeds.CPUserFeeds;
 import com.rancard.mobility.infoserver.feeds.Feed;
+import com.rancard.mobility.rndvu.ServiceRndvuDetails;
+import com.rancard.rndvu.events.UserEvents;
 import com.rancard.util.DateUtil;
 import com.rancard.util.Page;
 import com.rancard.util.PropertyHolder;
@@ -734,6 +736,30 @@ public class UserServiceDB {
 
                 System.out.println(new java.util.Date() + ": " + UserServiceDB.class + ":DEBUG Create service: " + prepstat.toString());
                 prepstat.execute();
+                
+                // Log Rendezvous SUBSCRIBE here
+                // Get Service Rndvu Details from DB
+                ServiceRndvuDetails serviceRndv = ServiceRndvuDetails.viewDetails(accountId, keyword);
+                if (serviceRndv != null){
+                    final String rndvuMsisdn = msisdn;
+                    final String clientId = serviceRndv.getClientId();
+                    final String storeId = serviceRndv.getStoreId();
+                    // Log User SUBSCRIBE action
+                    new Thread(new Runnable() {
+
+                        @Override
+                        public void run() {
+                            try{
+                                UserEvents.subscribe(rndvuMsisdn, clientId, storeId);
+                            } catch (Exception ex){
+                                System.out.println(new java.util.Date()+"\tERROR\t[subscribeToService]\t"+rndvuMsisdn+"\tError while writing User action [SUBSCRIBE] to RNDVU Graph: "+ex.getMessage());
+                            }
+                        }
+                    }).start();
+                    System.out.println(new java.util.Date()+"\tINFO\t[subscribeToService]\t"+msisdn+"\tCompleted SUBSCRIBE action Graph logging for service ("+accountId+", "+keyword+")");
+                } else {
+                    System.out.println(new java.util.Date()+"\tERROR\t[subscribeToService]\t"+msisdn+"\tCould not find RNDVU Details for service ("+accountId+", "+keyword+")");
+                }
 
 //                Map<String, String> params = new HashMap();
 //                params.put("msisdn", msisdn.substring(msisdn.indexOf("+") + 1));
@@ -781,6 +807,30 @@ public class UserServiceDB {
 
                     System.out.println(new java.util.Date() + ": " + UserServiceDB.class + ":DEBUG Create service: " + prepstat.toString());
                     prepstat.execute();
+                    
+                    // Log Rendezvous SUBSCRIBE here
+                    // Get Service Rndvu Details from DB
+                    ServiceRndvuDetails serviceRndv = ServiceRndvuDetails.viewDetails(accountId, keyword);
+                    if (serviceRndv != null){
+                        final String rndvuMsisdn = msisdn;
+                        final String clientId = serviceRndv.getClientId();
+                        final String storeId = serviceRndv.getStoreId();
+                        // Log User SUBSCRIBE action
+                        new Thread(new Runnable() {
+
+                            @Override
+                            public void run() {
+                                try{
+                                    UserEvents.subscribe(rndvuMsisdn, clientId, storeId);
+                                } catch (Exception ex){
+                                    System.out.println(new java.util.Date()+"\tERROR\t[subscribeToService]\t"+rndvuMsisdn+"\tError while writing User action [SUBSCRIBE] to RNDVU Graph: "+ex.getMessage());
+                                }
+                            }
+                        }).start();
+                        System.out.println(new java.util.Date()+"\tINFO\t[subscribeToService]\t"+msisdn+"\tCompleted SUBSCRIBE action Graph logging for service ("+accountId+", "+keyword+")");
+                    } else {
+                        System.out.println(new java.util.Date()+"\tERROR\t[subscribeToService]\t"+msisdn+"\tCould not find RNDVU Details for service ("+accountId+", "+keyword+")");
+                    }
 
 //                    Map<String, String> params = new HashMap();
 //                    params.put("msisdn", msisdn.substring(msisdn.indexOf("+") + 1));
@@ -830,6 +880,30 @@ public class UserServiceDB {
 
                     System.out.println(new java.util.Date() + ": " + UserServiceDB.class + ":DEBUG Create service: " + prepstat.toString());
                     prepstat.execute();
+                    
+                    // Log Rendezvous SUBSCRIBE here
+                    // Get Service Rndvu Details from DB
+                    ServiceRndvuDetails serviceRndv = ServiceRndvuDetails.viewDetails(accountId, keyword);
+                    if (serviceRndv != null){
+                        final String rndvuMsisdn = msisdn;
+                        final String clientId = serviceRndv.getClientId();
+                        final String storeId = serviceRndv.getStoreId();
+                        // Log User SUBSCRIBE action
+                        new Thread(new Runnable() {
+
+                            @Override
+                            public void run() {
+                                try{
+                                    UserEvents.subscribe(rndvuMsisdn, clientId, storeId);
+                                } catch (Exception ex){
+                                    System.out.println(new java.util.Date()+"\tERROR\t[subscribeToService]\t"+rndvuMsisdn+"\tError while writing User action [SUBSCRIBE] to RNDVU Graph: "+ex.getMessage());
+                                }
+                            }
+                        }).start();
+                        System.out.println(new java.util.Date()+"\tINFO\t[subscribeToService]\t"+msisdn+"\tCompleted SUBSCRIBE action Graph logging for service ("+accountId+", "+keyword+")");
+                    } else {
+                        System.out.println(new java.util.Date()+"\tERROR\t[subscribeToService]\t"+msisdn+"\tCould not find RNDVU Details for service ("+accountId+", "+keyword+")");
+                    }
 
 //                    HashMap<String, String> params = new HashMap();
 //                    params.put("msisdn", msisdn.substring(msisdn.indexOf("+") + 1));
@@ -910,6 +984,30 @@ public class UserServiceDB {
                     prepstat.setInt(7, billingType);
                     prepstat.execute();
                     regId[2] = nextSubDate;
+                    
+                    // Log Rendezvous SUBSCRIBE here
+                    // Get Service Rndvu Details from DB
+                    ServiceRndvuDetails serviceRndv = ServiceRndvuDetails.viewDetails(accountId, keyword);
+                    if (serviceRndv != null){
+                        final String rndvuMsisdn = msisdn;
+                        final String clientId = serviceRndv.getClientId();
+                        final String storeId = serviceRndv.getStoreId();
+                        // Log User SUBSCRIBE action
+                        new Thread(new Runnable() {
+
+                            @Override
+                            public void run() {
+                                try{
+                                    UserEvents.subscribe(rndvuMsisdn, clientId, storeId);
+                                } catch (Exception ex){
+                                    System.out.println(new java.util.Date()+"\tERROR\t[subscribeToService]\t"+rndvuMsisdn+"\tError while writing User action [SUBSCRIBE] to RNDVU Graph: "+ex.getMessage());
+                                }
+                            }
+                        }).start();
+                        System.out.println(new java.util.Date()+"\tINFO\t[subscribeToService]\t"+msisdn+"\tCompleted SUBSCRIBE action Graph logging for service ("+accountId+", "+keyword+")");
+                    } else {
+                        System.out.println(new java.util.Date()+"\tERROR\t[subscribeToService]\t"+msisdn+"\tCould not find RNDVU Details for service ("+accountId+", "+keyword+")");
+                    }
 
 //                    HashMap<String, String> params = new HashMap();
 //                    params.put("msisdn", msisdn.substring(msisdn.indexOf("+") + 1));

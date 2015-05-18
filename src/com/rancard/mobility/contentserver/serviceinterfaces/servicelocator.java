@@ -259,8 +259,7 @@ public class servicelocator
             request.setAttribute("ack", acknowledgement);
             request.setAttribute("cmd", srvc.getCommand());
             request.setAttribute("attr_keyword", searchParam);
-
-
+            
             String srvcUrl = (String) this.routingTable.get(srvc.getServiceType());
             if ((srvcUrl == null) || (srvcUrl.equals(""))) {
                 System.out.println(new Date() + ": no URL (routing) found for requested service (" + searchParam + ", " + accountId + ")");

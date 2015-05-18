@@ -15,8 +15,6 @@ import com.rancard.mobility.infoserver.viralmarketing.PromoImpression;
 import com.rancard.mobility.infoserver.viralmarketing.VMServiceManager;
 import com.rancard.mobility.infoserver.viralmarketing.VMTransaction;
 import com.rancard.mobility.infoserver.viralmarketing.VMUser;
-import com.rancard.mobility.rndvu.ServiceRndvuDetails;
-import com.rancard.rndvu.events.UserEvents;
 import com.rancard.util.Date;
 import com.rancard.util.Utils;
 import com.rancard.util.payment.PaymentManager;
@@ -234,33 +232,6 @@ public class serviceexperiencefilter
                             if (smsc.toUpperCase().contains("ETISALAT_NG")) {
                                 Utils.informMASP(msisdn, accountId, keyword, dest, "SUBSCRIBE", pushMsg);
                             }
-                            
-                            // Log Rendezvous SUBSCRIBE here
-//                            boolean doLogging = new Config().doGraphLogging();
-//                            if (doLogging){
-                                // Get Service Rndvu Details from DB
-                                ServiceRndvuDetails serviceRndv = ServiceRndvuDetails.viewDetails(accountId, keyword);
-                                if (serviceRndv != null){
-                                    final String rndvuMsisdn = msisdn;
-                                    final String clientId = serviceRndv.getClientId();
-                                    final String storeId = serviceRndv.getStoreId();
-                                    // Log User SUBSCRIBE action
-                                    new Thread(new Runnable() {
-
-                                        @Override
-                                        public void run() {
-                                            try{
-                                                UserEvents.subscribe(rndvuMsisdn, clientId, storeId);
-                                            } catch (Exception ex){
-                                                System.out.println(new java.util.Date()+"\tERROR\t[serviceexp]\t"+rndvuMsisdn+"\tError while writing User action [SUBSCRIBE] to RNDVU Graph: "+ex.getMessage());
-                                            }
-                                        }
-                                    }).start();
-                                    System.out.println(new java.util.Date()+"\tINFO\t[serviceexp]\t"+msisdn+"\tCompleted SUBSCRIBE action Graph logging for service ("+accountId+", "+keyword+")");
-                                } else {
-                                    System.out.println(new java.util.Date()+"\tERROR\t[serviceexp]\t"+msisdn+"\tCould not find RNDVU Details for service ("+accountId+", "+keyword+")");
-                                }
-                            //}
 
                             vmAcceptance(accountId, service_keyword, msisdn, srvc.getServiceName(), srvcExpr.getWelcomeMsgSender().equals("") ? shortCode : srvcExpr.getWelcomeMsgSender(), smsc);
 
@@ -290,8 +261,7 @@ public class serviceexperiencefilter
                     }
                 }
                 request.setAttribute("promoId", promoId);
-
-
+                
                 promoImpressionsCheck(serviceRespCode, keyword, accountId, msisdn, request);
             } else {
                 logState(accountId, siteId, keyword, msisdn, "No experience configuration defined for service");
