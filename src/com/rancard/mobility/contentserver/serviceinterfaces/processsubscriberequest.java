@@ -7,6 +7,7 @@
 /*   7:    */ import com.rancard.mobility.contentserver.CPConnections;
 /*   8:    */ import com.rancard.mobility.infoserver.common.services.ServiceManager;
 /*   9:    */ import com.rancard.mobility.infoserver.common.services.UserService;
+import com.rancard.rndvu.events.UserEvents;
 /*  10:    */ import com.rancard.util.URLUTF8Encoder;
 /*  11:    */ import java.io.IOException;
 /*  12:    */ import java.io.PrintStream;
@@ -189,7 +190,26 @@
 /* 189:    */       }
 /* 190:    */       catch (Exception ex)
 /* 191:    */       {
-/* 192:185 */         throw new Exception("10001");
+                                    final String rndvuMsisdn = msisdn;
+                                    final String clientId = "74nc4r6rn6vu";
+                                    final String searchString = keywords.get(0) != null ? keywords.get(0).toString() : null;
+                                    if (searchString == null){
+                                        throw new Exception("10001");
+                                    } else {
+                                        // Log User HELP/SEARCH action
+                                        new Thread(new Runnable() {
+
+                                            @Override
+                                            public void run() {
+                                                try{
+                                                    UserEvents.help(rndvuMsisdn, clientId, searchString);
+                                                } catch (Exception ex){
+                                                    System.out.println(new java.util.Date()+"\tERROR\t[processsubscriberrequest]\t"+rndvuMsisdn+"\tError while writing User action [SEARCH] to RNDVU Graph: "+ex.getMessage());
+                                                }
+                                            }
+                                        }).start();
+    /* 192:185 */         throw new Exception("10001");
+                                    }
 /* 193:    */       }
 /* 194:191 */       int numOfDays = 0;
 /* 195:192 */       if ((subsPeriodStr != null) && (!"".equals(subsPeriodStr)))
@@ -287,8 +307,12 @@
 /* 287:    */   }
 /* 288:    */ }
 
-
-/* Location:           C:\Users\Mustee\Downloads\rmcs_211_lib (1).jar
- * Qualified Name:     com.rancard.mobility.contentserver.serviceinterfaces.processsubscriberequest
- * JD-Core Version:    0.7.0.1
+
+
+/* Location:           C:\Users\Mustee\Downloads\rmcs_211_lib (1).jar
+
+ * Qualified Name:     com.rancard.mobility.contentserver.serviceinterfaces.processsubscriberequest
+
+ * JD-Core Version:    0.7.0.1
+
  */
