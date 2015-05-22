@@ -164,12 +164,28 @@ import com.rancard.rndvu.events.UserEvents;
 /* 163:    */       }
 /* 164:160 */       ArrayList keywords = new ArrayList();
 /* 165:161 */       String resp = new String();
+                                  String resolvedMsg = msg;
 /* 166:    */       
 /* 167:163 */       String serviceNames = "";
 /* 168:164 */       if ((msg != null) && (!msg.equals("")))
 /* 169:    */       {
 /* 170:166 */         if (!keywords.contains(msg)) {
-/* 171:167 */           keywords.add(msg);
+                                        // For vodafone services, check if message sent matches any configured alias for any service, then use that service's keyword instead
+                                        UserService serviceAlias = null;
+                                        if (provId.equals("000")){
+                                            try{
+                                                serviceAlias = ServiceManager.viewServiceByAlias(msg, provId);
+                                                String resolvedKeyword = serviceAlias.getKeyword() == null || serviceAlias.getKeyword().equals("") ? msg : serviceAlias.getKeyword();
+                                                keywords.add(resolvedKeyword);
+                                                resolvedMsg = resolvedKeyword;
+                                            } catch (Exception ex){
+                                                System.out.println(new Date() + "[processsubscriberequest]\tMessage ("+msg+") does not match any configured alias");
+                                            }
+                                        }
+                                        
+                                        if (serviceAlias == null){
+                                            keywords.add(msg);
+                                        }
 /* 172:    */         }
 /* 173:    */       }
 /* 174:    */       else {
@@ -226,7 +242,7 @@ import com.rancard.rndvu.events.UserEvents;
 /* 206:    */       
 /* 207:    */ 
 /* 208:207 */       provName = new User().viewDealer(provId).getName();
-/* 209:208 */       String insertions = "ack=" + ACK + "&keyword=" + kw + "&msg=" + msg + "&msisdn=" + msisdn + "&provName=" + provName + "&pin=" + regId[0] + "&srvcName=" + serviceNames;
+/* 209:208 */       String insertions = "ack=" + ACK + "&keyword=" + kw + "&msg=" + resolvedMsg + "&msisdn=" + msisdn + "&provName=" + provName + "&pin=" + regId[0] + "&srvcName=" + serviceNames;
 /* 210:209 */       ACK = URLUTF8Encoder.doMessageEscaping(insertions, ACK);
 /* 211:211 */       if (regId[1] == null) {
 /* 212:212 */         message = ACK;

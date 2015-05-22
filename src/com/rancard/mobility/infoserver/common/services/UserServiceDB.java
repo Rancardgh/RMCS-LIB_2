@@ -279,7 +279,7 @@ public class UserServiceDB {
             UserService localUserService;
             if (rs.next()) {
                 System.out.println(new java.util.Date() + ": " + UserServiceDB.class + "INFO: Service found");
-                return new UserService(rs.getString("service_type"), rs.getString("keyword"), rs.getString("account_id"), rs.getString("service_name"), rs.getString("default_message"), rs.getString("command"), rs.getString("allowed_shortcodes"), rs.getString("allowed_site_types"), rs.getString("pricing"), rs.getBoolean("is_basic"), rs.getBoolean("is_subscription"), rs.getString("service_response_sender"));
+                return new UserService(rs.getString("service_type"), rs.getString("sd.keyword"), rs.getString("sd.account_id"), rs.getString("service_name"), rs.getString("default_message"), rs.getString("command"), rs.getString("allowed_shortcodes"), rs.getString("allowed_site_types"), rs.getString("pricing"), rs.getBoolean("is_basic"), rs.getBoolean("is_subscription"), rs.getString("service_response_sender"));
             }
             System.out.println(new java.util.Date() + ": " + UserServiceDB.class + "INFO: Service not found");
             return null;
@@ -288,10 +288,18 @@ public class UserServiceDB {
             throw new Exception(ex.getMessage());
         } finally {
             if (rs != null) {
-                rs.close();
+                try{
+                    rs.close();
+                } catch (SQLException sqx){
+                    
+                }
             }
             if (conn != null) {
-                conn.close();
+                try{
+                    conn.close();
+                } catch (SQLException sqx){
+                    
+                }
             }
         }
     }
