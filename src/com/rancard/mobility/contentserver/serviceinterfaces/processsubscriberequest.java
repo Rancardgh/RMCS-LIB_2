@@ -14,6 +14,7 @@ import com.rancard.rndvu.events.UserEvents;
 /*  13:    */ import java.io.PrintWriter;
 /*  14:    */ import java.util.ArrayList;
 /*  15:    */ import java.util.Date;
+import java.util.HashMap;
 /*  16:    */ import javax.servlet.RequestDispatcher;
 /*  17:    */ import javax.servlet.ServletContext;
 /*  18:    */ import javax.servlet.ServletException;
@@ -179,7 +180,7 @@ import com.rancard.rndvu.events.UserEvents;
                                                 keywords.add(resolvedKeyword);
                                                 resolvedMsg = resolvedKeyword;
                                             } catch (Exception ex){
-                                                System.out.println(new Date() + "[processsubscriberequest]\tMessage ("+msg+") does not match any configured alias");
+                                                System.out.println(new Date() + "\t[processsubscriberequest]\tMessage ("+msg+") does not match any configured alias");
                                             }
                                         }
                                         
@@ -220,7 +221,7 @@ import com.rancard.rndvu.events.UserEvents;
                                                 try{
                                                     UserEvents.help(rndvuMsisdn, clientId, searchString);
                                                 } catch (Exception ex){
-                                                    System.out.println(new java.util.Date()+"\tERROR\t[processsubscriberrequest]\t"+rndvuMsisdn+"\tError while writing User action [SEARCH] to RNDVU Graph: "+ex.getMessage());
+                                                    System.out.println(new java.util.Date()+"\tERROR\t[processsubscriberequest]\t"+rndvuMsisdn+"\tError while writing User action [SEARCH] to RNDVU Graph: "+ex.getMessage());
                                                 }
                                             }
                                         }).start();
@@ -228,17 +229,23 @@ import com.rancard.rndvu.events.UserEvents;
                                     }
 /* 193:    */       }
 /* 194:191 */       int numOfDays = 0;
-/* 195:192 */       if ((subsPeriodStr != null) && (!"".equals(subsPeriodStr)))
-/* 196:    */       {
-/* 197:193 */         numOfDays = Integer.parseInt(subsPeriodStr);
-/* 198:    */         
-/* 199:195 */         ServiceManager.subscribeToService(msisdn, keywords, provId, numOfDays);
-/* 200:    */       }
-/* 201:    */       else
-/* 202:    */       {
-/* 203:198 */         ServiceManager.subscribeToService(msisdn, keywords, provId, numOfDays);
-/* 204:    */       }
-/* 205:204 */       System.out.println("Subscription completed.");
+                            HashMap thisSubscription = ServiceManager.getSubscription(msisdn, provId, resolvedMsg, null);
+                            if ((thisSubscription != null) && (!thisSubscription.isEmpty())) {
+                                // Log Rendezvous ALREADY SUBSCRIBED (MORE) here
+                                System.out.println(new java.util.Date()+"\tINFO\t[processsubscriberequest]\tSubscription cannot be completed. "+msisdn+" has an existing "+resolvedMsg.toUpperCase()+" subscription");
+                            } else {
+                                if ((subsPeriodStr != null) && (!"".equals(subsPeriodStr)))
+    /* 196:    */       {
+    /* 197:193 */         numOfDays = Integer.parseInt(subsPeriodStr);
+    /* 198:    */         
+    /* 199:195 */         ServiceManager.subscribeToService(msisdn, keywords, provId, numOfDays);
+    /* 200:    */       }
+    /* 201:    */       else
+    /* 202:    */       {
+    /* 203:198 */         ServiceManager.subscribeToService(msisdn, keywords, provId, numOfDays);
+    /* 204:    */       }
+    /* 205:204 */       System.out.println("Subscription completed.");
+                            }
 /* 206:    */       
 /* 207:    */ 
 /* 208:207 */       provName = new User().viewDealer(provId).getName();
